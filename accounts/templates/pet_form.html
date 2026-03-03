@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ title }} — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pet_form.css' %}">
+
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="petform-page">
+      <div class="petform-header">
+        <h1>{% if pet %}Edit pet 🐾{% else %}Add a pet 🐾{% endif %}</h1>
+        <p>{% if pet %}Update {{ pet.name }}'s profile.{% else %}Fill in your pet's details to get started.{% endif %}</p>
+      </div>
+
+      <div class="petform-card">
+        {% if form.errors %}
+        <div class="form-errors">
+          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <div class="section-label">Basic info</div>
+          <div class="form-row">
+            <div class="field-group full">
+              <label for="{{ form.name.id_for_label }}">
+                <i class="fa-solid fa-tag"></i> Name
+              </label>
+              {{ form.name }}
+            </div>
+          </div>
+
+          <div class="section-label" style="margin-top:1.25rem;">Species</div>
+
+          <div class="species-picker" id="speciesPicker">
+            <input type="radio" class="species-option" name="_species_vis" id="sp_dog" value="dog">
+            <label class="species-label" for="sp_dog">
+              <span class="emoji">🐶</span> Dog
+            </label>
+
+            <input type="radio" class="species-option" name="_species_vis" id="sp_cat" value="cat">
+            <label class="species-label" for="sp_cat">
+              <span class="emoji">🐱</span> Cat
+            </label>
+
+            <input type="radio" class="species-option" name="_species_vis" id="sp_bird" value="bird">
+            <label class="species-label" for="sp_bird">
+              <span class="emoji">🐦</span> Bird
+            </label>
+
+            <input type="radio" class="species-option" name="_species_vis" id="sp_other" value="other">
+            <label class="species-label" for="sp_other">
+              <span class="emoji">🐾</span> Other
+            </label>
+          </div>
+
+          <div style="display:none;">
+            {{ form.species }}
+          </div>
+
+          <div class="section-label">Details</div>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="{{ form.breed.id_for_label }}">
+                <i class="fa-solid fa-dna"></i> Breed
+              </label>
+              {{ form.breed }}
+            </div>
+            <div class="field-group">
+              <label for="{{ form.birth_date.id_for_label }}">
+                <i class="fa-solid fa-cake-candles"></i> Birth date
+              </label>
+              {{ form.birth_date }}
+            </div>
+            <div class="field-group">
+              <label for="{{ form.weight_kg.id_for_label }}">
+                <i class="fa-solid fa-weight-scale"></i> Weight (kg)
+              </label>
+              {{ form.weight_kg }}
+            </div>
+          </div>
+
+          <div class="section-label">Notes</div>
+          <div class="field-group">
+            <label for="{{ form.notes.id_for_label }}">
+              <i class="fa-solid fa-notes-medical"></i> Medical notes / allergies
+            </label>
+            {{ form.notes }}
+          </div>
+
+          <div class="form-footer">
+            <button type="submit" class="btn-save">
+              <i class="fa-solid fa-floppy-disk"></i> Save pet
+            </button>
+            <a href="/accounts/pets/" class="back-link">
+              <i class="fa-solid fa-arrow-left" style="font-size:0.75rem;"></i> Back to my pets
+            </a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Sync visual species picker → Django's hidden select
+    (function () {
+      const realSelect = document.getElementById('{{ form.species.id_for_label }}');
+      const radios = document.querySelectorAll('.species-option');
+
+      // Pre-select if editing an existing pet
+      const currentVal = realSelect ? realSelect.value : '';
+      if (currentVal) {
+        const match = document.querySelector(`.species-option[value="${currentVal}"]`);
+        if (match) match.checked = true;
+      }
+
+      radios.forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          if (realSelect) realSelect.value = this.value;
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

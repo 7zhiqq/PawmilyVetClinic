@@ -1,0 +1,305 @@
+.queue-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.queue-header h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.15rem;
+}
+
+.queue-header p {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.queue-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 16px;
+  padding: 0.85rem 1.25rem;
+  box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+  margin-bottom: 1.5rem;
+}
+
+.queue-toolbar__today {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.queue-toolbar__today:hover { background: #e5e7eb; }
+
+.queue-toolbar form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.queue-toolbar label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.queue-toolbar input[type="date"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: #111827;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.queue-toolbar input[type="date"]:focus {
+  border-color: #7c3aed;
+  background: #fff;
+}
+
+.queue-toolbar button {
+  padding: 0.5rem 0.9rem;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.queue-toolbar button:hover { opacity: 0.85; }
+
+.queue-day-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.queue-day-title .count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 0.4rem;
+  background: #111827;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.apt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.apt-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 2px 12px rgba(15,23,42,0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: slideIn 0.3s ease both;
+  border-left: 4px solid transparent;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.apt-card:hover {
+  box-shadow: 0 6px 24px rgba(15,23,42,0.10);
+  transform: translateX(2px);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.apt-card.pending   { border-left-color: #fbbf24; }
+.apt-card.confirmed { border-left-color: #34d399; }
+.apt-card.rejected  { border-left-color: #f87171; }
+.apt-card.cancelled { border-left-color: #9ca3af; }
+.apt-card.completed { border-left-color: #818cf8; }
+
+.apt-card__time {
+  flex-shrink: 0;
+  text-align: center;
+  min-width: 58px;
+}
+
+.apt-card__time-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.apt-card__time-ampm {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.apt-card__pet-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+
+.apt-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.apt-card__pet-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apt-card__meta {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.apt-card__reason {
+  font-size: 0.8rem;
+  color: #374151;
+  margin-top: 0.2rem;
+  font-style: italic;
+}
+
+.apt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.apt-pill.pending   { background: #fef3c7; color: #92400e; }
+.apt-pill.confirmed { background: #d1fae5; color: #065f46; }
+.apt-pill.rejected  { background: #fee2e2; color: #991b1b; }
+.apt-pill.cancelled { background: #f3f4f6; color: #4b5563; }
+.apt-pill.completed { background: #e0e7ff; color: #3730a3; }
+.apt-pill.walk_in   { background: #ede9fe; color: #6d28d9; }
+
+.apt-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.queue-empty {
+  background: #fff;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(15,23,42,0.05);
+}
+
+.queue-empty__icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.queue-empty h3 { font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 0.25rem; }
+.queue-empty p  { font-size: 0.875rem; color: #6b7280; }
+
+.queue-footer {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-ghost:hover { background: #f9fafb; border-color: #d1d5db; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  background: #111827;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover { opacity: 0.85; }

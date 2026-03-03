@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+  <div class="login-page">
+    <div class="login-card">
+
+      <a href="/" class="login-card__brand">
+        <span class="login-card__brand-icon">
+          <i class="fa-solid fa-paw"></i>
+        </span>
+        <span class="login-card__brand-name">PAWMILY</span>
+      </a>
+
+      <h1 class="login-card__title">Welcome back 👋</h1>
+      <p class="login-card__sub">
+        Sign in to manage your pet's health. Pet owners can register directly;
+        staff and managers should use their invite link.
+      </p>
+
+      {% if form.errors %}
+      <div class="login-errors">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="login-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="id_username">Username</label>
+          <input
+            type="text"
+            id="id_username"
+            name="username"
+            placeholder="Enter your username"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="id_password">Password</label>
+          <input
+            type="password"
+            id="id_password"
+            name="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <div class="login-form__forgot">
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="login-form__btn">Sign In</button>
+      </form>
+
+      <div class="login-divider">or</div>
+
+      <p class="login-card__register">
+        Pet owner without an account? <a href="/accounts/register/">Register here</a>
+      </p>
+
+    </div>
+  </div>
+
+</body>
+</html>

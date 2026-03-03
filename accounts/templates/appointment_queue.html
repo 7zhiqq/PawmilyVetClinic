@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Queue — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/queue.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="queue-page">
+      <div class="queue-header">
+        <div>
+          <h1>Queue</h1>
+          <p>Appointments for {{ view_date|date:"l, F j, Y" }}</p>
+        </div>
+        {% if is_staff %}
+        <a href="{% url 'appointment_schedule' %}" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+        </a>
+        {% else %}
+        <a href="{% url 'appointment_book' %}" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Book appointment
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="queue-toolbar">
+        <a href="?date={% now 'Y-m-d' %}" class="queue-toolbar__today">
+          <i class="fa-regular fa-calendar-check"></i> Today
+        </a>
+        <form method="get" action="{% url 'appointment_queue' %}">
+          <label for="qdate">Date</label>
+          <input type="date" id="qdate" name="date" value="{{ view_date|date:'Y-m-d' }}" />
+          <button type="submit">Go</button>
+        </form>
+      </div>
+
+      {% if appointments %}
+      <div class="queue-day-title">
+        {{ view_date|date:"l" }}
+        <span class="count-badge">{{ appointments|length }}</span>
+      </div>
+
+      <div class="apt-list">
+        {% for apt in appointments %}
+        <div class="apt-card {{ apt.status }}">
+          <div class="apt-card__time">
+            <div class="apt-card__time-val">{{ apt.start_time|time:"g:i" }}</div>
+            <div class="apt-card__time-ampm">{{ apt.start_time|time:"A" }}</div>
+          </div>
+
+          <div class="apt-card__pet-icon">
+            {% with species=apt.pet.species %}
+              {% if species == 'dog' %}🐶
+              {% elif species == 'cat' %}🐱
+              {% elif species == 'bird' %}🐦
+              {% else %}🐾{% endif %}
+            {% endwith %}
+          </div>
+
+          <div class="apt-card__info">
+            <div class="apt-card__pet-name">{{ apt.pet.name|default:"Walk-in" }}</div>
+            <div class="apt-card__meta">
+              {% if is_staff %}{{ apt.owner.get_full_name|default:apt.owner.username }} · {% endif %}
+              {{ apt.get_appointment_type_display }}
+            </div>
+            {% if apt.reason %}
+            <div class="apt-card__reason">"{{ apt.reason }}"</div>
+            {% endif %}
+          </div>
+          
+          <span class="apt-pill {{ apt.status }}">
+            <span class="apt-pill__dot"></span>
+            {{ apt.get_status_display }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="queue-empty">
+        <span class="queue-empty__icon">📋</span>
+        <h3>No appointments</h3>
+        <p>Nothing scheduled for this day.</p>
+      </div>
+      {% endif %}
+
+      <div class="queue-footer">
+        <a href="{% url 'appointment_calendar' %}" class="btn-ghost">
+          <i class="fa-solid fa-calendar-days"></i> Calendar
+        </a>
+        {% if is_staff %}
+        <a href="{% url 'appointment_manage' %}" class="btn-ghost">
+          <i class="fa-solid fa-list-check"></i> Manage all
+        </a>
+        {% endif %}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

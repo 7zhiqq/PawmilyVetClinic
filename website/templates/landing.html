@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pawmily - Caring for Your Furry Family</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/hero.css' %}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a href="/" class="navbar__brand">
+        <span class="navbar__brand-icon">
+          <i class="fa-solid fa-paw" style="color:#fff;"></i>
+        </span>
+        <span class="navbar__brand-name">PAWMILY</span>
+      </a>
+
+      <ul class="navbar__links">
+        <li><a href="/" class="active">Home</a></li>
+        <li class="navbar__dropdown">
+          <a href="#">Services <span class="chevron">▾</span></a>
+          <div class="navbar__dropdown-menu">
+            <a href="#">Wellness Check</a>
+            <a href="#">Vaccinations</a>
+            <a href="#">Dental Care</a>
+            <a href="#">Surgery</a>
+            <a href="#">Laboratory</a>
+          </div>
+        </li>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+
+      <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="navbar__mobile" id="mobileMenu">
+      <a href="/">Home</a>
+      <a href="#">Services</a>
+      <a href="#">About Us</a>
+      <a href="#">Contact Us</a>
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero__bubble hero__bubble--1">🐾</div>
+    <div class="hero__bubble hero__bubble--2">🐾</div>
+    <div class="hero__bubble hero__bubble--3">🐾</div>
+    <div class="hero__bubble hero__bubble--4">🐾</div>
+
+    <p class="hero__badge fade-up">
+      <span class="hero__badge-dot"></span>
+      PAWMILY Vetenirary Clinic's Solutions
+    </p>
+
+    <h1 class="hero__heading fade-up">
+      Your reliable<br>
+      partner for pet <mark>wellness</mark>
+    </h1>
+
+    <p class="hero__sub fade-up">
+      At our clinic, we prioritize the health and happiness of your
+      beloved pets. Our expert veterinarians are dedicated to
+      providing love.
+    </p>
+
+    <div class="hero__cta-row fade-up">
+      <a href="/accounts/login/" class="hero__btn-primary">
+        Contact us
+        <span class="hero__btn-paw">🐾</span>
+      </a>
+      <a href="#services" class="hero__link">
+        See all services &rsaquo;
+      </a>
+    </div>
+  </section>
+
+  <section class="services-strip" id="services">
+    <div class="services-strip__inner">
+
+      <div class="service-card service-card--purple">
+        <div>
+          <p class="service-card__label">Preventive Care</p>
+          <h3 class="service-card__title">Wellness &amp; Vaccination</h3>
+        </div>
+        <span class="service-card__icon">💉</span>
+      </div>
+
+      <div class="service-card service-card--blue">
+        <div>
+          <p class="service-card__label">Diagnostics</p>
+          <h3 class="service-card__title">Lab &amp; Health Screening</h3>
+        </div>
+        <span class="service-card__icon">🔬</span>
+      </div>
+
+      <div class="service-card service-card--yellow">
+        <div>
+          <p class="service-card__label">Surgical</p>
+          <h3 class="service-card__title">Surgery &amp; Dental Care</h3>
+        </div>
+        <span class="service-card__icon">🦷</span>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>

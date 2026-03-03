@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">
+            Welcome back, {{ user.first_name|default:user.username }}
+          </h1>
+          <p class="dashboard-subtitle">
+            Manage your clinic activity in one place.
+          </p>
+        </div>
+
+        {% if role %}
+        <div class="dashboard-chip">
+          {% if role != 'pet_owner' %}
+            <span>Role:</span>
+            <span>
+              {% if role == 'staff' %}Staff{% endif %}
+              {% if role == 'manager' %}Manager{% endif %}
+            </span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </header>
+
+      <section class="dashboard-grid">
+        <section class="dashboard-card">
+          <h2 class="dashboard-card__title">Quick actions</h2>
+          <p class="dashboard-card__sub">
+            Jump straight into the most common.
+          </p>
+
+          <div class="dashboard-actions">
+            {% if role == 'manager'%}
+              <a href="/accounts/invitations/" class="dashboard-action-btn dashboard-action-btn--primary">
+                <i class="fa-solid fa-users-gear"></i>
+                Manage users
+              </a>
+              <a href="#" class="dashboard-action-btn">
+                <i class="fa-solid fa-chart-line"></i>
+                View clinic overview
+              </a>
+            {% elif role == 'staff' or role == 'manager' %}
+              <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="dashboard-action-btn dashboard-action-btn--primary">
+                <i class="fa-solid fa-stethoscope"></i>
+                Today&apos;s queue
+              </a>
+              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
+                <i class="fa-solid fa-calendar-days"></i>
+                Calendar
+              </a>
+              <a href="/accounts/appointments/schedule/" class="dashboard-action-btn">
+                <i class="fa-solid fa-plus"></i>
+                Schedule / Walk-in
+              </a>
+            {% else %}
+              <a href="/accounts/appointments/book/" class="dashboard-action-btn dashboard-action-btn--primary">
+                <i class="fa-solid fa-calendar-plus"></i>
+                Book appointment
+              </a>
+              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
+                <i class="fa-solid fa-calendar-days"></i>
+                Calendar
+              </a>
+              <a href="/accounts/pets/add/" class="dashboard-action-btn">
+                <i class="fa-solid fa-paw"></i>
+                Add pet
+              </a>
+              <a href="/accounts/pets/" class="dashboard-action-btn">
+                <i class="fa-solid fa-paw"></i>
+                My pets
+              </a>
+              <a href="/accounts/profile/" class="dashboard-action-btn">
+                <i class="fa-solid fa-user"></i>
+                My profile
+              </a>
+            {% endif %}
+          </div>
+        </section>
+
+        <aside class="dashboard-card">
+          {% if role == 'pet_owner' %}
+            <h2 class="dashboard-card__title">Reminders</h2>
+            <p class="dashboard-card__sub">
+              This is a placeholder. gwapagwapa si angelaonyate
+            </p>
+          {% elif role == 'staff' %}
+            <h2 class="dashboard-card__title">Appointments</h2>
+            <p class="dashboard-card__sub">
+              This is a placeholder dashboard. You can plug in real data (appointments, queue status, etc.) as your project grows.
+            </p>
+          {% elif role == 'manager' %}
+            <h2 class="dashboard-card__title">Clinic performance</h2>
+            <p class="dashboard-card__sub">
+              This is a placeholder dashboard. You can plug in real data (clinic stats, staff performance, etc.) as your project grows.
+            </p>
+          {% endif %}
+
+          <ul class="dashboard-list">
+            <li>Angela Onyate gwapa gwaopa</li>
+            <li>Shan8 Timbal gwapa gwapa.</li>
+            <li>Kesha Pit gwapa gwapa</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

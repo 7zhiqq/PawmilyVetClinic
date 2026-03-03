@@ -1,0 +1,41 @@
+<nav class="navbar">
+  <div class="navbar__inner">
+    <a href="/" class="navbar__brand">
+      <span class="navbar__brand-icon">
+        <i class="fa-solid fa-paw" style="color:#fff;"></i>
+      </span>
+      <span class="navbar__brand-name">PAWMILY</span>
+    </a>
+
+    <ul class="navbar__links">
+      <li><a href="/">Home</a></li>
+
+      {% if user.is_authenticated %}
+        {% with role=user.profile.role|default:'' %}
+          {% if user.is_superuser or role == 'manager' %}
+            <li><a href="/accounts/invitations/">Manage users</a></li>
+          {% elif role == 'staff' %}
+            <li><a href="/accounts/appointments/calendar/">Calendar</a></li>
+            <li><a href="/accounts/appointments/manage/">Appointments</a></li>
+          {% else %}
+            <li><a href="/accounts/pets/">Pets</a></li>
+            <li><a href="/accounts/appointments/calendar/">Calendar</a></li>
+            <li><a href="/accounts/profile/">My profile</a></li>
+          {% endif %}
+        {% endwith %}
+      {% endif %}
+    </ul>
+
+    <div>
+      {% if user.is_authenticated %}
+        <span style="font-size:0.85rem;color:#e5e7eb;margin-right:0.75rem;">
+          Hi, {{ user.first_name|default:user.username }}
+        </span>
+        <a href="/accounts/logout/" class="navbar__cta">Logout</a>
+      {% else %}
+        <a href="/accounts/login/" class="navbar__cta">Login</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+

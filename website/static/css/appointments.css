@@ -1,0 +1,262 @@
+.manage-page {
+  max-width: 1120px;
+  padding: 2.5rem 1.5rem 3rem;
+  margin: 0 150px 10px 150px;
+}
+
+.manage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.manage-header h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.15rem;
+}
+
+.manage-header p { font-size: 0.9rem; color: #6b7280; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  background: #111827;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+
+.manage-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.05);
+  border-top: 3px solid transparent;
+}
+
+.stat-card--pending  { border-top-color: #fbbf24; }
+.stat-card--confirm  { border-top-color: #34d399; }
+.stat-card--complete { border-top-color: #818cf8; }
+.stat-card--reject   { border-top-color: #f87171; }
+
+.stat-card__num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.stat-card__label {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-top: 0.2rem;
+}
+
+.apt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.apt-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.05);
+  display: grid;
+  grid-template-columns: 72px 44px 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  border-left: 4px solid transparent;
+  animation: fadeUp 0.3s ease both;
+  transition: box-shadow 0.2s;
+}
+
+.apt-card:hover { box-shadow: 0 6px 24px rgba(15,23,42,0.09); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.apt-card.pending   { border-left-color: #fbbf24; }
+.apt-card.confirmed { border-left-color: #34d399; }
+.apt-card.rejected  { border-left-color: #f87171; }
+.apt-card.cancelled { border-left-color: #9ca3af; }
+.apt-card.completed { border-left-color: #818cf8; }
+
+.apt-card__date {
+  text-align: center;
+}
+
+.apt-card__date-day {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.apt-card__date-month {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.apt-card__date-time {
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.apt-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.apt-card__pet {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.apt-card__owner {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+
+.apt-card__tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+  align-items: center;
+}
+
+.apt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.apt-pill.pending   { background: #fef3c7; color: #92400e; }
+.apt-pill.confirmed { background: #d1fae5; color: #065f46; }
+.apt-pill.rejected  { background: #fee2e2; color: #991b1b; }
+.apt-pill.cancelled { background: #f3f4f6; color: #4b5563; }
+.apt-pill.completed { background: #e0e7ff; color: #3730a3; }
+.apt-pill.walk_in   { background: #ede9fe; color: #6d28d9; }
+
+.apt-reason {
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.apt-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.apt-card__actions form { margin: 0; }
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.action-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
+
+.action-btn--confirm:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+.action-btn--reject:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.action-btn--complete:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #3730a3;
+}
+
+.manage-empty {
+  background: #fff;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(15,23,42,0.05);
+}
+
+.manage-empty__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.manage-empty h3 { font-weight: 700; color: #111827; margin-bottom: 0.3rem; }
+.manage-empty p  { font-size: 0.875rem; color: #6b7280; }
+
+@media (max-width: 700px) {
+  .manage-stats { grid-template-columns: repeat(2, 1fr); }
+
+  .apt-card {
+    grid-template-columns: 56px 1fr auto;
+    grid-template-rows: auto auto;
+  }
+
+  .apt-card__icon { display: none; }
+}

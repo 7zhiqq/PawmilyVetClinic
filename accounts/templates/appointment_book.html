@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Appointment — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/book.css' %}">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="book-page">
+      <div class="book-header">
+        <h1>Book Appointment</h1>
+        <p>Request a visit for your pet. We'll confirm shortly.</p>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card__title">Appointment details</div>
+
+        {% if form.errors %}
+        <div class="form-errors">
+          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="form-fields">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="{{ form.pet.id_for_label }}">
+              <i class="fa-solid fa-paw"></i> Pet
+            </label>
+            {{ form.pet }}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.appointment_date.id_for_label }}">
+              <i class="fa-regular fa-calendar"></i> Date
+            </label>
+            {{ form.appointment_date }}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.start_time.id_for_label }}">
+              <i class="fa-regular fa-clock"></i> Preferred time
+            </label>
+            {{ form.start_time }}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.reason.id_for_label }}">
+              <i class="fa-solid fa-stethoscope"></i> Reason for visit
+            </label>
+            {{ form.reason }}
+          </div>
+          <button type="submit" class="form-submit">
+            <i class="fa-solid fa-calendar-check"></i> Book appointment
+          </button>
+        </form>
+      </div>
+
+      <a href="{% url 'appointment_calendar' %}" class="back-link">
+        <i class="fa-solid fa-arrow-left" style="font-size:0.75rem;"></i> Back to calendar
+      </a>
+    </main>
+  </div>
+</body>
+</html>

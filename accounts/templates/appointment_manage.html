@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Appointments — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/appointments.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="manage-page">
+      <div class="manage-header">
+        <div>
+          <h1>Manage Appointments</h1>
+          <p>Review, confirm, reject, or complete appointments.</p>
+        </div>
+        <a href="{% url 'appointment_schedule' %}" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+        </a>
+      </div>
+
+      {% if appointments %}
+      <div class="manage-stats">
+        <div class="stat-card stat-card--pending">
+          <div class="stat-card__num">{{ appointments|dictsort:"status"|dictsortreversed:"status"|length }}</div>
+          <div class="stat-card__label">Total</div>
+        </div>
+        <div class="stat-card stat-card--confirm">
+          <div class="stat-card__num">
+            {% with count=0 %}
+              {% for a in appointments %}{% if a.status == 'pending' %}{% with count=count|add:1 %}{% endwith %}{% endif %}{% endfor %}
+            {% endwith %}
+            {{ appointments|length }}
+          </div>
+          <div class="stat-card__label">All</div>
+        </div>
+        <div class="stat-card stat-card--complete">
+          <div class="stat-card__num">—</div>
+          <div class="stat-card__label">Completed</div>
+        </div>
+        <div class="stat-card stat-card--reject">
+          <div class="stat-card__num">—</div>
+          <div class="stat-card__label">Pending action</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if appointments %}
+      <div class="apt-list">
+        {% for apt in appointments %}
+        <div class="apt-card {{ apt.status }}">
+          <div class="apt-card__date">
+            <div class="apt-card__date-day">{{ apt.appointment_date|date:"j" }}</div>
+            <div class="apt-card__date-month">{{ apt.appointment_date|date:"M" }}</div>
+            <div class="apt-card__date-time">{{ apt.start_time|time:"g:i A" }}</div>
+          </div>
+
+          <div class="apt-card__icon">
+            {% with s=apt.pet.species %}
+              {% if s == 'dog' %}🐶{% elif s == 'cat' %}🐱{% elif s == 'bird' %}🐦{% else %}🐾{% endif %}
+            {% endwith %}
+          </div>
+
+          <div class="apt-card__info">
+            <div class="apt-card__pet">{{ apt.pet.name|default:"Walk-in" }}</div>
+            <div class="apt-card__owner">{{ apt.owner.get_full_name|default:apt.owner.username }}</div>
+            <div class="apt-card__tags">
+              <span class="apt-pill {{ apt.status }}">{{ apt.get_status_display }}</span>
+              {% if apt.appointment_type == 'walk_in' %}
+              <span class="apt-pill walk_in">Walk-in</span>
+              {% endif %}
+              {% if apt.reason %}
+              <span class="apt-reason">{{ apt.reason }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="apt-card__actions">
+            {% if apt.status == 'pending' %}
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="confirm" />
+              <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+              <button type="submit" class="action-btn action-btn--confirm">
+                <i class="fa-solid fa-check" style="font-size:0.65rem;"></i> Confirm
+              </button>
+            </form>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="reject" />
+              <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+              <button type="submit" class="action-btn action-btn--reject">
+                <i class="fa-solid fa-xmark" style="font-size:0.65rem;"></i> Reject
+              </button>
+            </form>
+            {% elif apt.status == 'confirmed' %}
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="complete" />
+              <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+              <button type="submit" class="action-btn action-btn--complete">
+                <i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> Complete
+              </button>
+            </form>
+            {% else %}
+            <span style="font-size:0.75rem;color:#d1d5db;">—</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="manage-empty">
+        <span class="manage-empty__icon">📅</span>
+        <h3>No appointments yet</h3>
+        <p>Use Schedule to add a walk-in or create a new appointment.</p>
+        <a href="{% url 'appointment_schedule' %}" class="btn-primary" style="margin-top:1rem;">
+          <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+        </a>
+      </div>
+      {% endif %}
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complete your invite — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+  <div class="login-page">
+    <div class="login-card">
+
+      <a href="/" class="login-card__brand">
+        <span class="login-card__brand-icon">
+          <i class="fa-solid fa-paw"></i>
+        </span>
+        <span class="login-card__brand-name">PAWMILY</span>
+      </a>
+
+      <h1 class="login-card__title">Complete your invite</h1>
+      <p class="login-card__sub">
+        You&apos;ve been invited as
+        <strong>{{ invitation.get_role_display }}</strong>
+        using <strong>{{ invitation.email }}</strong>.
+      </p>
+
+      {% if invite_error %}
+      <div class="login-errors">
+        <p>{{ invite_error }}</p>
+      </div>
+      {% endif %}
+
+      {% if form.errors %}
+      <div class="login-errors">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="login-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="{{ form.first_name.id_for_label }}">First name</label>
+          {{ form.first_name }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.last_name.id_for_label }}">Last name</label>
+          {{ form.last_name }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}">Username</label>
+          {{ form.username }}
+        </div>
+
+        <p style="font-size:0.85rem;color:var(--clr-muted);margin-top:0.5rem;">
+          Your account will use <strong>{{ invitation.email }}</strong> as the email address.
+        </p>
+
+        <div class="form-group">
+          <label for="{{ form.password1.id_for_label }}">Password</label>
+          {{ form.password1 }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+          {{ form.password2 }}
+        </div>
+
+        <button type="submit" class="login-form__btn">Create account</button>
+      </form>
+
+      <div class="login-divider">or</div>
+
+      <p class="login-card__register">
+        Already completed your invite? <a href="/accounts/login/">Sign in</a>
+      </p>
+
+    </div>
+  </div>
+
+</body>
+</html>
+

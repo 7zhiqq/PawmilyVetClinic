@@ -1,0 +1,442 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Pets — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pet_list.css' %}">
+  <style>
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 1.75rem 0;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal__title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: -0.02em;
+    }
+
+    .modal__subtitle {
+      font-size: 0.83rem;
+      color: #6b7280;
+      margin-top: 0.15rem;
+    }
+
+    .modal__close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .modal__close:hover {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .modal__body {
+      padding: 0 1.75rem 1.75rem;
+    }
+
+    .modal__divider {
+      height: 1px;
+      background: #f3f4f6;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Form fields inside modal ── */
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .modal-form__row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .field-group label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .field-group label i {
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      width: 100%;
+      padding: 0.72rem 0.9rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: #111827;
+      background: #fafafa;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-group input:focus,
+    .field-group select:focus,
+    .field-group textarea:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px #ede9fe;
+      background: #fff;
+    }
+
+    .field-group textarea { resize: vertical; min-height: 72px; }
+
+    .modal-form__submit {
+      width: 100%;
+      padding: 0.9rem;
+      background: #111827;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      margin-top: 0.25rem;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .modal-form__submit:hover {
+      opacity: 0.85;
+      transform: translateY(-1px);
+    }
+
+    .modal-form__errors {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-form__errors p {
+      font-size: 0.82rem;
+      color: #dc2626;
+      margin: 0.15rem 0;
+    }
+
+    /* Species emoji selector */
+    .species-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .species-grid input[type="radio"] { display: none; }
+
+    .species-grid label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      padding: 0.65rem 0.4rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      background: #fafafa;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+
+    .species-grid label .emoji { font-size: 1.5rem; line-height: 1; }
+
+    .species-grid input[type="radio"]:checked + label {
+      border-color: #7c3aed;
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+
+    .species-grid label:hover {
+      border-color: #c4b5fd;
+      background: #f5f3ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="pets-page">
+      <div class="pets-header">
+        <div class="pets-header__left">
+          <h1>My Pets</h1>
+          <p>{{ pets|length }} pet{{ pets|length|pluralize }} registered</p>
+        </div>
+        <button class="btn-add-pet" id="openAddPet">
+          <i class="fa-solid fa-plus"></i> Add pet
+        </button>
+      </div>
+
+      <div class="pets-grid">
+        {% if pets %}
+          {% for pet in pets %}
+          <div class="pet-card">
+            <div class="pet-card__banner pet-card__banner--{{ pet.species }}">
+              <div class="pet-card__avatar">
+                {% if pet.species == 'dog' %}🐶
+                {% elif pet.species == 'cat' %}🐱
+                {% elif pet.species == 'bird' %}🐦
+                {% else %}🐾{% endif %}
+              </div>
+            </div>
+
+            <div class="pet-card__body">
+              <div class="pet-card__name">{{ pet.name }}</div>
+              <div class="pet-card__species">{{ pet.get_species_display }}{% if pet.breed %} · {{ pet.breed }}{% endif %}</div>
+
+              <div class="pet-card__details">
+                {% if pet.birth_date %}
+                <div class="pet-card__detail">
+                  <i class="fa-solid fa-cake-candles"></i>
+                  <span>{{ pet.birth_date|date:"M j, Y" }}</span>
+                </div>
+                {% endif %}
+                {% if pet.weight_kg %}
+                <div class="pet-card__detail">
+                  <i class="fa-solid fa-weight-scale"></i>
+                  <span>{{ pet.weight_kg }} kg</span>
+                </div>
+                {% endif %}
+                {% if not pet.birth_date and not pet.weight_kg %}
+                <div class="pet-card__detail" style="color:#d1d5db;">
+                  <i class="fa-solid fa-circle-info"></i>
+                  <span>No details added yet</span>
+                </div>
+                {% endif %}
+              </div>
+
+              {% if pet.notes %}
+              <div class="pet-card__notes">{{ pet.notes }}</div>
+              {% endif %}
+
+              <div class="pet-card__footer">
+                <a href="{% url 'pet_edit' pet.pk %}" class="pet-card__edit">
+                  <i class="fa-solid fa-pen-to-square" style="font-size:0.75rem;"></i> Edit profile
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="pets-empty">
+            <span class="pets-empty__icon">🐾</span>
+            <h2>No pets yet</h2>
+            <p>Add your first pet to keep track of their health records and appointments.</p>
+            <button class="btn-add-pet" id="openAddPetEmpty">
+              <i class="fa-solid fa-plus"></i> Add your first pet
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="addPetModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+    data-has-errors="{% if form.errors %}true{% else %}false{% endif %}">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="modalTitle">Add a pet 🐾</div>
+          <div class="modal__subtitle">Fill in your pet's details below.</div>
+        </div>
+        <button class="modal__close" id="closeAddPet" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+
+        {% if form.errors %}
+        <div class="modal-form__errors">
+          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'pet_add' %}" class="modal-form" id="addPetForm">
+          {% csrf_token %}
+
+          <div class="field-group">
+            <label for="id_name"><i class="fa-solid fa-tag"></i> Name</label>
+            <input type="text" id="id_name" name="name" placeholder="e.g. Buddy"
+              value="{{ form.name.value|default:'' }}" required />
+          </div>
+
+          <div class="field-group">
+            <label><i class="fa-solid fa-paw"></i> Species</label>
+            <div class="species-grid">
+              <div>
+                <input type="radio" id="sp_dog" name="species" value="dog"
+                  {% if form.species.value == 'dog' or not form.species.value %}checked{% endif %} />
+                <label for="sp_dog"><span class="emoji">🐶</span> Dog</label>
+              </div>
+              <div>
+                <input type="radio" id="sp_cat" name="species" value="cat"
+                  {% if form.species.value == 'cat' %}checked{% endif %} />
+                <label for="sp_cat"><span class="emoji">🐱</span> Cat</label>
+              </div>
+              <div>
+                <input type="radio" id="sp_bird" name="species" value="bird"
+                  {% if form.species.value == 'bird' %}checked{% endif %} />
+                <label for="sp_bird"><span class="emoji">🐦</span> Bird</label>
+              </div>
+              <div>
+                <input type="radio" id="sp_other" name="species" value="other"
+                  {% if form.species.value == 'other' %}checked{% endif %} />
+                <label for="sp_other"><span class="emoji">🐾</span> Other</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_breed"><i class="fa-solid fa-dna"></i> Breed</label>
+              <input type="text" id="id_breed" name="breed" placeholder="e.g. Golden Retriever"
+                value="{{ form.breed.value|default:'' }}" />
+            </div>
+            <div class="field-group">
+              <label for="id_birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
+              <input type="date" id="id_birth_date" name="birth_date"
+                value="{{ form.birth_date.value|default:'' }}" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="id_weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
+            <input type="number" id="id_weight_kg" name="weight_kg" step="0.01" min="0"
+              placeholder="0.00" value="{{ form.weight_kg.value|default:'' }}" />
+          </div>
+
+          <div class="field-group">
+            <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+            <textarea id="id_notes" name="notes"
+              placeholder="Medical notes, allergies, etc.">{{ form.notes.value|default:'' }}</textarea>
+          </div>
+
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-plus"></i> Add pet
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal     = document.getElementById('addPetModal');
+      const openBtn   = document.getElementById('openAddPet');
+      const openBtn2  = document.getElementById('openAddPetEmpty');
+      const closeBtn  = document.getElementById('closeAddPet');
+
+      function openModal() {
+        modal.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+
+      openBtn  && openBtn.addEventListener('click', openModal);
+      openBtn2 && openBtn2.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+
+      // Close on backdrop click
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+      });
+
+      // If form has errors (page reloaded with errors), re-open modal automatically
+      if (modal.dataset.hasErrors === 'true') {
+        openModal();
+      }
+    })();
+  </script>
+</body>
+</html>
