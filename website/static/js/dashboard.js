@@ -1,30 +1,6 @@
 (function () {
   'use strict';
 
-  function initModal(backdropId, openIds, closeId) {
-    var backdrop = document.getElementById(backdropId);
-    if (!backdrop) return;
-
-    function openModal()  { backdrop.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
-    function closeModal() { backdrop.classList.remove('is-open'); document.body.style.overflow = ''; }
-
-    openIds.forEach(function (id) {
-      var btn = document.getElementById(id);
-      btn && btn.addEventListener('click', openModal);
-    });
-
-    var closeBtn = document.getElementById(closeId);
-    closeBtn && closeBtn.addEventListener('click', closeModal);
-
-    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && backdrop.classList.contains('is-open')) closeModal();
-    });
-
-    if (backdrop.dataset.hasErrors === 'true') openModal();
-  }
-
-  initModal('bookModal',   ['openBookModal'],   'closeBookModal');
   initModal('addPetModal', ['openAddPetModal'], 'closeAddPetModal');
 
   var scheduleBackdrop = document.getElementById('scheduleModal');
@@ -52,5 +28,28 @@
 
     ownerSelect && ownerSelect.addEventListener('change', filterPetsByOwner);
     if (scheduleBackdrop.dataset.hasErrors === 'true') filterPetsByOwner();
+  }
+
+  function initModal(backdropId, openIds, closeId) {
+    var backdrop = document.getElementById(backdropId);
+    if (!backdrop) return;
+
+    function openModal()  { backdrop.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
+    function closeModal() { backdrop.classList.remove('is-open'); document.body.style.overflow = ''; }
+
+    openIds.forEach(function (id) {
+      var btn = document.getElementById(id);
+      btn && btn.addEventListener('click', openModal);
+    });
+
+    var closeBtn = document.getElementById(closeId);
+    closeBtn && closeBtn.addEventListener('click', closeModal);
+
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && backdrop.classList.contains('is-open')) closeModal();
+    });
+
+    if (backdrop.dataset.hasErrors === 'true') openModal();
   }
 })();

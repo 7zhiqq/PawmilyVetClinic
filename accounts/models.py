@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.crypto import get_random_string
 
-MAX_SLOTS = 5
+MAX_SLOTS = 2
 
 
 class Profile(models.Model):
@@ -168,7 +168,7 @@ class Appointment(models.Model):
     end_time = models.TimeField(null=True, blank=True)
     slot_number = models.PositiveSmallIntegerField(
         default=1,
-        help_text="Slot position (1–5) within a date/time block",
+        help_text="Slot position (1–2) within a date/time block",
     )
     status = models.CharField(
         max_length=20,

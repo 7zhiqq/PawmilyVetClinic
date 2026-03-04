@@ -34,6 +34,7 @@ def dashboard(request):
     if role == Profile.ROLE_PET_OWNER:
         context["pets"] = Pet.objects.filter(owner=request.user).order_by("name")
         context["book_form"] = AppointmentBookingForm(owner=request.user)
+        context["book_error"] = None
         context["pet_form"]  = PetForm()
 
     elif role in (Profile.ROLE_STAFF, Profile.ROLE_MANAGER):

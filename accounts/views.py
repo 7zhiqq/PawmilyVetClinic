@@ -56,7 +56,7 @@ def _taken_slots(appt_date, start_time):
 
 
 def _next_free_slot(appt_date, start_time):
-    """Return the lowest free slot (1–5) or None if all taken."""
+    """Return the lowest free slot (1–2) or None if all taken."""
     taken = _taken_slots(appt_date, start_time)
     for n in range(1, MAX_SLOTS + 1):
         if n not in taken:
@@ -370,7 +370,7 @@ def appointment_book(request):
             if not (1 <= slot_number <= MAX_SLOTS):
                 raise ValueError
         except (ValueError, TypeError):
-            error = "Please select a valid slot (1–5)."
+            error = "Please select a valid slot (1–2)."
             form.is_valid()  # populate cleaned_data even on slot error
         else:
             if form.is_valid():
@@ -432,7 +432,7 @@ def appointment_schedule(request):
             if not (1 <= slot_number <= MAX_SLOTS):
                 raise ValueError
         except (ValueError, TypeError):
-            error = "Please select a valid slot (1–5)."
+            error = "Please select a valid slot (1–2)."
             form.is_valid()
         else:
             if form.is_valid():

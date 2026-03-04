@@ -131,6 +131,23 @@
       gap:.5rem;
     }
 
+    /* ── Slot availability display ──────────────────────────── */
+    .slot-availability {
+      display:flex; flex-direction:column; gap:.5rem;
+      padding:.8rem 1rem; background:#f0fdf4; border-radius:12px;
+      border:1.5px solid #86efac;
+    }
+    .availability-info {
+      display:flex; flex-direction:column; gap:.3rem;
+      text-align:center;
+    }
+    .availability-count {
+      font-size:.95rem; font-weight:700; color:#16a34a;
+    }
+    .availability-status {
+      font-size:.82rem; color:#22c55e; font-weight:500;
+    }
+
     .slot-btn {
       position:relative; padding:.65rem .4rem;
       border:1.5px solid #e5e7eb; border-radius:14px;
@@ -322,7 +339,7 @@
   <div class="modal">
     <div class="modal__header">
       <div>
-        <div class="modal__title">Book Appointment 📅</div>
+        <div class="modal__title">Book Appointment </div>
         <div class="modal__subtitle">Choose a date, time, and available slot.</div>
       </div>
       <button class="modal__close" id="closeBookModal" aria-label="Close">
@@ -382,7 +399,7 @@
 
         <div class="slot-section">
           <div class="slot-section__label">
-            <i class="fa-solid fa-grid-2"></i> Select slot
+            <i class="fa-solid fa-clock"></i> Availability
           </div>
           <div id="slotPickerOwner">
             <div class="slot-message">
@@ -410,7 +427,7 @@
   <div class="modal modal--wide">
     <div class="modal__header">
       <div>
-        <div class="modal__title">Schedule / Walk-in 🏥</div>
+        <div class="modal__title">Schedule / Walk-in </div>
         <div class="modal__subtitle">Add a scheduled appointment or register a walk-in.</div>
       </div>
       <button class="modal__close" id="closeScheduleModal" aria-label="Close">
@@ -511,7 +528,7 @@
 
         <div class="slot-section">
           <div class="slot-section__label">
-            <i class="fa-solid fa-grid-2"></i> Select slot
+            <i class="fa-solid fa-clock"></i> Availability
           </div>
           <div id="slotPickerStaff">
             <div class="slot-message">
@@ -542,24 +559,29 @@
 
 /* ── Clinic time constants ──────────────────────────────────── */
 const CLINIC_START_H = 8;   // 8:00 AM
-const CLINIC_END_H   = 17;  // 5:00 PM (last slot 4:30 PM)
-const SLOT_INTERVAL  = 30;  // minutes
+const CLINIC_END_H   = 17;  // 5:00 PM (last slot 4:00 PM)
+const SLOT_INTERVAL  = 60;  // minutes (1-hour intervals)
 const SLOTS_URL      = "{% url 'get_available_slots' %}";
-const MAX_SLOTS      = 5;
+const MAX_SLOTS      = 2;
 
-/* ── Generate clinic time slots ─────────────────────────────── */
+/* ── Generate clinic time slots (1-hour intervals) ─────────────── */
 function buildClinicTimes() {
   const times = [];
   for (let h = CLINIC_START_H; h < CLINIC_END_H; h++) {
-    for (let m = 0; m < 60; m += SLOT_INTERVAL) {
-      const hh  = String(h).padStart(2, '0');
-      const mm  = String(m).padStart(2, '0');
-      const val = `${hh}:${mm}`;
-      const ampm = h < 12 ? 'AM' : 'PM';
-      const h12  = h % 12 === 0 ? 12 : h % 12;
-      const label = `${h12}:${mm} ${ampm}`;
-      times.push({ val, label });
-    }
+    const hh  = String(h).padStart(2, '0');
+    const val = `${hh}:00`;
+    
+    // Format start time
+    const h12_start = h % 12 === 0 ? 12 : h % 12;
+    const ampm_start = h < 12 ? 'AM' : 'PM';
+    
+    // Format end time
+    const h_end = h + 1;
+    const h12_end = h_end % 12 === 0 ? 12 : h_end % 12;
+    const ampm_end = h_end < 12 ? 'AM' : 'PM';
+    
+    const label = `${h12_start}:00 ${ampm_start}–${h12_end}:00 ${ampm_end}`;
+    times.push({ val, label });
   }
   return times;
 }
@@ -605,9 +627,11 @@ function renderTimeChips(containerEl, hiddenInput, selectedVal, onSelect) {
   });
 }
 
-/* ── Slot grid builder ──────────────────────────────────────── */
+/* ── Slot availability display (show available count) ──────────── */
 function buildSlotGrid(slots, pickerEl, hiddenInput, submitBtn) {
-  const allTaken = slots.every(s => !s.available);
+  const available = slots.filter(s => s.available).length;
+  const allTaken = available === 0;
+  
   if (allTaken) {
     pickerEl.innerHTML = '<div class="slot-message full">⚠️ Fully booked for this time. Please choose another.</div>';
     submitBtn.disabled = true;
@@ -615,37 +639,23 @@ function buildSlotGrid(slots, pickerEl, hiddenInput, submitBtn) {
     return;
   }
 
-  const grid = document.createElement('div');
-  grid.className = 'slot-grid';
-  const currentVal = parseInt(hiddenInput.value, 10) || 0;
+  // Automatically select the first available slot and show availability
+  const firstAvailable = slots.find(s => s.available);
+  hiddenInput.value = firstAvailable.number;
+  submitBtn.disabled = false;
 
-  slots.forEach(({ number, available }) => {
-    const btn = document.createElement('button');
-    btn.type         = 'button';
-    btn.className    = 'slot-btn' + (available ? '' : ' taken');
-    btn.disabled     = !available;
-    btn.dataset.slot = number;
-    btn.innerHTML    = `<span class="slot-btn__num">${number}</span><span class="slot-btn__lbl">${available ? 'Open' : 'Taken'}</span>`;
-
-    if (available && number === currentVal) {
-      btn.classList.add('selected');
-      hiddenInput.value  = number;
-      submitBtn.disabled = false;
-    }
-
-    if (available) {
-      btn.addEventListener('click', () => {
-        grid.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        hiddenInput.value  = number;
-        submitBtn.disabled = false;
-      });
-    }
-    grid.appendChild(btn);
-  });
+  // Display the number of available slots
+  const availabilityDisplay = document.createElement('div');
+  availabilityDisplay.className = 'slot-availability';
+  availabilityDisplay.innerHTML = `
+    <div class="availability-info">
+      <span class="availability-count">${available} slot${available !== 1 ? 's' : ''} available</span>
+      <span class="availability-status"> ✓ Ready to book</span>
+    </div>
+  `;
 
   pickerEl.innerHTML = '';
-  pickerEl.appendChild(grid);
+  pickerEl.appendChild(availabilityDisplay);
 }
 
 function showSkeleton(pickerEl) {
