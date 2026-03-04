@@ -658,6 +658,38 @@ function buildSlotGrid(slots, pickerEl, hiddenInput, submitBtn) {
   pickerEl.appendChild(availabilityDisplay);
 }
 
+/* ── Walk-in load display (show appointment count) ─────────────── */
+function buildWalkInLoadDisplay(appointmentCount, loadStatus, pickerEl, hiddenInput, submitBtn) {
+  hiddenInput.value = '1'; // Walk-in doesn't need a specific slot, just mark as ready
+  submitBtn.disabled = false;
+
+  const statusEmoji = {
+    'light': '🟢',
+    'moderate': '🟡',
+    'heavy': '🟠',
+    'very_heavy': '🔴'
+  }[loadStatus] || '⚪';
+
+  const statusText = {
+    'light': 'Light load',
+    'moderate': 'Moderate load',
+    'heavy': 'Heavy load',
+    'very_heavy': 'Very heavy load'
+  }[loadStatus] || 'Unknown';
+
+  const loadDisplay = document.createElement('div');
+  loadDisplay.className = 'slot-availability';
+  loadDisplay.innerHTML = `
+    <div class="availability-info">
+      <span class="availability-count">${statusEmoji} ${appointmentCount} appointment${appointmentCount !== 1 ? 's' : ''}</span>
+      <span class="availability-status">${statusText}</span>
+    </div>
+  `;
+
+  pickerEl.innerHTML = '';
+  pickerEl.appendChild(loadDisplay);
+}
+
 function showSkeleton(pickerEl) {
   pickerEl.innerHTML = `<div class="slot-skeleton">${Array(MAX_SLOTS).fill('<div class="slot-skeleton__item"></div>').join('')}</div>`;
 }
@@ -666,7 +698,7 @@ function showMessage(pickerEl, msg, cls) {
   pickerEl.innerHTML = `<div class="slot-message ${cls}">${msg}</div>`;
 }
 
-async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abortRef) {
+async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abortRef, appointmentType = 'scheduled') {
   if (!dateVal || !timeVal) {
     showMessage(pickerEl, 'Pick a date and time above to see available slots.', '');
     submitBtn.disabled = true;
@@ -682,14 +714,20 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   slotHidden.value   = '';
 
   try {
-    const url  = `${SLOTS_URL}?date=${encodeURIComponent(dateVal)}&time=${encodeURIComponent(timeVal)}`;
+    const url  = `${SLOTS_URL}?date=${encodeURIComponent(dateVal)}&time=${encodeURIComponent(timeVal)}&type=${appointmentType}`;
     const resp = await fetch(url, { signal: abortRef.ctrl.signal });
     const data = await resp.json();
     if (!resp.ok) {
       showMessage(pickerEl, `⚠️ ${data.error || 'Could not load slots.'}`, 'error');
       return;
     }
-    buildSlotGrid(data.slots, pickerEl, slotHidden, submitBtn);
+    
+    // Handle different response formats for walk-in vs scheduled
+    if (appointmentType === 'walk_in') {
+      buildWalkInLoadDisplay(data.appointment_count, data.load_status, pickerEl, slotHidden, submitBtn);
+    } else {
+      buildSlotGrid(data.slots, pickerEl, slotHidden, submitBtn);
+    }
   } catch (err) {
     if (err.name !== 'AbortError') {
       showMessage(pickerEl, '⚠️ Network error. Please try again.', 'error');
@@ -789,13 +827,15 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   ownerSel && ownerSel.addEventListener('change', filterPets);
 
   function onTimeSelected(timeVal) {
-    loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl);
+    const appointmentType = typeSelect.value;
+    loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl, appointmentType);
   }
 
   function refreshChips() {
     renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
     if (timeHidden.value && dateInput.value) {
-      loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl);
+      const appointmentType = typeSelect.value;
+      loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl, appointmentType);
     } else {
       showMessage(picker, 'Pick a date and time above to see available slots.', '');
       submit.disabled  = true;
@@ -824,8 +864,16 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
     refreshChips();
   }
 
+  /* When appointment type changes, reload slots with correct type */
   typeSelect.addEventListener('change', () => {
-    if (typeSelect.value === 'walk_in') applyWalkInDefaults();
+    if (typeSelect.value === 'walk_in') {
+      // Set status to Confirmed for walk-ins
+      const statusSelect = document.getElementById('id_status');
+      if (statusSelect) statusSelect.value = 'confirmed';
+      applyWalkInDefaults();
+    } else {
+      refreshChips();
+    }
   });
 
   // Initial chip render

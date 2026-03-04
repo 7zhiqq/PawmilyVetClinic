@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import IntegrityError, transaction
+from django.db import models
 from django.db.models import Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -71,6 +72,14 @@ def _slot_data(appt_date, start_time):
         {"number": n, "available": n not in taken}
         for n in range(1, MAX_SLOTS + 1)
     ]
+
+
+def _count_appointments_for_time(appt_date, start_time):
+    """Count the number of appointments for a given date and time (for walk-ins)."""
+    return Appointment.objects.filter(
+        appointment_date=appt_date,
+        start_time=start_time,
+    ).count()
 
 
 def _round_to_half_hour(t: time) -> time:
@@ -317,11 +326,13 @@ def _appointment_queryset(user):
 @require_GET
 def get_available_slots(request):
     """
-    GET /accounts/appointments/slots/?date=YYYY-MM-DD&time=HH:MM
-    Returns JSON: {"slots": [{"number": 1, "available": true}, ...]}
+    GET /accounts/appointments/slots/?date=YYYY-MM-DD&time=HH:MM&type=walk_in|scheduled
+    For scheduled: Returns JSON: {"slots": [{"number": 1, "available": true}, ...]}
+    For walk-in: Returns JSON: {"appointment_count": 3, "load_status": "moderate"}
     """
     date_str = request.GET.get("date", "")
     time_str = request.GET.get("time", "")
+    appt_type = request.GET.get("type", "scheduled")
 
     # ── parse & validate date ──────────────────────────────────────────────
     try:
@@ -344,8 +355,29 @@ def get_available_slots(request):
         if appt_time <= now:
             return JsonResponse({"error": "Cannot book a past time slot."}, status=400)
 
-    slots = _slot_data(appt_date, appt_time)
-    return JsonResponse({"slots": slots})
+    # ── Return different data based on appointment type ─────────────────────
+    if appt_type == "walk_in":
+        # For walk-ins, return the count of existing appointments
+        count = _count_appointments_for_time(appt_date, appt_time)
+        
+        # Determine load status based on appointment count
+        if count == 0:
+            load_status = "light"
+        elif count <= 2:
+            load_status = "moderate"
+        elif count <= 4:
+            load_status = "heavy"
+        else:
+            load_status = "very_heavy"
+        
+        return JsonResponse({
+            "appointment_count": count,
+            "load_status": load_status,
+        })
+    else:
+        # For scheduled appointments, return slot availability (1-2)
+        slots = _slot_data(appt_date, appt_time)
+        return JsonResponse({"slots": slots})
 
 
 # ── Owner booking ──────────────────────────────────────────────────────────────
@@ -425,22 +457,47 @@ def appointment_schedule(request):
 
     if request.method == "POST":
         form = AppointmentStaffForm(request.POST)
+        appointment_type = request.POST.get("appointment_type", "scheduled")
         slot_number = request.POST.get("slot_number")
 
-        try:
-            slot_number = int(slot_number)
-            if not (1 <= slot_number <= MAX_SLOTS):
-                raise ValueError
-        except (ValueError, TypeError):
-            error = "Please select a valid slot (1–2)."
-            form.is_valid()
+        # ── For walk-in appointments, slot_number is not required ──────────
+        if appointment_type == "walk_in":
+            slot_number = None
         else:
-            if form.is_valid():
-                appt_date = form.cleaned_data["appointment_date"]
-                appt_time = form.cleaned_data["start_time"]
+            # For scheduled appointments, validate slot_number
+            try:
+                slot_number = int(slot_number)
+                if not (1 <= slot_number <= MAX_SLOTS):
+                    raise ValueError
+            except (ValueError, TypeError):
+                error = "Please select a valid slot (1–2)."
+                form.is_valid()
+                slot_number = None
 
-                try:
-                    with transaction.atomic():
+        if form.is_valid() and (appointment_type == "walk_in" or slot_number is not None):
+            appt_date = form.cleaned_data["appointment_date"]
+            appt_time = form.cleaned_data["start_time"]
+
+            try:
+                with transaction.atomic():
+                    if appointment_type == "walk_in":
+                        # ── Walk-in appointments: unlimited slots, auto-assign next slot number ──
+                        # Get the highest slot number currently used for this date/time
+                        # Walk-ins don't have the MAX_SLOTS limit, so slot numbers can go beyond 2
+                        max_slot = Appointment.objects.filter(
+                            appointment_date=appt_date,
+                            start_time=appt_time,
+                        ).aggregate(models.Max('slot_number'))['slot_number__max'] or 0
+                        
+                        apt = form.save(commit=False)
+                        apt.staff = request.user
+                        apt.slot_number = max_slot + 1  # Auto-assign next slot (unlimited)
+                        apt.appointment_type = Appointment.TYPE_WALK_IN
+                        apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
+                        apt.save()
+                        return redirect("appointment_manage")
+                    else:
+                        # ── Scheduled appointments: use existing slot constraint (MAX_SLOTS = 2) ──
                         taken = _taken_slots(appt_date, appt_time)
                         if len(taken) >= MAX_SLOTS:
                             error = "This time slot is fully booked."
@@ -450,16 +507,12 @@ def appointment_schedule(request):
                             apt = form.save(commit=False)
                             apt.staff = request.user
                             apt.slot_number = slot_number
-                            apt.appointment_type = (
-                                Appointment.TYPE_WALK_IN
-                                if form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
-                                else Appointment.TYPE_SCHEDULED
-                            )
+                            apt.appointment_type = Appointment.TYPE_SCHEDULED
                             apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
                             apt.save()
                             return redirect("appointment_manage")
-                except IntegrityError:
-                    error = "That slot was just taken by another booking. Please try again."
+            except IntegrityError:
+                error = "That slot was just taken by another booking. Please try again."
     else:
         form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
 
