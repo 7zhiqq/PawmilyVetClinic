@@ -1,0 +1,113 @@
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1rem;
+}
+.modal-backdrop.is-open { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal--wide { max-width: 620px; }
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.75rem 0;
+  margin-bottom: 1.25rem;
+}
+.modal__title { font-size: 1.2rem; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+.modal__subtitle { font-size: 0.83rem; color: #6b7280; margin-top: 0.15rem; }
+.modal__close {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: #f3f4f6; color: #6b7280; font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.modal__close:hover { background: #e5e7eb; color: #111827; }
+
+.modal__body { padding: 0 1.75rem 1.75rem; }
+.modal__divider { height: 1px; background: #f3f4f6; margin-bottom: 1.25rem; }
+
+.modal-form { display: flex; flex-direction: column; gap: 0.9rem; }
+.modal-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+.modal-form .field-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.modal-form .field-group label {
+  font-size: 0.82rem; font-weight: 600; color: #374151;
+  display: flex; align-items: center; gap: 0.35rem;
+}
+.modal-form .field-group label i { font-size: 0.72rem; color: #9ca3af; }
+
+.modal-form .field-group input,
+.modal-form .field-group select,
+.modal-form .field-group textarea {
+  width: 100%; padding: 0.72rem 0.9rem;
+  border: 1.5px solid #e5e7eb; border-radius: 12px;
+  font-size: 0.875rem; font-family: inherit; color: #111827;
+  background: #fafafa; outline: none; box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.modal-form .field-group input:focus,
+.modal-form .field-group select:focus,
+.modal-form .field-group textarea:focus {
+  border-color: #7c3aed; box-shadow: 0 0 0 3px #ede9fe; background: #fff;
+}
+.modal-form .field-group textarea { resize: vertical; min-height: 72px; }
+
+.modal-form__submit {
+  width: 100%; padding: 0.9rem; background: #111827; color: #fff;
+  font-size: 0.95rem; font-weight: 700; font-family: inherit;
+  border: none; border-radius: 999px; cursor: pointer; margin-top: 0.25rem;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.modal-form__submit:hover { opacity: 0.85; transform: translateY(-1px); }
+
+.modal-form__errors {
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 10px; padding: 0.7rem 1rem; margin-bottom: 0.5rem;
+}
+.modal-form__errors p { font-size: 0.82rem; color: #dc2626; margin: 0.15rem 0; }
+
+.modal-section-label {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.09em; color: #9ca3af;
+  display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;
+}
+.modal-section-label::after { content: ''; flex: 1; height: 1px; background: #f3f4f6; }
+
+/* Species grid (Add Pet modal) */
+.species-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.species-grid input[type="radio"] { display: none; }
+.species-grid label {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.3rem; padding: 0.65rem 0.4rem;
+  border: 1.5px solid #e5e7eb; border-radius: 12px; cursor: pointer;
+  font-size: 0.75rem; font-weight: 600; color: #6b7280; background: #fafafa;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.species-grid label .emoji { font-size: 1.5rem; line-height: 1; }
+.species-grid input[type="radio"]:checked + label {
+  border-color: #7c3aed; background: #ede9fe; color: #5b21b6;
+}
+.species-grid label:hover { border-color: #c4b5fd; background: #f5f3ff; }

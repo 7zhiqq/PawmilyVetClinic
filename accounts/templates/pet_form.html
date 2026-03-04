@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/pet_form.css' %}">
-
 </head>
 <body>
   <div class="dashboard-layout">
@@ -52,17 +51,14 @@
             <label class="species-label" for="sp_dog">
               <span class="emoji">🐶</span> Dog
             </label>
-
             <input type="radio" class="species-option" name="_species_vis" id="sp_cat" value="cat">
             <label class="species-label" for="sp_cat">
               <span class="emoji">🐱</span> Cat
             </label>
-
             <input type="radio" class="species-option" name="_species_vis" id="sp_bird" value="bird">
             <label class="species-label" for="sp_bird">
               <span class="emoji">🐦</span> Bird
             </label>
-
             <input type="radio" class="species-option" name="_species_vis" id="sp_other" value="other">
             <label class="species-label" for="sp_other">
               <span class="emoji">🐾</span> Other
@@ -116,25 +112,6 @@
     </main>
   </div>
 
-  <script>
-    // Sync visual species picker → Django's hidden select
-    (function () {
-      const realSelect = document.getElementById('{{ form.species.id_for_label }}');
-      const radios = document.querySelectorAll('.species-option');
-
-      // Pre-select if editing an existing pet
-      const currentVal = realSelect ? realSelect.value : '';
-      if (currentVal) {
-        const match = document.querySelector(`.species-option[value="${currentVal}"]`);
-        if (match) match.checked = true;
-      }
-
-      radios.forEach(function (radio) {
-        radio.addEventListener('change', function () {
-          if (realSelect) realSelect.value = this.value;
-        });
-      });
-    })();
-  </script>
+  <script src="{% static 'js/pet_form.js' %}"></script>
 </body>
 </html>

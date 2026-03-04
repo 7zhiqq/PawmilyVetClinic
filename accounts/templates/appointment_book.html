@@ -37,10 +37,18 @@
         <form method="POST" class="form-fields">
           {% csrf_token %}
           <div class="field-group">
-            <label for="{{ form.pet.id_for_label }}">
+            <label for="id_pet">
               <i class="fa-solid fa-paw"></i> Pet
             </label>
-            {{ form.pet }}
+            <select id="id_pet" name="pet" required>
+              <option value="" disabled {% if not form.pet.value %}selected{% endif %}>Choose your pet</option>
+              {% for pet in pets %}
+              <option value="{{ pet.pk }}" {% if form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+                {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                {{ pet.name }}
+              </option>
+              {% endfor %}
+            </select>
           </div>
           <div class="field-group">
             <label for="{{ form.appointment_date.id_for_label }}">

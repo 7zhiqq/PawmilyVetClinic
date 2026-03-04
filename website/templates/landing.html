@@ -89,7 +89,6 @@
 
   <section class="services-strip" id="services">
     <div class="services-strip__inner">
-
       <div class="service-card service-card--purple">
         <div>
           <p class="service-card__label">Preventive Care</p>
@@ -97,7 +96,6 @@
         </div>
         <span class="service-card__icon">💉</span>
       </div>
-
       <div class="service-card service-card--blue">
         <div>
           <p class="service-card__label">Diagnostics</p>
@@ -105,7 +103,6 @@
         </div>
         <span class="service-card__icon">🔬</span>
       </div>
-
       <div class="service-card service-card--yellow">
         <div>
           <p class="service-card__label">Surgical</p>
@@ -113,17 +110,9 @@
         </div>
         <span class="service-card__icon">🦷</span>
       </div>
-
     </div>
   </section>
 
-  <script>
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobileMenu');
-    hamburger.addEventListener('click', () => {
-      mobileMenu.classList.toggle('open');
-    });
-  </script>
-
+  <script src="{% static 'js/navbar.js' %}"></script>
 </body>
 </html>

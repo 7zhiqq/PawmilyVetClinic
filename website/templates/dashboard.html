@@ -11,6 +11,7 @@
   <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
 </head>
 <body>
   <div class="dashboard-layout">
@@ -26,16 +27,10 @@
             Manage your clinic activity in one place.
           </p>
         </div>
-
-        {% if role %}
+        {% if role and role != 'pet_owner' %}
         <div class="dashboard-chip">
-          {% if role != 'pet_owner' %}
-            <span>Role:</span>
-            <span>
-              {% if role == 'staff' %}Staff{% endif %}
-              {% if role == 'manager' %}Manager{% endif %}
-            </span>
-          {% endif %}
+          <span>Role:</span>
+          <span>{% if role == 'staff' %}Staff{% elif role == 'manager' %}Manager{% endif %}</span>
         </div>
         {% endif %}
       </header>
@@ -43,53 +38,46 @@
       <section class="dashboard-grid">
         <section class="dashboard-card">
           <h2 class="dashboard-card__title">Quick actions</h2>
-          <p class="dashboard-card__sub">
-            Jump straight into the most common.
-          </p>
+          <p class="dashboard-card__sub">Jump straight into the most common.</p>
 
           <div class="dashboard-actions">
-            {% if role == 'manager'%}
+            {% if role == 'manager' %}
               <a href="/accounts/invitations/" class="dashboard-action-btn dashboard-action-btn--primary">
-                <i class="fa-solid fa-users-gear"></i>
-                Manage users
+                <i class="fa-solid fa-users-gear"></i> Manage users
               </a>
-              <a href="#" class="dashboard-action-btn">
-                <i class="fa-solid fa-chart-line"></i>
-                View clinic overview
+              <button type="button" class="dashboard-action-btn" id="openScheduleModal">
+                <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+              </button>
+              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
+                <i class="fa-solid fa-calendar-days"></i> Calendar
               </a>
-            {% elif role == 'staff' or role == 'manager' %}
+
+            {% elif role == 'staff' %}
               <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="dashboard-action-btn dashboard-action-btn--primary">
-                <i class="fa-solid fa-stethoscope"></i>
-                Today&apos;s queue
+                <i class="fa-solid fa-stethoscope"></i> Today's queue
               </a>
+              <button type="button" class="dashboard-action-btn" id="openScheduleModal">
+                <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+              </button>
               <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
-                <i class="fa-solid fa-calendar-days"></i>
-                Calendar
+                <i class="fa-solid fa-calendar-days"></i> Calendar
               </a>
-              <a href="/accounts/appointments/schedule/" class="dashboard-action-btn">
-                <i class="fa-solid fa-plus"></i>
-                Schedule / Walk-in
-              </a>
+
             {% else %}
-              <a href="/accounts/appointments/book/" class="dashboard-action-btn dashboard-action-btn--primary">
-                <i class="fa-solid fa-calendar-plus"></i>
-                Book appointment
-              </a>
+              <button type="button" class="dashboard-action-btn dashboard-action-btn--primary" id="openBookModal">
+                <i class="fa-solid fa-calendar-plus"></i> Book appointment
+              </button>
+              <button type="button" class="dashboard-action-btn" id="openAddPetModal">
+                <i class="fa-solid fa-paw"></i> Add pet
+              </button>
               <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
-                <i class="fa-solid fa-calendar-days"></i>
-                Calendar
-              </a>
-              <a href="/accounts/pets/add/" class="dashboard-action-btn">
-                <i class="fa-solid fa-paw"></i>
-                Add pet
+                <i class="fa-solid fa-calendar-days"></i> Calendar
               </a>
               <a href="/accounts/pets/" class="dashboard-action-btn">
-                <i class="fa-solid fa-paw"></i>
-                My pets
+                <i class="fa-solid fa-paw"></i> My pets
               </a>
               <a href="/accounts/profile/" class="dashboard-action-btn">
-                <i class="fa-solid fa-user"></i>
-                My profile
+                <i class="fa-solid fa-user"></i> My profile
               </a>
             {% endif %}
           </div>
@@ -98,23 +86,16 @@
         <aside class="dashboard-card">
           {% if role == 'pet_owner' %}
             <h2 class="dashboard-card__title">Reminders</h2>
-            <p class="dashboard-card__sub">
-              This is a placeholder. gwapagwapa si angelaonyate
-            </p>
+            <p class="dashboard-card__sub">This is a placeholder.</p>
           {% elif role == 'staff' %}
             <h2 class="dashboard-card__title">Appointments</h2>
-            <p class="dashboard-card__sub">
-              This is a placeholder dashboard. You can plug in real data (appointments, queue status, etc.) as your project grows.
-            </p>
+            <p class="dashboard-card__sub">This is a placeholder dashboard.</p>
           {% elif role == 'manager' %}
             <h2 class="dashboard-card__title">Clinic performance</h2>
-            <p class="dashboard-card__sub">
-              This is a placeholder dashboard. You can plug in real data (clinic stats, staff performance, etc.) as your project grows.
-            </p>
+            <p class="dashboard-card__sub">This is a placeholder dashboard.</p>
           {% endif %}
-
           <ul class="dashboard-list">
-            <li>Angela Onyate gwapa gwaopa</li>
+            <li>Angela Onyate gwapa gwapa</li>
             <li>Shan8 Timbal gwapa gwapa.</li>
             <li>Kesha Pit gwapa gwapa</li>
           </ul>
@@ -122,6 +103,261 @@
       </section>
     </main>
   </div>
+
+  {# ─── Book Appointment Modal (pet owner) ─────────────────────────────────── #}
+  {% if role == 'pet_owner' %}
+  <div class="modal-backdrop" id="bookModal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle"
+    data-has-errors="{% if book_form and book_form.errors %}true{% else %}false{% endif %}">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="bookModalTitle">Book Appointment 📅</div>
+          <div class="modal__subtitle">Request a visit — we'll confirm shortly.</div>
+        </div>
+        <button class="modal__close" id="closeBookModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        {% if book_form and book_form.errors %}
+        <div class="modal-form__errors">
+          {% for field in book_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in book_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'appointment_book' %}" class="modal-form">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet</label>
+            <select id="id_pet" name="pet" required>
+              <option value="" disabled {% if not book_form or not book_form.pet.value %}selected{% endif %}>Choose your pet…</option>
+              {% for pet in pets %}
+              <option value="{{ pet.pk }}"
+                {% if book_form and book_form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+                {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                {{ pet.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
+              <input type="date" id="id_appointment_date" name="appointment_date"
+                value="{% if book_form %}{{ book_form.appointment_date.value|default:'' }}{% endif %}" required />
+            </div>
+            <div class="field-group">
+              <label for="id_start_time"><i class="fa-regular fa-clock"></i> Preferred time</label>
+              <input type="time" id="id_start_time" name="start_time"
+                value="{% if book_form %}{{ book_form.start_time.value|default:'' }}{% endif %}" required />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
+            <input type="text" id="id_reason" name="reason"
+              placeholder="e.g. Vaccination, check-up, grooming"
+              value="{% if book_form %}{{ book_form.reason.value|default:'' }}{% endif %}" />
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-calendar-check"></i> Book appointment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ─── Add Pet Modal (pet owner) ───────────────────────────────────────────── #}
+  <div class="modal-backdrop" id="addPetModal" role="dialog" aria-modal="true" aria-labelledby="addPetModalTitle"
+    data-has-errors="{% if pet_form and pet_form.errors %}true{% else %}false{% endif %}">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="addPetModalTitle">Add a pet 🐾</div>
+          <div class="modal__subtitle">Fill in your pet's details below.</div>
+        </div>
+        <button class="modal__close" id="closeAddPetModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        {% if pet_form and pet_form.errors %}
+        <div class="modal-form__errors">
+          {% for field in pet_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in pet_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'pet_add' %}" class="modal-form">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="dash_name"><i class="fa-solid fa-tag"></i> Name</label>
+            <input type="text" id="dash_name" name="name" placeholder="e.g. Buddy"
+              value="{% if pet_form %}{{ pet_form.name.value|default:'' }}{% endif %}" required />
+          </div>
+          <div class="field-group">
+            <label><i class="fa-solid fa-paw"></i> Species</label>
+            <div class="species-grid">
+              <div>
+                <input type="radio" id="dash_sp_dog" name="species" value="dog"
+                  {% if not pet_form or not pet_form.species.value or pet_form.species.value == 'dog' %}checked{% endif %} />
+                <label for="dash_sp_dog"><span class="emoji">🐶</span> Dog</label>
+              </div>
+              <div>
+                <input type="radio" id="dash_sp_cat" name="species" value="cat"
+                  {% if pet_form and pet_form.species.value == 'cat' %}checked{% endif %} />
+                <label for="dash_sp_cat"><span class="emoji">🐱</span> Cat</label>
+              </div>
+              <div>
+                <input type="radio" id="dash_sp_bird" name="species" value="bird"
+                  {% if pet_form and pet_form.species.value == 'bird' %}checked{% endif %} />
+                <label for="dash_sp_bird"><span class="emoji">🐦</span> Bird</label>
+              </div>
+              <div>
+                <input type="radio" id="dash_sp_other" name="species" value="other"
+                  {% if pet_form and pet_form.species.value == 'other' %}checked{% endif %} />
+                <label for="dash_sp_other"><span class="emoji">🐾</span> Other</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="dash_breed"><i class="fa-solid fa-dna"></i> Breed</label>
+              <input type="text" id="dash_breed" name="breed" placeholder="e.g. Golden Retriever"
+                value="{% if pet_form %}{{ pet_form.breed.value|default:'' }}{% endif %}" />
+            </div>
+            <div class="field-group">
+              <label for="dash_birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
+              <input type="date" id="dash_birth_date" name="birth_date"
+                value="{% if pet_form %}{{ pet_form.birth_date.value|default:'' }}{% endif %}" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="dash_weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
+            <input type="number" id="dash_weight_kg" name="weight_kg" step="0.01" min="0"
+              placeholder="0.00" value="{% if pet_form %}{{ pet_form.weight_kg.value|default:'' }}{% endif %}" />
+          </div>
+          <div class="field-group">
+            <label for="dash_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+            <textarea id="dash_notes" name="notes"
+              placeholder="Medical notes, allergies, etc.">{% if pet_form %}{{ pet_form.notes.value|default:'' }}{% endif %}</textarea>
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-plus"></i> Add pet
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if role == 'staff' or role == 'manager' %}
+  <div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle"
+    data-has-errors="{% if staff_form and staff_form.errors %}true{% else %}false{% endif %}">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in </div>
+          <div class="modal__subtitle">Add a scheduled appointment or register a walk-in visit.</div>
+        </div>
+        <button class="modal__close" id="closeScheduleModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        {% if staff_form and staff_form.errors %}
+        <div class="modal-form__errors">
+          {% for field in staff_form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in staff_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'appointment_schedule' %}" class="modal-form">
+          {% csrf_token %}
+          <div class="modal-section-label">Visit type</div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_appointment_type"><i class="fa-solid fa-tag"></i> Type</label>
+              <select id="id_appointment_type" name="appointment_type">
+                <option value="walk_in" {% if not staff_form or not staff_form.appointment_type.value or staff_form.appointment_type.value == 'walk_in' %}selected{% endif %}>Walk-in</option>
+                <option value="scheduled" {% if staff_form and staff_form.appointment_type.value == 'scheduled' %}selected{% endif %}>Scheduled</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="id_status"><i class="fa-solid fa-circle-half-stroke"></i> Status</label>
+              <select id="id_status" name="status">
+                <option value="confirmed" {% if not staff_form or not staff_form.status.value or staff_form.status.value == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="pending"   {% if staff_form and staff_form.status.value == 'pending'   %}selected{% endif %}>Pending</option>
+                <option value="completed" {% if staff_form and staff_form.status.value == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if staff_form and staff_form.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-section-label">Patient</div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_owner"><i class="fa-solid fa-user"></i> Owner</label>
+              <select id="id_owner" name="owner" required>
+                <option value="" disabled {% if not staff_form or not staff_form.owner.value %}selected{% endif %}>Choose owner…</option>
+                {% for owner in owners %}
+                <option value="{{ owner.pk }}" {% if staff_form and staff_form.owner.value|stringformat:"s" == owner.pk|stringformat:"s" %}selected{% endif %}>
+                  {% if owner.first_name %}{{ owner.first_name }} {{ owner.last_name }}{% else %}{{ owner.username }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+              <select id="id_pet" name="pet">
+                <option value="">None</option>
+                {% for pet in pets %}
+                <option value="{{ pet.pk }}" data-owner-id="{{ pet.owner.pk }}"
+                  {% if staff_form and staff_form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+                  {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                  {{ pet.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="modal-section-label">Scheduling</div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
+              <input type="date" id="id_appointment_date" name="appointment_date"
+                value="{% if staff_form %}{{ staff_form.appointment_date.value|default:'' }}{% endif %}" required />
+            </div>
+            <div class="field-group">
+              <label for="id_start_time"><i class="fa-regular fa-clock"></i> Start time</label>
+              <input type="time" id="id_start_time" name="start_time"
+                value="{% if staff_form %}{{ staff_form.start_time.value|default:'' }}{% endif %}" required />
+            </div>
+            <div class="field-group">
+              <label for="id_end_time"><i class="fa-regular fa-clock"></i> End time</label>
+              <input type="time" id="id_end_time" name="end_time"
+                value="{% if staff_form %}{{ staff_form.end_time.value|default:'' }}{% endif %}" />
+            </div>
+            <div class="field-group">
+              <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason</label>
+              <input type="text" id="id_reason" name="reason" placeholder="Reason for visit"
+                value="{% if staff_form %}{{ staff_form.reason.value|default:'' }}{% endif %}" />
+            </div>
+          </div>
+          <div class="modal-section-label">Notes</div>
+          <div class="field-group">
+            <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Internal notes</label>
+            <textarea id="id_notes" name="notes"
+              placeholder="Any internal notes…">{% if staff_form %}{{ staff_form.notes.value|default:'' }}{% endif %}</textarea>
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-calendar-check"></i> Save appointment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script src="{% static 'js/dashboard.js' %}"></script>
 </body>
 </html>
-

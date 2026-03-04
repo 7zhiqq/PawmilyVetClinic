@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/schedule.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
 </head>
 <body>
   <div class="dashboard-layout">
@@ -23,77 +24,131 @@
         <p>Add a scheduled appointment or register a walk-in visit.</p>
       </div>
 
-      <div class="schedule-card">
+      <div class="schedule-open-wrap">
+        <button type="button" class="btn-open-schedule" id="openScheduleModal">
+          <i class="fa-solid fa-plus"></i> New appointment
+        </button>
+        <a href="{% url 'appointment_manage' %}" class="back-link">
+          <i class="fa-solid fa-arrow-left" style="font-size:0.75rem;"></i> Back to manage
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle"
+    data-has-errors="{% if form.errors %}true{% else %}false{% endif %}">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in 🏥</div>
+          <div class="modal__subtitle">Add a scheduled appointment or register a walk-in visit.</div>
+        </div>
+        <button class="modal__close" id="closeScheduleModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+
         {% if form.errors %}
-        <div class="form-errors">
-          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+        <div class="modal-form__errors">
+          {% for field in form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
           {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" class="modal-form">
           {% csrf_token %}
 
-          <div class="section-label">Visit type</div>
-          <div class="form-row">
+          <div class="modal-section-label">Visit type</div>
+          <div class="modal-form__row">
             <div class="field-group">
-              <label for="{{ form.appointment_type.id_for_label }}">Type</label>
-              {{ form.appointment_type }}
+              <label for="id_appointment_type"><i class="fa-solid fa-tag"></i> Type</label>
+              <select id="id_appointment_type" name="appointment_type">
+                <option value="walk_in" {% if not form.appointment_type.value or form.appointment_type.value == 'walk_in' %}selected{% endif %}>Walk-in</option>
+                <option value="scheduled" {% if form.appointment_type.value == 'scheduled' %}selected{% endif %}>Scheduled</option>
+              </select>
             </div>
             <div class="field-group">
-              <label for="{{ form.status.id_for_label }}">Status</label>
-              {{ form.status }}
-            </div>
-          </div>
-
-          <div class="section-label">Patient</div>
-          <div class="form-row">
-            <div class="field-group">
-              <label for="{{ form.owner.id_for_label }}">Owner</label>
-              {{ form.owner }}
-            </div>
-            <div class="field-group">
-              <label for="{{ form.pet.id_for_label }}">Pet (optional)</label>
-              {{ form.pet }}
+              <label for="id_status"><i class="fa-solid fa-circle-half-stroke"></i> Status</label>
+              <select id="id_status" name="status">
+                <option value="confirmed" {% if not form.status.value or form.status.value == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="pending"   {% if form.status.value == 'pending'   %}selected{% endif %}>Pending</option>
+                <option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if form.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
+              </select>
             </div>
           </div>
 
-          <div class="section-label">Scheduling</div>
-          <div class="form-row">
+          <div class="modal-section-label">Patient</div>
+          <div class="modal-form__row">
             <div class="field-group">
-              <label for="{{ form.appointment_date.id_for_label }}">Date</label>
-              {{ form.appointment_date }}
+              <label for="id_owner"><i class="fa-solid fa-user"></i> Owner</label>
+              <select id="id_owner" name="owner" required>
+                <option value="" disabled {% if not form.owner.value %}selected{% endif %}>Choose owner…</option>
+                {% for owner in owners %}
+                <option value="{{ owner.pk }}" {% if form.owner.value|stringformat:"s" == owner.pk|stringformat:"s" %}selected{% endif %}>
+                  {% if owner.first_name %}{{ owner.first_name }} {{ owner.last_name }}{% else %}{{ owner.username }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
             </div>
             <div class="field-group">
-              <label for="{{ form.start_time.id_for_label }}">Start time</label>
-              {{ form.start_time }}
-            </div>
-            <div class="field-group">
-              <label for="{{ form.end_time.id_for_label }}">End time</label>
-              {{ form.end_time }}
-            </div>
-            <div class="field-group">
-              <label for="{{ form.reason.id_for_label }}">Reason</label>
-              {{ form.reason }}
+              <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+              <select id="id_pet" name="pet">
+                <option value="">None</option>
+                {% for pet in pets %}
+                <option value="{{ pet.pk }}" data-owner-id="{{ pet.owner.pk }}"
+                  {% if form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+                  {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                  {{ pet.name }} ({{ pet.owner.first_name }} {{ pet.owner.last_name }})
+                </option>
+                {% endfor %}
+              </select>
             </div>
           </div>
 
-          <div class="section-label">Notes</div>
+          <div class="modal-section-label">Scheduling</div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
+              <input type="date" id="id_appointment_date" name="appointment_date"
+                value="{{ form.appointment_date.value|default:'' }}" required />
+            </div>
+            <div class="field-group">
+              <label for="id_start_time"><i class="fa-regular fa-clock"></i> Start time</label>
+              <input type="time" id="id_start_time" name="start_time"
+                value="{{ form.start_time.value|default:'' }}" required />
+            </div>
+            <div class="field-group">
+              <label for="id_end_time"><i class="fa-regular fa-clock"></i> End time</label>
+              <input type="time" id="id_end_time" name="end_time"
+                value="{{ form.end_time.value|default:'' }}" />
+            </div>
+            <div class="field-group">
+              <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason</label>
+              <input type="text" id="id_reason" name="reason"
+                placeholder="Reason for visit"
+                value="{{ form.reason.value|default:'' }}" />
+            </div>
+          </div>
+
+          <div class="modal-section-label">Notes</div>
           <div class="field-group">
-            <label for="{{ form.notes.id_for_label }}">Internal notes</label>
-            {{ form.notes }}
+            <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Internal notes</label>
+            <textarea id="id_notes" name="notes"
+              placeholder="Any internal notes…">{{ form.notes.value|default:'' }}</textarea>
           </div>
 
-          <button type="submit" class="form-submit">
+          <button type="submit" class="modal-form__submit">
             <i class="fa-solid fa-calendar-check"></i> Save appointment
           </button>
         </form>
       </div>
-
-      <a href="{% url 'appointment_manage' %}" class="back-link">
-        <i class="fa-solid fa-arrow-left" style="font-size:0.75rem;"></i> Back to manage
-      </a>
-    </main>
+    </div>
   </div>
+
+  <script src="{% static 'js/appointment_schedule.js' %}"></script>
 </body>
 </html>

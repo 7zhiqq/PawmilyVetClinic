@@ -12,148 +12,7 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
-  <style>
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.5);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 1rem;
-    }
-    .modal-backdrop.is-open { display: flex; }
-    .modal {
-      background: #fff;
-      border-radius: 24px;
-      width: 100%;
-      max-width: 480px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
-      animation: modalIn 0.25s ease;
-    }
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(16px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .modal__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.5rem 1.75rem 0;
-      margin-bottom: 1.25rem;
-    }
-    .modal__title {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: #111827;
-      letter-spacing: -0.02em;
-    }
-    .modal__subtitle {
-      font-size: 0.83rem;
-      color: #6b7280;
-      margin-top: 0.15rem;
-    }
-    .modal__close {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: none;
-      background: #f3f4f6;
-      color: #6b7280;
-      font-size: 1.1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
-    }
-    .modal__close:hover { background: #e5e7eb; color: #111827; }
-    .modal__body { padding: 0 1.75rem 1.75rem; }
-    .modal__divider { height: 1px; background: #f3f4f6; margin-bottom: 1.25rem; }
-    .modal-form { display: flex; flex-direction: column; gap: 0.9rem; }
-    .modal-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .field-group { display: flex; flex-direction: column; gap: 0.35rem; }
-    .field-group label {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #374151;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-    .field-group label i { font-size: 0.72rem; color: #9ca3af; }
-    .field-group input,
-    .field-group select,
-    .field-group textarea {
-      width: 100%;
-      padding: 0.72rem 0.9rem;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      font-family: inherit;
-      color: #111827;
-      background: #fafafa;
-      outline: none;
-      box-sizing: border-box;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .field-group input:focus,
-    .field-group select:focus,
-    .field-group textarea:focus {
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 3px #ede9fe;
-      background: #fff;
-    }
-    .modal-form__submit {
-      width: 100%;
-      padding: 0.9rem;
-      background: #111827;
-      color: #fff;
-      font-size: 0.95rem;
-      font-weight: 700;
-      font-family: inherit;
-      border: none;
-      border-radius: 999px;
-      cursor: pointer;
-      margin-top: 0.25rem;
-      transition: opacity 0.2s, transform 0.2s;
-    }
-    .modal-form__submit:hover { opacity: 0.85; transform: translateY(-1px); }
-    .modal-form__errors {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 10px;
-      padding: 0.7rem 1rem;
-      margin-bottom: 0.5rem;
-    }
-    .modal-form__errors p { font-size: 0.82rem; color: #dc2626; margin: 0.15rem 0; }
-
-    .modal--wide { max-width: 620px; }
-
-    .modal-section-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: #9ca3af;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.25rem;
-    }
-    .modal-section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #f3f4f6;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
 </head>
 <body>
   <div class="dashboard-layout">
@@ -231,69 +90,52 @@
     <div class="modal">
       <div class="modal__header">
         <div>
-          <div class="modal__title" id="bookModalTitle">Book Appointment 📅</div>
-          <div class="modal__subtitle">Request a visit — we'll confirm shortly.</div>
+          <div class="modal__title" id="bookModalTitle">Book Appointment</div>
+          <div class="modal__subtitle">Request a visit we will confirm shortly.</div>
         </div>
         <button class="modal__close" id="closeBookModal" aria-label="Close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
       <div class="modal__body">
         <div class="modal__divider"></div>
-
         {% if form.errors %}
         <div class="modal-form__errors">
           {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
           {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
         {% endif %}
-
         <form method="POST" action="{% url 'appointment_book' %}" class="modal-form">
           {% csrf_token %}
-
           <div class="field-group">
-            <label for="id_pet">
-              <i class="fa-solid fa-paw"></i> Pet
-            </label>
+            <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet</label>
             <select id="id_pet" name="pet" required>
-              <option value="" disabled {% if not form.pet.value %}selected{% endif %}>Choose your pet…</option>
+              <option value="" disabled {% if not form.pet.value %}selected{% endif %}>Choose your pet</option>
               {% for pet in pets %}
-              <option value="{{ pet.pk }}"
-                {% if form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
-                {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
-                {{ pet.name }}
+              <option value="{{ pet.pk }}" {% if form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+                {% if pet.species == 'dog' %}Dog{% elif pet.species == 'cat' %}Cat{% elif pet.species == 'bird' %}Bird{% else %}Other{% endif %} - {{ pet.name }} ({{ pet.owner.first_name }} {{ pet.owner.last_name }})
               </option>
               {% endfor %}
             </select>
           </div>
-
           <div class="modal-form__row">
             <div class="field-group">
-              <label for="id_appointment_date">
-                <i class="fa-regular fa-calendar"></i> Date
-              </label>
+              <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
               <input type="date" id="id_appointment_date" name="appointment_date"
                 value="{{ form.appointment_date.value|default:'' }}" required />
             </div>
             <div class="field-group">
-              <label for="id_start_time">
-                <i class="fa-regular fa-clock"></i> Preferred time
-              </label>
+              <label for="id_start_time"><i class="fa-regular fa-clock"></i> Preferred time</label>
               <input type="time" id="id_start_time" name="start_time"
                 value="{{ form.start_time.value|default:'' }}" required />
             </div>
           </div>
-
           <div class="field-group">
-            <label for="id_reason">
-              <i class="fa-solid fa-stethoscope"></i> Reason for visit
-            </label>
+            <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
             <input type="text" id="id_reason" name="reason"
               placeholder="e.g. Vaccination, check-up, grooming"
               value="{{ form.reason.value|default:'' }}" />
           </div>
-
           <button type="submit" class="modal-form__submit">
             <i class="fa-solid fa-calendar-check"></i> Book appointment
           </button>
@@ -301,39 +143,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    (function () {
-      const modal    = document.getElementById('bookModal');
-      const openBtn  = document.getElementById('openBookModal');
-      const closeBtn = document.getElementById('closeBookModal');
-
-      function openModal() {
-        modal.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeModal() {
-        modal.classList.remove('is-open');
-        document.body.style.overflow = '';
-      }
-
-      openBtn  && openBtn.addEventListener('click', openModal);
-      closeBtn && closeBtn.addEventListener('click', closeModal);
-
-      modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-      });
-
-      if (modal.dataset.hasErrors === 'true') {
-        openModal();
-      }
-    })();
-  </script>
   {% endif %}
 
   {% if is_staff %}
@@ -342,27 +151,23 @@
     <div class="modal modal--wide">
       <div class="modal__header">
         <div>
-          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in 🏥</div>
+          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in</div>
           <div class="modal__subtitle">Add a scheduled appointment or register a walk-in visit.</div>
         </div>
         <button class="modal__close" id="closeScheduleModal" aria-label="Close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
       <div class="modal__body">
         <div class="modal__divider"></div>
-
         {% if staff_form.errors %}
         <div class="modal-form__errors">
           {% for field in staff_form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
           {% for error in staff_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
         {% endif %}
-
         <form method="POST" action="{% url 'appointment_schedule' %}" class="modal-form">
           {% csrf_token %}
-
           <div class="modal-section-label">Visit type</div>
           <div class="modal-form__row">
             <div class="field-group">
@@ -376,40 +181,38 @@
               <label for="id_status"><i class="fa-solid fa-circle-half-stroke"></i> Status</label>
               <select id="id_status" name="status">
                 <option value="confirmed" {% if not staff_form.status.value or staff_form.status.value == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                <option value="pending"   {% if staff_form.status.value == 'pending'   %}selected{% endif %}>Pending</option>
+                <option value="pending" {% if staff_form.status.value == 'pending' %}selected{% endif %}>Pending</option>
                 <option value="completed" {% if staff_form.status.value == 'completed' %}selected{% endif %}>Completed</option>
                 <option value="cancelled" {% if staff_form.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
               </select>
             </div>
           </div>
-
           <div class="modal-section-label">Patient</div>
-            <div class="modal-form__row">
-              <div class="field-group">
-                <label for="id_owner"><i class="fa-solid fa-user"></i> Owner</label>
-                <select id="id_owner" name="owner" required>
-                <option value="" disabled {% if not staff_form.owner.value %}selected{% endif %}>Choose owner…</option>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_owner"><i class="fa-solid fa-user"></i> Owner</label>
+              <select id="id_owner" name="owner" required>
+                <option value="" disabled {% if not staff_form.owner.value %}selected{% endif %}>Choose owner</option>
                 {% for owner in owners %}
                 <option value="{{ owner.pk }}" {% if staff_form.owner.value|stringformat:"s" == owner.pk|stringformat:"s" %}selected{% endif %}>
-                {% if owner.first_name %}{{ owner.first_name }} {{ owner.last_name }}{% else %}{{ owner.username }}{% endif %}
+                  {% if owner.first_name %}{{ owner.first_name }} {{ owner.last_name }}{% else %}{{ owner.username }}{% endif %}
                 </option>
                 {% endfor %}
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
-                <select id="id_pet" name="pet">
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+              <select id="id_pet" name="pet">
                 <option value="">None</option>
                 {% for pet in pets %}
                 <option value="{{ pet.pk }}" data-owner-id="{{ pet.owner.pk }}" {% if staff_form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
                   {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
-                  {{ pet.name }}
+                  {{ pet.name }} ({{ pet.owner.first_name }} {{ pet.owner.last_name }})
                 </option>
                 {% endfor %}
-                </select>
-              </div>
+              </select>
             </div>
-
+          </div>
           <div class="modal-section-label">Scheduling</div>
           <div class="modal-form__row">
             <div class="field-group">
@@ -434,14 +237,11 @@
                 value="{{ staff_form.reason.value|default:'' }}" />
             </div>
           </div>
-
           <div class="modal-section-label">Notes</div>
           <div class="field-group">
             <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Internal notes</label>
-            <textarea id="id_notes" name="notes"
-              placeholder="Any internal notes…">{{ staff_form.notes.value|default:'' }}</textarea>
+            <textarea id="id_notes" name="notes" placeholder="Any internal notes">{{ staff_form.notes.value|default:'' }}</textarea>
           </div>
-
           <button type="submit" class="modal-form__submit">
             <i class="fa-solid fa-calendar-check"></i> Save appointment
           </button>
@@ -449,63 +249,8 @@
       </div>
     </div>
   </div>
-
-  <script>
-    (function () {
-      const modal    = document.getElementById('scheduleModal');
-      const openBtn  = document.getElementById('openScheduleModal');
-      const closeBtn = document.getElementById('closeScheduleModal');
-      const ownerSelect = document.getElementById('id_owner');
-      const petSelect = document.getElementById('id_pet');
-
-      function openModal() {
-        modal.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeModal() {
-        modal.classList.remove('is-open');
-        document.body.style.overflow = '';
-      }
-
-      function filterPetsByOwner() {
-        const selectedOwnerId = ownerSelect.value;
-        const petOptions = petSelect.querySelectorAll('option[data-owner-id]');
-        
-        petOptions.forEach(option => {
-          if (selectedOwnerId === '' || option.dataset.ownerId === selectedOwnerId) {
-            option.style.display = '';
-          } else {
-            option.style.display = 'none';
-            option.selected = false;
-          }
-        });
-
-        // Reset to "None" if current selection is hidden
-        if (petSelect.selectedOptions[0]?.style.display === 'none') {
-          petSelect.value = '';
-        }
-      }
-
-      openBtn  && openBtn.addEventListener('click', openModal);
-      closeBtn && closeBtn.addEventListener('click', closeModal);
-      ownerSelect && ownerSelect.addEventListener('change', filterPetsByOwner);
-
-      modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-      });
-
-      // Re-open if form came back with errors
-      if (modal.dataset.hasErrors === 'true') {
-        openModal();
-        filterPetsByOwner();
-      }
-    })();
-  </script>
   {% endif %}
+
+  <script src="{% static 'js/appointment_calendar.js' %}"></script>
 </body>
 </html>

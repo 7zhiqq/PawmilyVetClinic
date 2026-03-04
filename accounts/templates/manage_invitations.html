@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manage Users — Pawmily</title>
+  <title>Manage Users - Pawmily</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
@@ -17,16 +17,13 @@
 <body>
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
-
     <main class="mu-page">
-
       <div class="mu-header">
         <div class="mu-header__text">
           <h1>Manage users</h1>
           <p>Oversee your clinic team and send invite links to add new members.</p>
         </div>
       </div>
-
       {% if invite_message or user_message %}
       <div class="mu-alerts">
         {% if invite_message %}
@@ -43,14 +40,12 @@
         {% endif %}
       </div>
       {% endif %}
-
       <div class="mu-body">
         <div class="mu-card">
           <div class="mu-card__header">
             <div class="mu-card__title">Staff &amp; manager accounts</div>
             <div class="mu-card__sub">View and manage access for your clinic team.</div>
           </div>
-
           {% if staff_manager_users %}
           <div class="mu-table-wrap">
             <table class="mu-table">
@@ -67,28 +62,18 @@
               <tbody>
                 {% for u in staff_manager_users %}
                 <tr>
-                  <td>
-                    <span style="font-weight:600;color:#111827;">{{ u.get_full_name|default:u.username }}</span>
-                  </td>
+                  <td><span style="font-weight:600;color:#111827;">{{ u.get_full_name|default:u.username }}</span></td>
                   <td style="color:#6b7280;">{{ u.email }}</td>
                   <td>{{ u.profile.get_role_display }}</td>
                   <td>
                     {% if u.is_active %}
-                      <span class="mu-pill mu-pill--active">
-                        <span class="mu-pill__dot"></span> Active
-                      </span>
+                      <span class="mu-pill mu-pill--active"><span class="mu-pill__dot"></span> Active</span>
                     {% else %}
-                      <span class="mu-pill mu-pill--inactive">
-                        <span class="mu-pill__dot"></span> Inactive
-                      </span>
+                      <span class="mu-pill mu-pill--inactive"><span class="mu-pill__dot"></span> Inactive</span>
                     {% endif %}
                   </td>
                   <td style="color:#6b7280;font-size:0.8rem;">
-                    {% if u.last_login %}
-                      {{ u.last_login|date:"M j, Y" }}
-                    {% else %}
-                      Joined {{ u.date_joined|date:"M j, Y" }}
-                    {% endif %}
+                    {% if u.last_login %}{{ u.last_login|date:"M j, Y" }}{% else %}Joined {{ u.date_joined|date:"M j, Y" }}{% endif %}
                   </td>
                   <td>
                     <div class="mu-actions">
@@ -104,7 +89,6 @@
                           {% endif %}
                         </button>
                       </form>
-
                       <form method="POST" style="display:flex;align-items:center;gap:0.3rem;">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="change_role">
@@ -113,9 +97,7 @@
                           <option value="staff" {% if u.profile.role == 'staff' %}selected{% endif %}>Staff</option>
                           <option value="manager" {% if u.profile.role == 'manager' %}selected{% endif %}>Manager</option>
                         </select>
-                        <button type="submit" class="mu-btn mu-btn--primary">
-                          Save
-                        </button>
+                        <button type="submit" class="mu-btn mu-btn--primary">Save</button>
                       </form>
                     </div>
                   </td>
@@ -131,58 +113,43 @@
             </div>
           {% endif %}
         </div>
-
         <div style="display:flex;flex-direction:column;gap:1.5rem;">
-
           <div class="mu-card">
             <div class="mu-card__header">
               <div class="mu-card__title">Invite new user</div>
               <div class="mu-card__sub">Send an invite link to add a team member.</div>
             </div>
-
             <form method="POST" class="mu-form">
               {% csrf_token %}
               <input type="hidden" name="action" value="invite">
-
               <div class="mu-form__group">
                 <label class="mu-form__label" for="{{ form.email.id_for_label }}">Email address</label>
-                <input
-                  class="mu-form__input"
-                  type="email"
-                  id="{{ form.email.id_for_label }}"
-                  name="email"
-                  placeholder="staff@example.com"
-                  value="{{ form.email.value|default:'' }}"
-                  required
-                />
+                <input class="mu-form__input" type="email" id="{{ form.email.id_for_label }}" name="email"
+                  placeholder="staff@example.com" value="{{ form.email.value|default:'' }}" required />
                 {% if form.email.errors %}
                   <span style="font-size:0.78rem;color:#b91c1c;">{{ form.email.errors.0 }}</span>
                 {% endif %}
               </div>
-
               <div class="mu-form__group">
                 <label class="mu-form__label" for="{{ form.role.id_for_label }}">Role</label>
                 <select class="mu-form__select" id="{{ form.role.id_for_label }}" name="role" required>
-                  <option value="" disabled {% if not form.role.value %}selected{% endif %}>Select a role…</option>
+                  <option value="" disabled {% if not form.role.value %}selected{% endif %}>Select a role</option>
                   {% for value, label in form.fields.role.choices %}
                     <option value="{{ value }}" {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
                   {% endfor %}
                 </select>
               </div>
-
               <button type="submit" class="mu-form__submit">
                 <i class="fa-solid fa-paper-plane"></i> Send invitation
               </button>
             </form>
           </div>
-
           {% if invitations %}
           <div class="mu-card">
             <div class="mu-card__header">
               <div class="mu-card__title">Recent invitations</div>
               <div class="mu-card__sub">Click "View" to copy or open an invite link.</div>
             </div>
-
             <div class="mu-inv-list">
               {% for invitation in invitations %}
               <div class="mu-inv-item">
@@ -196,14 +163,11 @@
                   {% else %}
                     <span class="mu-pill mu-pill--pending">Pending</span>
                   {% endif %}
-                  <button
-                    type="button"
-                    class="mu-btn mu-btn--primary invite-view-btn"
+                  <button type="button" class="mu-btn mu-btn--primary invite-view-btn"
                     data-email="{{ invitation.email }}"
                     data-role="{{ invitation.get_role_display }}"
                     data-status="{% if invitation.is_used %}Used{% else %}Pending{% endif %}"
-                    data-url="{{ invitation.full_url }}"
-                  >
+                    data-url="{{ invitation.full_url }}">
                     <i class="fa-solid fa-link" style="font-size:0.7rem;"></i> View
                   </button>
                 </div>
@@ -212,7 +176,6 @@
             </div>
           </div>
           {% endif %}
-
         </div>
       </div>
     </main>
@@ -224,7 +187,6 @@
         <span class="mu-modal__title">Invitation details</span>
         <button type="button" class="mu-modal__close" id="inviteModalClose" aria-label="Close">&times;</button>
       </div>
-
       <div class="mu-modal__rows">
         <div class="mu-modal__row">
           <span class="mu-modal__row-label">Email</span>
@@ -239,12 +201,10 @@
           <span id="inviteModalStatus" style="font-size:0.875rem;color:#111827;"></span>
         </div>
       </div>
-
       <div class="mu-modal__link-wrap">
         <span class="mu-modal__link-label">Invite link</span>
         <input type="text" readonly class="mu-modal__link-input" id="inviteModalLink" />
       </div>
-
       <div class="mu-modal__footer">
         <button type="button" class="mu-btn" id="inviteModalOpenLink">
           <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i> Open
@@ -256,60 +216,6 @@
     </div>
   </div>
 
-  <script>
-    (function () {
-      const backdrop   = document.getElementById('inviteModal');
-      const emailEl    = document.getElementById('inviteModalEmail');
-      const roleEl     = document.getElementById('inviteModalRole');
-      const statusEl   = document.getElementById('inviteModalStatus');
-      const linkInput  = document.getElementById('inviteModalLink');
-      const closeBtn   = document.getElementById('inviteModalClose');
-      const copyBtn    = document.getElementById('inviteModalCopy');
-      const openBtn    = document.getElementById('inviteModalOpenLink');
-
-      function openModal(data) {
-        emailEl.textContent  = data.email  || '';
-        roleEl.textContent   = data.role   || '';
-        statusEl.textContent = data.status || '';
-        linkInput.value      = data.url    || '';
-        backdrop.classList.add('is-open');
-      }
-
-      function closeModal() {
-        backdrop.classList.remove('is-open');
-      }
-
-      document.querySelectorAll('.invite-view-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          openModal({
-            email:  this.dataset.email,
-            role:   this.dataset.role,
-            status: this.dataset.status,
-            url:    this.dataset.url,
-          });
-        });
-      });
-
-      backdrop.addEventListener('click', function (e) {
-        if (e.target === backdrop) closeModal();
-      });
-
-      closeBtn && closeBtn.addEventListener('click', closeModal);
-
-      copyBtn && copyBtn.addEventListener('click', function () {
-        if (!linkInput.value) return;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(linkInput.value);
-        } else {
-          linkInput.select();
-          document.execCommand('copy');
-        }
-      });
-
-      openBtn && openBtn.addEventListener('click', function () {
-        if (linkInput.value) window.open(linkInput.value, '_blank');
-      });
-    })();
-  </script>
+  <script src="{% static 'js/invitations.js' %}"></script>
 </body>
 </html>

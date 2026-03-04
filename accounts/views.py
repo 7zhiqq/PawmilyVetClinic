@@ -324,13 +324,61 @@ def appointment_calendar(request):
         [(d, by_date.get(d.isoformat(), [])) for d in week]
         for week in weeks
     ]
-    context = {
-        "cal_date": cal_date,
-        "prev_month": prev_month,
-        "next_month": next_month,
-        "calendar_weeks": calendar_weeks,
-        "is_staff": _is_staff_or_manager(request.user),
-    }
+    
+    is_staff = _is_staff_or_manager(request.user)
+    if is_staff:
+        if request.method == "POST":
+            staff_form = AppointmentStaffForm(request.POST)
+            if staff_form.is_valid():
+                apt = staff_form.save(commit=False)
+                apt.staff = request.user
+                apt.appointment_type = (
+                    Appointment.TYPE_WALK_IN
+                    if staff_form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
+                    else Appointment.TYPE_SCHEDULED
+                )
+                apt.status = staff_form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
+                apt.save()
+                return redirect("appointment_calendar", year=cal_date.year, month=cal_date.month)
+        else:
+            staff_form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
+        
+        owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
+        pets = Pet.objects.select_related("owner").order_by("owner__username", "name")
+        context = {
+            "cal_date": cal_date,
+            "prev_month": prev_month,
+            "next_month": next_month,
+            "calendar_weeks": calendar_weeks,
+            "is_staff": is_staff,
+            "staff_form": staff_form,
+            "owners": owners,
+            "pets": pets,
+        }
+    else:
+        if request.method == "POST":
+            form = AppointmentBookingForm(request.POST, owner=request.user)
+            if form.is_valid():
+                apt = form.save(commit=False)
+                apt.owner = request.user
+                apt.status = Appointment.STATUS_PENDING
+                apt.appointment_type = Appointment.TYPE_SCHEDULED
+                apt.save()
+                return redirect("appointment_calendar")
+        else:
+            form = AppointmentBookingForm(owner=request.user)
+        
+        pets = Pet.objects.filter(owner=request.user).order_by("name")
+        context = {
+            "cal_date": cal_date,
+            "prev_month": prev_month,
+            "next_month": next_month,
+            "calendar_weeks": calendar_weeks,
+            "is_staff": is_staff,
+            "form": form,
+            "pets": pets,
+        }
+    
     return render(request, "appointment_calendar.html", context)
 
 
@@ -359,29 +407,56 @@ def appointment_queue(request):
 def appointment_manage(request):
     if not _is_staff_or_manager(request.user):
         return HttpResponseForbidden("Only staff can manage appointments.")
+
     if request.method == "POST":
         action = request.POST.get("action")
-        apt_id = request.POST.get("appointment_id")
-        if action and apt_id:
-            apt = get_object_or_404(Appointment, pk=apt_id)
-            if action == "confirm":
-                apt.status = Appointment.STATUS_CONFIRMED
+
+        if action in ("confirm", "reject", "complete"):
+            apt_id = request.POST.get("appointment_id")
+            if apt_id:
+                apt = get_object_or_404(Appointment, pk=apt_id)
+                if action == "confirm":
+                    apt.status = Appointment.STATUS_CONFIRMED
+                    apt.staff = request.user
+                    apt.save(update_fields=["status", "staff", "updated_at"])
+                elif action == "reject":
+                    apt.status = Appointment.STATUS_REJECTED
+                    apt.staff = request.user
+                    apt.save(update_fields=["status", "staff", "updated_at"])
+                elif action == "complete":
+                    apt.status = Appointment.STATUS_COMPLETED
+                    apt.staff = request.user
+                    apt.save(update_fields=["status", "staff", "updated_at"])
+            return redirect("appointment_manage")
+        else:
+            form = AppointmentStaffForm(request.POST)
+            if form.is_valid():
+                apt = form.save(commit=False)
                 apt.staff = request.user
-                apt.save(update_fields=["status", "staff", "updated_at"])
-            elif action == "reject":
-                apt.status = Appointment.STATUS_REJECTED
-                apt.staff = request.user
-                apt.save(update_fields=["status", "staff", "updated_at"])
-            elif action == "complete":
-                apt.status = Appointment.STATUS_COMPLETED
-                apt.staff = request.user
-                apt.save(update_fields=["status", "staff", "updated_at"])
+                apt.appointment_type = (
+                    Appointment.TYPE_WALK_IN
+                    if form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
+                    else Appointment.TYPE_SCHEDULED
+                )
+                apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
+                apt.save()
+                return redirect("appointment_manage")
+
+    else:
+        form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
+
     appointments = Appointment.objects.select_related("owner", "pet", "staff").order_by(
         "-appointment_date", "-start_time"
     )
-    context = {"appointments": appointments, "form": AppointmentStaffForm()}
-    return render(request, "appointment_manage.html", context)
+    owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
+    pets   = Pet.objects.select_related("owner").order_by("owner__username", "name")
 
+    return render(request, "appointment_manage.html", {
+        "appointments": appointments,
+        "form": form,
+        "owners": owners,
+        "pets": pets,
+    })
 
 @login_required
 def appointment_schedule(request):
@@ -402,4 +477,12 @@ def appointment_schedule(request):
             return redirect("appointment_manage")
     else:
         form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
-    return render(request, "appointment_schedule.html", {"form": form})
+
+    owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
+    pets   = Pet.objects.select_related("owner").order_by("owner__username", "name")
+
+    return render(request, "appointment_schedule.html", {
+        "form": form,
+        "owners": owners,
+        "pets": pets,
+    })
