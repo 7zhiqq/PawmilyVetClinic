@@ -122,3 +122,4 @@ class AppointmentStaffForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         pet_owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
         self.fields["owner"].queryset = pet_owners
+        self.fields["status"].initial = Appointment.STATUS_CONFIRMED

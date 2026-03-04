@@ -512,18 +512,11 @@
             value="{{ staff_form.start_time.value|default:'' }}" />
         </div>
 
-        <div class="modal-form__row">
-          <div class="field-group">
-            <label for="id_reason_staff"><i class="fa-solid fa-stethoscope"></i> Reason</label>
-            <input type="text" id="id_reason_staff" name="reason"
-              placeholder="Reason for visit"
-              value="{{ staff_form.reason.value|default:'' }}" />
-          </div>
-          <div class="field-group">
-            <label for="id_end_time"><i class="fa-regular fa-clock"></i> End time <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
-            <input type="time" id="id_end_time" name="end_time"
-              value="{{ staff_form.end_time.value|default:'' }}" />
-          </div>
+        <div class="field-group">
+          <label for="id_reason_staff"><i class="fa-solid fa-stethoscope"></i> Reason</label>
+          <input type="text" id="id_reason_staff" name="reason"
+            placeholder="Reason for visit"
+            value="{{ staff_form.reason.value|default:'' }}" />
         </div>
 
         <div class="slot-section">

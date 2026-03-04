@@ -514,7 +514,7 @@ def appointment_schedule(request):
             except IntegrityError:
                 error = "That slot was just taken by another booking. Please try again."
     else:
-        form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
+        form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN, "status": Appointment.STATUS_CONFIRMED})
 
     owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
     pets = Pet.objects.select_related("owner").order_by("name")
@@ -615,6 +615,83 @@ def appointment_queue(request):
         "view_date": view_date,
         "appointments": appointments,
         "is_staff": _is_staff_or_manager(request.user),
+    })
+
+
+@login_required
+@require_GET
+def get_queue_data(request):
+    """
+    AJAX endpoint returning real-time queue data.
+    GET /accounts/appointments/queue-data/?date=YYYY-MM-DD
+    Returns JSON with queue status, appointments, and statistics.
+    """
+    day_str = request.GET.get("date")
+    if day_str:
+        try:
+            view_date = date.fromisoformat(day_str)
+        except (ValueError, TypeError):
+            view_date = date.today()
+    else:
+        view_date = date.today()
+
+    appointments_qs = _appointment_queryset(request.user).filter(
+        appointment_date=view_date,
+    ).order_by("start_time", "slot_number")
+
+    # Build appointment list
+    appointments_data = []
+    for apt in appointments_qs:
+        pet_emoji = "🐾"
+        if apt.pet:
+            species_emojis = {
+                "dog": "🐶",
+                "cat": "🐱",
+                "bird": "🐦",
+            }
+            pet_emoji = species_emojis.get(apt.pet.species, "🐾")
+        
+        apt_data = {
+            "id": apt.id,
+            "pet_name": apt.pet.name if apt.pet else "Walk-in",
+            "owner_name": apt.owner.get_full_name() or apt.owner.username,
+            "owner_id": apt.owner.id,
+            "time": apt.start_time.strftime("%H:%M"),
+            "time_ampm": apt.start_time.strftime("%I:%M %p"),
+            "status": apt.status,
+            "status_display": apt.get_status_display(),
+            "type": apt.appointment_type,
+            "type_display": apt.get_appointment_type_display(),
+            "emoji": pet_emoji,
+            "reason": apt.reason or "",
+            "slot_number": apt.slot_number,
+        }
+        appointments_data.append(apt_data)
+
+    # Calculate queue statistics
+    confirmed_count = appointments_qs.filter(status=Appointment.STATUS_CONFIRMED).count()
+    pending_count = appointments_qs.filter(status=Appointment.STATUS_PENDING).count()
+    completed_count = appointments_qs.filter(status=Appointment.STATUS_COMPLETED).count()
+    active_count = appointments_qs.exclude(
+        status__in=[Appointment.STATUS_REJECTED, Appointment.STATUS_CANCELLED, Appointment.STATUS_COMPLETED]
+    ).count()
+    waiting_count = appointments_qs.filter(status=Appointment.STATUS_PENDING).count()
+
+    queue_stats = {
+        "date": view_date.isoformat(),
+        "date_display": view_date.strftime("%A, %B %d, %Y"),
+        "total_appointments": appointments_qs.count(),
+        "confirmed": confirmed_count,
+        "pending": pending_count,
+        "completed": completed_count,
+        "active": active_count,
+        "waiting": waiting_count,
+    }
+
+    return JsonResponse({
+        "appointments": appointments_data,
+        "stats": queue_stats,
+        "timestamp": datetime.now().isoformat(),
     })
 
 

@@ -20,4 +20,5 @@ urlpatterns = [
     path("appointments/schedule/", views.appointment_schedule, name="appointment_schedule"),
     # AJAX
     path("appointments/slots/", views.get_available_slots, name="get_available_slots"),
+    path("appointments/queue-data/", views.get_queue_data, name="get_queue_data"),
 ]
