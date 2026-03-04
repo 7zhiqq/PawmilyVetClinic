@@ -1,7 +1,10 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.crypto import get_random_string
+
+MAX_SLOTS = 5
 
 
 class Profile(models.Model):
@@ -57,6 +60,23 @@ class Pet(models.Model):
     weight_kg = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True
     )
+    GENDER_MALE = "male"
+    GENDER_FEMALE = "female"
+    GENDER_UNKNOWN = "unknown"
+
+    GENDER_CHOICES = [
+        (GENDER_MALE, "Male"),
+        (GENDER_FEMALE, "Female"),
+        (GENDER_UNKNOWN, "Unknown"),
+    ]
+
+    gender = models.CharField(
+        max_length=20, choices=GENDER_CHOICES, default=GENDER_UNKNOWN, blank=True
+    )
+    color = models.CharField(max_length=50, blank=True, default='')
+    
+    is_active = models.BooleanField(default=True)
+    profile_picture = models.ImageField(upload_to='pet_pictures/', blank=True, null=True, default=None)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -146,6 +166,10 @@ class Appointment(models.Model):
     appointment_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField(null=True, blank=True)
+    slot_number = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Slot position (1–5) within a date/time block",
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -162,9 +186,23 @@ class Appointment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["appointment_date", "start_time"]
+        ordering = ["appointment_date", "start_time", "slot_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["appointment_date", "start_time", "slot_number"],
+                name="unique_slot_per_datetime",
+            ),
+        ]
+
+    def clean(self):
+        if self.slot_number is not None and not (1 <= self.slot_number <= MAX_SLOTS):
+            raise ValidationError(
+                {"slot_number": f"Slot number must be between 1 and {MAX_SLOTS}."}
+            )
 
     def __str__(self) -> str:
         pet_name = self.pet.name if self.pet else "Walk-in"
-        return f"{pet_name} on {self.appointment_date} at {self.start_time} ({self.get_status_display()})"
-
+        return (
+            f"{pet_name} on {self.appointment_date} at {self.start_time} "
+            f"slot {self.slot_number} ({self.get_status_display()})"
+        )

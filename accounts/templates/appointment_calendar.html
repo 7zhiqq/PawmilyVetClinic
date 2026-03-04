@@ -12,245 +12,828 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
-  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+
+  <style>
+    /* ── Modal backdrop ───────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.52);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1rem;
+    }
+    .modal-backdrop.is-open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 28px 72px rgba(15,23,42,.22);
+      animation: modalIn .25s ease;
+    }
+    .modal--wide { max-width: 640px; }
+
+    @keyframes modalIn {
+      from { opacity:0; transform:translateY(18px) scale(.97); }
+      to   { opacity:1; transform:translateY(0)    scale(1);   }
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 1.6rem 1.75rem 0;
+      margin-bottom: 1.1rem;
+    }
+    .modal__title  { font-size:1.2rem; font-weight:800; color:#111827; letter-spacing:-.02em; }
+    .modal__subtitle { font-size:.83rem; color:#6b7280; margin-top:.15rem; }
+    .modal__close {
+      width:32px; height:32px; border-radius:50%; border:none;
+      background:#f3f4f6; color:#6b7280; font-size:1.1rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:background .15s,color .15s;
+    }
+    .modal__close:hover { background:#e5e7eb; color:#111827; }
+    .modal__body  { padding:0 1.75rem 1.75rem; }
+    .modal__divider { height:1px; background:#f3f4f6; margin-bottom:1.2rem; }
+
+    /* ── Form fields ──────────────────────────────────────────── */
+    .modal-form { display:flex; flex-direction:column; gap:.9rem; }
+    .modal-form__row { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+
+    .field-group { display:flex; flex-direction:column; gap:.35rem; }
+    .field-group label {
+      font-size:.82rem; font-weight:600; color:#374151;
+      display:flex; align-items:center; gap:.35rem;
+    }
+    .field-group label i { font-size:.72rem; color:#9ca3af; }
+
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      width:100%; padding:.72rem .9rem;
+      border:1.5px solid #e5e7eb; border-radius:12px;
+      font-size:.875rem; font-family:inherit;
+      color:#111827; background:#fafafa; outline:none;
+      box-sizing:border-box; transition:border-color .2s,box-shadow .2s;
+    }
+    .field-group input:focus,
+    .field-group select:focus,
+    .field-group textarea:focus {
+      border-color:#7c3aed; box-shadow:0 0 0 3px #ede9fe; background:#fff;
+    }
+
+    .modal-form__submit {
+      width:100%; padding:.9rem;
+      background:#111827; color:#fff;
+      font-size:.95rem; font-weight:700; font-family:inherit;
+      border:none; border-radius:999px; cursor:pointer;
+      margin-top:.25rem; transition:opacity .2s,transform .2s;
+    }
+    .modal-form__submit:hover { opacity:.85; transform:translateY(-1px); }
+    .modal-form__submit:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+    .modal-form__errors {
+      background:#fef2f2; border:1px solid #fecaca;
+      border-radius:10px; padding:.7rem 1rem; margin-bottom:.5rem;
+    }
+    .modal-form__errors p { font-size:.82rem; color:#dc2626; margin:.15rem 0; }
+
+    .modal-section-label {
+      font-size:.7rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.09em; color:#9ca3af;
+      display:flex; align-items:center; gap:.5rem; margin-top:.25rem;
+    }
+    .modal-section-label::after { content:''; flex:1; height:1px; background:#f3f4f6; }
+
+    /* ── Slot picker ──────────────────────────────────────────── */
+    .slot-section {
+      display:flex; flex-direction:column; gap:.6rem;
+      margin-top:.25rem;
+    }
+    .slot-section__label {
+      font-size:.82rem; font-weight:600; color:#374151;
+      display:flex; align-items:center; gap:.35rem;
+    }
+    .slot-section__label i { font-size:.72rem; color:#9ca3af; }
+
+    .slot-grid {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:.5rem;
+    }
+
+    .slot-btn {
+      position:relative; padding:.65rem .4rem;
+      border:1.5px solid #e5e7eb; border-radius:14px;
+      background:#fafafa; color:#374151;
+      font-size:.78rem; font-weight:700; font-family:inherit;
+      cursor:pointer; text-align:center;
+      transition:border-color .15s,background .15s,color .15s,transform .12s;
+      display:flex; flex-direction:column; align-items:center; gap:.2rem;
+      user-select:none;
+    }
+    .slot-btn__num { font-size:1rem; font-weight:800; line-height:1; }
+    .slot-btn__lbl { font-size:.62rem; opacity:.7; letter-spacing:.04em; }
+
+    .slot-btn:hover:not(:disabled):not(.selected) {
+      border-color:#c4b5fd; background:#f5f3ff; color:#6d28d9;
+      transform:translateY(-2px);
+    }
+    .slot-btn.selected {
+      border-color:#7c3aed; background:#ede9fe; color:#5b21b6;
+      transform:translateY(-2px);
+      box-shadow:0 4px 14px rgba(124,58,237,.18);
+    }
+    .slot-btn:disabled {
+      border-color:#f3f4f6; background:#f9fafb;
+      color:#d1d5db; cursor:not-allowed;
+    }
+    .slot-btn.taken::after {
+      content:'✕';
+      position:absolute; top:4px; right:6px;
+      font-size:.6rem; color:#fca5a5;
+    }
+
+    .slot-message {
+      font-size:.82rem; color:#6b7280; text-align:center;
+      padding:.5rem; background:#fafafa; border-radius:10px;
+      border:1px dashed #e5e7eb;
+    }
+    .slot-message.loading { color:#a78bfa; }
+    .slot-message.error   { color:#ef4444; background:#fef2f2; border-color:#fecaca; }
+    .slot-message.full    { color:#b45309; background:#fffbeb; border-color:#fde68a; }
+
+    /* skeleton shimmer while loading */
+    .slot-skeleton {
+      display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem;
+    }
+    .slot-skeleton__item {
+      height:56px; border-radius:14px;
+      background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%);
+      background-size:200% 100%;
+      animation:shimmer 1.2s infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position:200% 0; }
+      100% { background-position:-200% 0; }
+    }
+
+    /* ── Time quick-select chips (owner) ─────────────────────── */
+    .time-chips {
+      display:flex; flex-wrap:wrap; gap:.4rem;
+    }
+    .time-chip {
+      padding:.35rem .7rem; border:1.5px solid #e5e7eb;
+      border-radius:999px; font-size:.78rem; font-weight:600;
+      color:#6b7280; background:#fafafa; cursor:pointer;
+      transition:border-color .15s,background .15s,color .15s;
+    }
+    .time-chip:hover { border-color:#c4b5fd; color:#6d28d9; background:#f5f3ff; }
+    .time-chip.selected { border-color:#7c3aed; color:#5b21b6; background:#ede9fe; }
+
+    /* ── Time chip grid ─────────────────────────────────────── */
+    .time-chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      max-height: 112px;
+      overflow-y: auto;
+      padding: .25rem .1rem;
+      scrollbar-width: thin;
+      scrollbar-color: #e5e7eb transparent;
+    }
+    .time-chip-grid::-webkit-scrollbar { width: 4px; }
+    .time-chip-grid::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+    .time-chip {
+      padding: .38rem .7rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 600;
+      color: #6b7280;
+      background: #fafafa;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .15s, background .15s, color .15s;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .time-chip:hover     { border-color: #c4b5fd; color: #6d28d9; background: #f5f3ff; }
+    .time-chip.selected  { border-color: #7c3aed; color: #5b21b6; background: #ede9fe; }
+    .time-chip.past      { opacity: .35; cursor: not-allowed; pointer-events: none; }
+
+    /* ── Misc ────────────────────────────────────────────────── */
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.6rem 1.1rem; background:#111827; color:#fff;
+      border-radius:999px; font-size:.875rem; font-weight:600;
+      text-decoration:none; cursor:pointer; border:none; font-family:inherit;
+      transition:opacity .2s,transform .2s;
+    }
+    .btn-primary:hover { opacity:.85; transform:translateY(-1px); }
+  </style>
 </head>
 <body>
-  <div class="dashboard-layout">
-    {% include 'navbar.html' %}
+<div class="dashboard-layout">
+  {% include 'navbar.html' %}
 
-    <main class="cal-page">
-      <div class="cal-header">
-        <div class="cal-header__left">
-          <h1>Appointments</h1>
-          <p>{{ cal_date|date:"F Y" }}</p>
-        </div>
-        <div class="cal-header__actions">
-          <div class="view-tabs">
-            <a href="?year={{ cal_date.year }}&month={{ cal_date.month }}" class="active">Calendar</a>
-            <a href="{% url 'appointment_queue' %}">Queue</a>
-          </div>
-          {% if not is_staff %}
-          <button type="button" class="btn-primary" id="openBookModal">
-            <i class="fa-solid fa-plus"></i> Book
-          </button>
-          {% else %}
-          <button type="button" class="btn-primary" id="openScheduleModal">
-            <i class="fa-solid fa-plus"></i> Schedule / Walk-in
-          </button>
-          {% endif %}
-        </div>
+  <main class="cal-page">
+    <div class="cal-header">
+      <div class="cal-header__left">
+        <h1>Appointments</h1>
+        <p>{{ cal_date|date:"F Y" }}</p>
       </div>
-
-      <div class="cal-nav">
-        <a href="?year={{ prev_month.year }}&month={{ prev_month.month }}" class="cal-nav__btn">
-          <i class="fa-solid fa-chevron-left"></i>
-        </a>
-        <div class="cal-nav__month">{{ cal_date|date:"F Y" }}</div>
-        <a href="?year={{ next_month.year }}&month={{ next_month.month }}" class="cal-nav__btn">
-          <i class="fa-solid fa-chevron-right"></i>
-        </a>
-      </div>
-
-      <div class="cal-wrap">
-        <div class="cal-grid">
-          <div class="cal-head">Sun</div>
-          <div class="cal-head">Mon</div>
-          <div class="cal-head">Tue</div>
-          <div class="cal-head">Wed</div>
-          <div class="cal-head">Thu</div>
-          <div class="cal-head">Fri</div>
-          <div class="cal-head">Sat</div>
-          {% for week in calendar_weeks %}
-            {% for day_date, day_appointments in week %}
-            <div class="cal-day {% if day_date.month != cal_date.month %}cal-day--other{% endif %} {% if day_date == today %}cal-day--today{% endif %}">
-              <div class="cal-day__num">{{ day_date.day }}</div>
-              {% for apt in day_appointments %}
-              <span class="cal-event {{ apt.status }}">
-                {{ apt.pet.name|default:"Walk-in" }} {{ apt.start_time|time:"g:i A" }}
-              </span>
-              {% endfor %}
-            </div>
-            {% endfor %}
-          {% endfor %}
+      <div class="cal-header__actions">
+        <div class="view-tabs">
+          <a href="?year={{ cal_date.year }}&month={{ cal_date.month }}" class="active">Calendar</a>
+          <a href="{% url 'appointment_queue' %}">Queue</a>
         </div>
-      </div>
-
-      <div class="cal-legend">
-        <div class="cal-legend__item"><span class="cal-legend__dot pending"></span> Pending</div>
-        <div class="cal-legend__item"><span class="cal-legend__dot confirmed"></span> Confirmed</div>
-        <div class="cal-legend__item"><span class="cal-legend__dot rejected"></span> Rejected</div>
-        <div class="cal-legend__item"><span class="cal-legend__dot completed"></span> Completed</div>
-      </div>
-    </main>
-  </div>
-
-  {% if not is_staff %}
-  <div class="modal-backdrop" id="bookModal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle"
-    data-has-errors="{% if form.errors %}true{% else %}false{% endif %}">
-    <div class="modal">
-      <div class="modal__header">
-        <div>
-          <div class="modal__title" id="bookModalTitle">Book Appointment</div>
-          <div class="modal__subtitle">Request a visit we will confirm shortly.</div>
-        </div>
-        <button class="modal__close" id="closeBookModal" aria-label="Close">
-          <i class="fa-solid fa-xmark"></i>
+        {% if not is_staff %}
+        <button type="button" class="btn-primary" id="openBookModal">
+          <i class="fa-solid fa-plus"></i> Book
         </button>
-      </div>
-      <div class="modal__body">
-        <div class="modal__divider"></div>
-        {% if form.errors %}
-        <div class="modal-form__errors">
-          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
-          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-        </div>
+        {% else %}
+        <button type="button" class="btn-primary" id="openScheduleModal">
+          <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+        </button>
         {% endif %}
-        <form method="POST" action="{% url 'appointment_book' %}" class="modal-form">
-          {% csrf_token %}
+      </div>
+    </div>
+
+    <div class="cal-nav">
+      <a href="?year={{ prev_month.year }}&month={{ prev_month.month }}" class="cal-nav__btn">
+        <i class="fa-solid fa-chevron-left"></i>
+      </a>
+      <div class="cal-nav__month">{{ cal_date|date:"F Y" }}</div>
+      <a href="?year={{ next_month.year }}&month={{ next_month.month }}" class="cal-nav__btn">
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+    </div>
+
+    <div class="cal-wrap">
+      <div class="cal-grid">
+        <div class="cal-head">Sun</div>
+        <div class="cal-head">Mon</div>
+        <div class="cal-head">Tue</div>
+        <div class="cal-head">Wed</div>
+        <div class="cal-head">Thu</div>
+        <div class="cal-head">Fri</div>
+        <div class="cal-head">Sat</div>
+        {% for week in calendar_weeks %}
+          {% for day_date, day_appointments in week %}
+          <div class="cal-day {% if day_date.month != cal_date.month %}cal-day--other{% endif %} {% if day_date == today %}cal-day--today{% endif %}">
+            <div class="cal-day__num">{{ day_date.day }}</div>
+            {% for apt in day_appointments %}
+            <span class="cal-event {{ apt.status }}">
+              {{ apt.pet.name|default:"Walk-in" }} #{{ apt.slot_number }} {{ apt.start_time|time:"g:i A" }}
+            </span>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="cal-legend">
+      <div class="cal-legend__item"><span class="cal-legend__dot pending"></span> Pending</div>
+      <div class="cal-legend__item"><span class="cal-legend__dot confirmed"></span> Confirmed</div>
+      <div class="cal-legend__item"><span class="cal-legend__dot rejected"></span> Rejected</div>
+      <div class="cal-legend__item"><span class="cal-legend__dot completed"></span> Completed</div>
+    </div>
+  </main>
+</div>
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# OWNER BOOKING MODAL                                        #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% if not is_staff %}
+<div class="modal-backdrop" id="bookModal" role="dialog" aria-modal="true"
+     data-has-errors="{% if form.errors or error %}true{% else %}false{% endif %}">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <div class="modal__title">Book Appointment 📅</div>
+        <div class="modal__subtitle">Choose a date, time, and available slot.</div>
+      </div>
+      <button class="modal__close" id="closeBookModal" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <div class="modal__divider"></div>
+
+      {% if error %}
+      <div class="modal-form__errors"><p>{{ error }}</p></div>
+      {% endif %}
+      {% if form.errors %}
+      <div class="modal-form__errors">
+        {% for field in form %}{% for err in field.errors %}<p>{{ err }}</p>{% endfor %}{% endfor %}
+        {% for err in form.non_field_errors %}<p>{{ err }}</p>{% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'appointment_book' %}" class="modal-form" id="bookForm">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet</label>
+          <select id="id_pet" name="pet" required>
+            <option value="" disabled {% if not form.pet.value %}selected{% endif %}>Choose your pet…</option>
+            {% for pet in pets %}
+            <option value="{{ pet.pk }}" {% if form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+              {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+              {{ pet.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
+          <input type="date" id="id_appointment_date" name="appointment_date"
+            value="{{ form.appointment_date.value|default:'' }}"
+            min="{% now 'Y-m-d' %}" required />
+        </div>
+
+        <div class="field-group">
+          <label><i class="fa-regular fa-clock"></i> Time</label>
+          <div class="time-chip-grid" id="timeChipsOwner"></div>
+          <input type="hidden" name="start_time" id="id_start_time"
+            value="{{ form.start_time.value|default:'' }}" />
+        </div>
+
+        <div class="field-group">
+          <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
+          <input type="text" id="id_reason" name="reason"
+            placeholder="e.g. Vaccination, check-up"
+            value="{{ form.reason.value|default:'' }}" />
+        </div>
+
+        <div class="slot-section">
+          <div class="slot-section__label">
+            <i class="fa-solid fa-grid-2"></i> Select slot
+          </div>
+          <div id="slotPickerOwner">
+            <div class="slot-message">
+              Pick a date and time above to see available slots.
+            </div>
+          </div>
+          <input type="hidden" name="slot_number" id="slotNumberOwner" value="{{ request.POST.slot_number|default:'' }}" />
+        </div>
+
+        <button type="submit" class="modal-form__submit" id="bookSubmitBtn" disabled>
+          <i class="fa-solid fa-calendar-check"></i> Book appointment
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# STAFF SCHEDULE / WALK-IN MODAL                             #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% if is_staff %}
+<div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true"
+     data-has-errors="{% if staff_form.errors or staff_error %}true{% else %}false{% endif %}">
+  <div class="modal modal--wide">
+    <div class="modal__header">
+      <div>
+        <div class="modal__title">Schedule / Walk-in 🏥</div>
+        <div class="modal__subtitle">Add a scheduled appointment or register a walk-in.</div>
+      </div>
+      <button class="modal__close" id="closeScheduleModal" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <div class="modal__divider"></div>
+
+      {% if staff_error %}
+      <div class="modal-form__errors"><p>{{ staff_error }}</p></div>
+      {% endif %}
+      {% if staff_form.errors %}
+      <div class="modal-form__errors">
+        {% for field in staff_form %}{% for err in field.errors %}<p><strong>{{ field.label }}:</strong> {{ err }}</p>{% endfor %}{% endfor %}
+        {% for err in staff_form.non_field_errors %}<p>{{ err }}</p>{% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'appointment_schedule' %}" class="modal-form" id="scheduleForm">
+        {% csrf_token %}
+
+        <div class="modal-section-label">Visit type</div>
+        <div class="modal-form__row">
           <div class="field-group">
-            <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet</label>
-            <select id="id_pet" name="pet" required>
-              <option value="" disabled {% if not form.pet.value %}selected{% endif %}>Choose your pet</option>
-              {% for pet in pets %}
-              <option value="{{ pet.pk }}" {% if form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
-                {% if pet.species == 'dog' %}Dog{% elif pet.species == 'cat' %}Cat{% elif pet.species == 'bird' %}Bird{% else %}Other{% endif %} - {{ pet.name }} ({{ pet.owner.first_name }} {{ pet.owner.last_name }})
+            <label for="id_appointment_type"><i class="fa-solid fa-tag"></i> Type</label>
+            <select id="id_appointment_type" name="appointment_type" required>
+              <option value="walk_in" {% if not staff_form.appointment_type.value or staff_form.appointment_type.value == 'walk_in' %}selected{% endif %}>Walk-in</option>
+              <option value="scheduled" {% if staff_form.appointment_type.value == 'scheduled' %}selected{% endif %}>Scheduled</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="id_status"><i class="fa-solid fa-circle-half-stroke"></i> Status</label>
+            <select id="id_status" name="status">
+              <option value="confirmed" {% if not staff_form.status.value or staff_form.status.value == 'confirmed' %}selected{% endif %}>Confirmed</option>
+              <option value="pending"   {% if staff_form.status.value == 'pending'   %}selected{% endif %}>Pending</option>
+              <option value="completed" {% if staff_form.status.value == 'completed' %}selected{% endif %}>Completed</option>
+              <option value="cancelled" {% if staff_form.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-section-label">Patient</div>
+        <div class="modal-form__row">
+          <div class="field-group">
+            <label for="id_owner"><i class="fa-solid fa-user"></i> Owner</label>
+            <select id="id_owner" name="owner" required>
+              <option value="" disabled {% if not staff_form.owner.value %}selected{% endif %}>Choose owner…</option>
+              {% for owner in owners %}
+              <option value="{{ owner.pk }}" {% if staff_form.owner.value|stringformat:"s" == owner.pk|stringformat:"s" %}selected{% endif %}>
+                {% if owner.first_name %}{{ owner.first_name }} {{ owner.last_name }}{% else %}{{ owner.username }}{% endif %}
               </option>
               {% endfor %}
             </select>
           </div>
-          <div class="modal-form__row">
-            <div class="field-group">
-              <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
-              <input type="date" id="id_appointment_date" name="appointment_date"
-                value="{{ form.appointment_date.value|default:'' }}" required />
-            </div>
-            <div class="field-group">
-              <label for="id_start_time"><i class="fa-regular fa-clock"></i> Preferred time</label>
-              <input type="time" id="id_start_time" name="start_time"
-                value="{{ form.start_time.value|default:'' }}" required />
-            </div>
+          <div class="field-group">
+            <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+            <select id="id_pet" name="pet">
+              <option value="">None</option>
+              {% for pet in all_pets %}
+              <option value="{{ pet.pk }}" data-owner-id="{{ pet.owner.pk }}" {% if staff_form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
+                {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                {{ pet.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-section-label">Scheduling</div>
+        <div class="field-group">
+          <label for="id_staff_date"><i class="fa-regular fa-calendar"></i> Date</label>
+          <input type="date" id="id_staff_date" name="appointment_date"
+            value="{{ staff_form.appointment_date.value|default:'' }}" required />
+        </div>
+
+        <div class="field-group">
+          <label><i class="fa-regular fa-clock"></i> Time</label>
+          <div class="time-chip-grid" id="timeChipsStaff"></div>
+          <input type="hidden" name="start_time" id="id_staff_start_time"
+            value="{{ staff_form.start_time.value|default:'' }}" />
+        </div>
+
+        <div class="modal-form__row">
+          <div class="field-group">
+            <label for="id_reason_staff"><i class="fa-solid fa-stethoscope"></i> Reason</label>
+            <input type="text" id="id_reason_staff" name="reason"
+              placeholder="Reason for visit"
+              value="{{ staff_form.reason.value|default:'' }}" />
           </div>
           <div class="field-group">
-            <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
-            <input type="text" id="id_reason" name="reason"
-              placeholder="e.g. Vaccination, check-up, grooming"
-              value="{{ form.reason.value|default:'' }}" />
+            <label for="id_end_time"><i class="fa-regular fa-clock"></i> End time <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+            <input type="time" id="id_end_time" name="end_time"
+              value="{{ staff_form.end_time.value|default:'' }}" />
           </div>
-          <button type="submit" class="modal-form__submit">
-            <i class="fa-solid fa-calendar-check"></i> Book appointment
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if is_staff %}
-  <div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle"
-    data-has-errors="{% if staff_form.errors %}true{% else %}false{% endif %}">
-    <div class="modal modal--wide">
-      <div class="modal__header">
-        <div>
-          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in</div>
-          <div class="modal__subtitle">Add a scheduled appointment or register a walk-in visit.</div>
         </div>
-        <button class="modal__close" id="closeScheduleModal" aria-label="Close">
-          <i class="fa-solid fa-xmark"></i>
+
+        <div class="slot-section">
+          <div class="slot-section__label">
+            <i class="fa-solid fa-grid-2"></i> Select slot
+          </div>
+          <div id="slotPickerStaff">
+            <div class="slot-message">
+              Pick a date and time above to see available slots.
+            </div>
+          </div>
+          <input type="hidden" name="slot_number" id="slotNumberStaff" value="{{ request.POST.slot_number|default:'' }}" />
+        </div>
+
+        <div class="modal-section-label">Notes</div>
+        <div class="field-group">
+          <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Internal notes</label>
+          <textarea id="id_notes" name="notes"
+            placeholder="Any internal notes…">{{ staff_form.notes.value|default:'' }}</textarea>
+        </div>
+
+        <button type="submit" class="modal-form__submit" id="scheduleSubmitBtn" disabled>
+          <i class="fa-solid fa-calendar-check"></i> Save appointment
         </button>
-      </div>
-      <div class="modal__body">
-        <div class="modal__divider"></div>
-        {% if staff_form.errors %}
-        <div class="modal-form__errors">
-          {% for field in staff_form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
-          {% for error in staff_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-        </div>
-        {% endif %}
-        <form method="POST" action="{% url 'appointment_schedule' %}" class="modal-form">
-          {% csrf_token %}
-          <div class="modal-section-label">Visit type</div>
-          <div class="modal-form__row">
-            <div class="field-group">
-              <label for="id_appointment_type"><i class="fa-solid fa-tag"></i> Type</label>
-              <select id="id_appointment_type" name="appointment_type">
-                <option value="walk_in" {% if not staff_form.appointment_type.value or staff_form.appointment_type.value == 'walk_in' %}selected{% endif %}>Walk-in</option>
-                <option value="scheduled" {% if staff_form.appointment_type.value == 'scheduled' %}selected{% endif %}>Scheduled</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="id_status"><i class="fa-solid fa-circle-half-stroke"></i> Status</label>
-              <select id="id_status" name="status">
-                <option value="confirmed" {% if not staff_form.status.value or staff_form.status.value == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                <option value="pending" {% if staff_form.status.value == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="completed" {% if staff_form.status.value == 'completed' %}selected{% endif %}>Completed</option>
-                <option value="cancelled" {% if staff_form.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-section-label">Patient</div>
-          <div class="modal-form__row">
-            <div class="field-group">
-              <label for="id_owner"><i class="fa-solid fa-user"></i> Owner</label>
-              <select id="id_owner" name="owner" required>
-                <option value="" disabled {% if not staff_form.owner.value %}selected{% endif %}>Choose owner</option>
-                {% for owner in owners %}
-                <option value="{{ owner.pk }}" {% if staff_form.owner.value|stringformat:"s" == owner.pk|stringformat:"s" %}selected{% endif %}>
-                  {% if owner.first_name %}{{ owner.first_name }} {{ owner.last_name }}{% else %}{{ owner.username }}{% endif %}
-                </option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
-              <select id="id_pet" name="pet">
-                <option value="">None</option>
-                {% for pet in pets %}
-                <option value="{{ pet.pk }}" data-owner-id="{{ pet.owner.pk }}" {% if staff_form.pet.value|stringformat:"s" == pet.pk|stringformat:"s" %}selected{% endif %}>
-                  {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
-                  {{ pet.name }} ({{ pet.owner.first_name }} {{ pet.owner.last_name }})
-                </option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-          <div class="modal-section-label">Scheduling</div>
-          <div class="modal-form__row">
-            <div class="field-group">
-              <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
-              <input type="date" id="id_appointment_date" name="appointment_date"
-                value="{{ staff_form.appointment_date.value|default:'' }}" required />
-            </div>
-            <div class="field-group">
-              <label for="id_start_time"><i class="fa-regular fa-clock"></i> Start time</label>
-              <input type="time" id="id_start_time" name="start_time"
-                value="{{ staff_form.start_time.value|default:'' }}" required />
-            </div>
-            <div class="field-group">
-              <label for="id_end_time"><i class="fa-regular fa-clock"></i> End time</label>
-              <input type="time" id="id_end_time" name="end_time"
-                value="{{ staff_form.end_time.value|default:'' }}" />
-            </div>
-            <div class="field-group">
-              <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason</label>
-              <input type="text" id="id_reason" name="reason"
-                placeholder="Reason for visit"
-                value="{{ staff_form.reason.value|default:'' }}" />
-            </div>
-          </div>
-          <div class="modal-section-label">Notes</div>
-          <div class="field-group">
-            <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Internal notes</label>
-            <textarea id="id_notes" name="notes" placeholder="Any internal notes">{{ staff_form.notes.value|default:'' }}</textarea>
-          </div>
-          <button type="submit" class="modal-form__submit">
-            <i class="fa-solid fa-calendar-check"></i> Save appointment
-          </button>
-        </form>
-      </div>
+      </form>
     </div>
   </div>
-  {% endif %}
+</div>
+{% endif %}
 
-  <script src="{% static 'js/appointment_calendar.js' %}"></script>
+<script>
+'use strict';
+
+/* ── Clinic time constants ──────────────────────────────────── */
+const CLINIC_START_H = 8;   // 8:00 AM
+const CLINIC_END_H   = 17;  // 5:00 PM (last slot 4:30 PM)
+const SLOT_INTERVAL  = 30;  // minutes
+const SLOTS_URL      = "{% url 'get_available_slots' %}";
+const MAX_SLOTS      = 5;
+
+/* ── Generate clinic time slots ─────────────────────────────── */
+function buildClinicTimes() {
+  const times = [];
+  for (let h = CLINIC_START_H; h < CLINIC_END_H; h++) {
+    for (let m = 0; m < 60; m += SLOT_INTERVAL) {
+      const hh  = String(h).padStart(2, '0');
+      const mm  = String(m).padStart(2, '0');
+      const val = `${hh}:${mm}`;
+      const ampm = h < 12 ? 'AM' : 'PM';
+      const h12  = h % 12 === 0 ? 12 : h % 12;
+      const label = `${h12}:${mm} ${ampm}`;
+      times.push({ val, label });
+    }
+  }
+  return times;
+}
+const CLINIC_TIMES = buildClinicTimes();
+
+/* ── Render time chip grid ──────────────────────────────────── */
+function renderTimeChips(containerEl, hiddenInput, selectedVal, onSelect) {
+  containerEl.innerHTML = '';
+  const now     = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const dateInput = document.querySelector(`[name="appointment_date"]`) ||
+                    document.getElementById('id_appointment_date') ||
+                    document.getElementById('id_staff_date');
+  const chosenDate = dateInput ? dateInput.value : '';
+
+  CLINIC_TIMES.forEach(({ val, label }) => {
+    const chip = document.createElement('button');
+    chip.type      = 'button';
+    chip.className = 'time-chip';
+    chip.textContent = label;
+    chip.dataset.value = val;
+
+    // Mark past times on today
+    if (chosenDate === todayStr) {
+      const [sh, sm] = val.split(':').map(Number);
+      const slotMinutes = sh * 60 + sm;
+      const nowMinutes  = now.getHours() * 60 + now.getMinutes();
+      if (slotMinutes <= nowMinutes) {
+        chip.classList.add('past');
+      }
+    }
+
+    if (val === selectedVal) chip.classList.add('selected');
+
+    chip.addEventListener('click', () => {
+      containerEl.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      hiddenInput.value = val;
+      onSelect(val);
+    });
+
+    containerEl.appendChild(chip);
+  });
+}
+
+/* ── Slot grid builder ──────────────────────────────────────── */
+function buildSlotGrid(slots, pickerEl, hiddenInput, submitBtn) {
+  const allTaken = slots.every(s => !s.available);
+  if (allTaken) {
+    pickerEl.innerHTML = '<div class="slot-message full">⚠️ Fully booked for this time. Please choose another.</div>';
+    submitBtn.disabled = true;
+    hiddenInput.value  = '';
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'slot-grid';
+  const currentVal = parseInt(hiddenInput.value, 10) || 0;
+
+  slots.forEach(({ number, available }) => {
+    const btn = document.createElement('button');
+    btn.type         = 'button';
+    btn.className    = 'slot-btn' + (available ? '' : ' taken');
+    btn.disabled     = !available;
+    btn.dataset.slot = number;
+    btn.innerHTML    = `<span class="slot-btn__num">${number}</span><span class="slot-btn__lbl">${available ? 'Open' : 'Taken'}</span>`;
+
+    if (available && number === currentVal) {
+      btn.classList.add('selected');
+      hiddenInput.value  = number;
+      submitBtn.disabled = false;
+    }
+
+    if (available) {
+      btn.addEventListener('click', () => {
+        grid.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        hiddenInput.value  = number;
+        submitBtn.disabled = false;
+      });
+    }
+    grid.appendChild(btn);
+  });
+
+  pickerEl.innerHTML = '';
+  pickerEl.appendChild(grid);
+}
+
+function showSkeleton(pickerEl) {
+  pickerEl.innerHTML = `<div class="slot-skeleton">${Array(MAX_SLOTS).fill('<div class="slot-skeleton__item"></div>').join('')}</div>`;
+}
+
+function showMessage(pickerEl, msg, cls) {
+  pickerEl.innerHTML = `<div class="slot-message ${cls}">${msg}</div>`;
+}
+
+async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abortRef) {
+  if (!dateVal || !timeVal) {
+    showMessage(pickerEl, 'Pick a date and time above to see available slots.', '');
+    submitBtn.disabled = true;
+    slotHidden.value   = '';
+    return;
+  }
+
+  if (abortRef.ctrl) abortRef.ctrl.abort();
+  abortRef.ctrl = new AbortController();
+
+  showSkeleton(pickerEl);
+  submitBtn.disabled = true;
+  slotHidden.value   = '';
+
+  try {
+    const url  = `${SLOTS_URL}?date=${encodeURIComponent(dateVal)}&time=${encodeURIComponent(timeVal)}`;
+    const resp = await fetch(url, { signal: abortRef.ctrl.signal });
+    const data = await resp.json();
+    if (!resp.ok) {
+      showMessage(pickerEl, `⚠️ ${data.error || 'Could not load slots.'}`, 'error');
+      return;
+    }
+    buildSlotGrid(data.slots, pickerEl, slotHidden, submitBtn);
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      showMessage(pickerEl, '⚠️ Network error. Please try again.', 'error');
+    }
+  }
+}
+
+/* ── OWNER MODAL ────────────────────────────────────────────── */
+/* {% if not is_staff %} */
+(function () {
+  const modal      = document.getElementById('bookModal');
+  const openBtn    = document.getElementById('openBookModal');
+  const closeBtn   = document.getElementById('closeBookModal');
+  const dateInput  = document.getElementById('id_appointment_date');
+  const timeHidden = document.getElementById('id_start_time');
+  const chipGrid   = document.getElementById('timeChipsOwner');
+  const picker     = document.getElementById('slotPickerOwner');
+  const slotHidden = document.getElementById('slotNumberOwner');
+  const submit     = document.getElementById('bookSubmitBtn');
+  const ctrl       = {};
+
+  function openModal()  { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
+  function closeModal() { modal.classList.remove('is-open'); document.body.style.overflow = '';       }
+
+  openBtn  && openBtn.addEventListener('click', openModal);
+  closeBtn && closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+  });
+
+  function onTimeSelected(timeVal) {
+    loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl);
+  }
+
+  function refreshChips() {
+    renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+    // If a time was already selected, reload slots
+    if (timeHidden.value && dateInput.value) {
+      loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl);
+    } else {
+      showMessage(picker, 'Pick a date and time above to see available slots.', '');
+      submit.disabled  = true;
+      slotHidden.value = '';
+    }
+  }
+
+  dateInput.addEventListener('change', refreshChips);
+
+  // Initial render on page load (chips start visible so user can scroll)
+  renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+
+  if (modal.dataset.hasErrors === 'true') {
+    openModal();
+    refreshChips();
+  }
+})();
+/* {% endif %} */
+
+/* ── STAFF MODAL ────────────────────────────────────────────── */
+/* {% if is_staff %} */
+(function () {
+  const modal      = document.getElementById('scheduleModal');
+  const openBtn    = document.getElementById('openScheduleModal');
+  const closeBtn   = document.getElementById('closeScheduleModal');
+  const ownerSel   = document.getElementById('id_owner');
+  const petSel     = document.getElementById('id_pet');
+  const typeSelect = document.getElementById('id_appointment_type');
+  const dateInput  = document.getElementById('id_staff_date');
+  const timeHidden = document.getElementById('id_staff_start_time');
+  const chipGrid   = document.getElementById('timeChipsStaff');
+  const picker     = document.getElementById('slotPickerStaff');
+  const slotHidden = document.getElementById('slotNumberStaff');
+  const submit     = document.getElementById('scheduleSubmitBtn');
+  const ctrl       = {};
+
+  function openModal()  { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
+  function closeModal() { modal.classList.remove('is-open'); document.body.style.overflow = '';       }
+
+  openBtn  && openBtn.addEventListener('click', openModal);
+  closeBtn && closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+  });
+
+  /* Filter pets by owner */
+  function filterPets() {
+    const oid = ownerSel.value;
+    petSel.querySelectorAll('option[data-owner-id]').forEach(opt => {
+      const show = !oid || opt.dataset.ownerId === oid;
+      opt.style.display = show ? '' : 'none';
+      if (!show && opt.selected) { opt.selected = false; petSel.value = ''; }
+    });
+    if (petSel.selectedOptions[0]?.style.display === 'none') petSel.value = '';
+  }
+  ownerSel && ownerSel.addEventListener('change', filterPets);
+
+  function onTimeSelected(timeVal) {
+    loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl);
+  }
+
+  function refreshChips() {
+    renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+    if (timeHidden.value && dateInput.value) {
+      loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl);
+    } else {
+      showMessage(picker, 'Pick a date and time above to see available slots.', '');
+      submit.disabled  = true;
+      slotHidden.value = '';
+    }
+  }
+
+  dateInput.addEventListener('change', refreshChips);
+
+  /* Walk-in: auto-select today's date and nearest upcoming time chip */
+  function applyWalkInDefaults() {
+    if (typeSelect.value !== 'walk_in') return;
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    if (!dateInput.value) dateInput.value = todayStr;
+
+    // Find the first future time chip
+    if (!timeHidden.value) {
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const next = CLINIC_TIMES.find(({ val }) => {
+        const [sh, sm] = val.split(':').map(Number);
+        return sh * 60 + sm > nowMins;
+      });
+      if (next) timeHidden.value = next.val;
+    }
+    refreshChips();
+  }
+
+  typeSelect.addEventListener('change', () => {
+    if (typeSelect.value === 'walk_in') applyWalkInDefaults();
+  });
+
+  // Initial chip render
+  renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+
+  if (modal.dataset.hasErrors === 'true') {
+    openModal();
+    filterPets();
+    refreshChips();
+  }
+
+  openBtn && openBtn.addEventListener('click', () => {
+    renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+    if (typeSelect.value === 'walk_in') applyWalkInDefaults();
+  });
+})();
+/* {% endif %} */
+
+</script>
 </body>
 </html>

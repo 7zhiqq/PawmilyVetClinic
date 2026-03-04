@@ -75,12 +75,13 @@ class ProfileForm(forms.ModelForm):
 class PetForm(forms.ModelForm):
     class Meta:
         model = Pet
-        fields = ["name", "species", "breed", "birth_date", "weight_kg", "notes"]
+        fields = ["name", "species", "breed", "gender", "birth_date", "weight_kg", "color", "notes"]
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": "Pet's name"}),
             "breed": forms.TextInput(attrs={"placeholder": "e.g. Golden Retriever"}),
             "birth_date": forms.DateInput(attrs={"type": "date"}),
             "weight_kg": forms.NumberInput(attrs={"step": "0.01", "placeholder": "0.00"}),
+            "color": forms.TextInput(attrs={"placeholder": "e.g. Brown, Black and white"}),
             "notes": forms.Textarea(attrs={"rows": 2, "placeholder": "Medical notes, allergies, etc."}),
         }
 

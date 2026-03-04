@@ -1,15 +1,18 @@
 import calendar
-from datetime import date, timedelta
+import json
+from datetime import date, datetime, time, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_GET
 
 from .forms import (
     AppointmentBookingForm,
@@ -20,9 +23,12 @@ from .forms import (
     ProfileForm,
     StaffInviteRegistrationForm,
 )
-from .models import Appointment, Invitation, Pet, Profile
+from .models import MAX_SLOTS, Appointment, Invitation, Pet, Profile
 
 User = get_user_model()
+
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
 
 
 def _is_pet_owner(user):
@@ -37,6 +43,44 @@ def _is_staff_or_manager(user):
         return user.profile.role in (Profile.ROLE_STAFF, Profile.ROLE_MANAGER)
     except Profile.DoesNotExist:
         return user.is_superuser
+
+
+def _taken_slots(appt_date, start_time):
+    """Return a set of slot numbers already booked for a date/time."""
+    return set(
+        Appointment.objects.filter(
+            appointment_date=appt_date,
+            start_time=start_time,
+        ).values_list("slot_number", flat=True)
+    )
+
+
+def _next_free_slot(appt_date, start_time):
+    """Return the lowest free slot (1–5) or None if all taken."""
+    taken = _taken_slots(appt_date, start_time)
+    for n in range(1, MAX_SLOTS + 1):
+        if n not in taken:
+            return n
+    return None
+
+
+def _slot_data(appt_date, start_time):
+    """Build the list of slot dicts for the JSON response."""
+    taken = _taken_slots(appt_date, start_time)
+    return [
+        {"number": n, "available": n not in taken}
+        for n in range(1, MAX_SLOTS + 1)
+    ]
+
+
+def _round_to_half_hour(t: time) -> time:
+    """Round a time down to the nearest 30-minute block."""
+    minute = 0 if t.minute < 30 else 30
+    return time(t.hour, minute)
+
+
+# ─── Auth views ───────────────────────────────────────────────────────────────
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -85,12 +129,11 @@ def register_with_invite(request, token):
 
     invitation = get_object_or_404(Invitation, token=token, is_used=False)
 
-    # One user per email: do not create a duplicate account
     if User.objects.filter(email__iexact=invitation.email).exists():
         context = {
             "form": StaffInviteRegistrationForm(),
             "invitation": invitation,
-            "invite_error": "An account with this email already exists. One email per user.",
+            "invite_error": "An account with this email already exists.",
         }
         return render(request, "register_invited.html", context)
 
@@ -100,27 +143,22 @@ def register_with_invite(request, token):
             user = form.save(commit=False)
             user.email = invitation.email
             user.save()
-
             Profile.objects.create(user=user, role=invitation.role)
-
             invitation.is_used = True
             invitation.save(update_fields=["is_used"])
-
             login(request, user)
             return redirect("/dashboard/")
     else:
         form = StaffInviteRegistrationForm()
 
-    context = {
-        "form": form,
-        "invitation": invitation,
-    }
-    return render(request, "register_invited.html", context)
+    return render(request, "register_invited.html", {"form": form, "invitation": invitation})
+
+
+# ─── Invitations / user management ───────────────────────────────────────────
 
 
 @login_required
 def manage_invitations(request):
-    # Only managers (or superusers) are allowed here.
     is_manager = False
     try:
         profile = request.user.profile
@@ -153,7 +191,6 @@ def manage_invitations(request):
             except (User.DoesNotExist, ValueError, TypeError):
                 user_message = "Selected user could not be found."
             else:
-                # Only allow managing staff and managers
                 if getattr(target_user, "profile", None) and target_user.profile.role in {
                     Profile.ROLE_STAFF,
                     Profile.ROLE_MANAGER,
@@ -204,6 +241,9 @@ def manage_invitations(request):
     )
 
 
+# ─── Profile / pets ───────────────────────────────────────────────────────────
+
+
 @login_required
 def profile_edit(request):
     if not _is_pet_owner(request.user):
@@ -224,7 +264,11 @@ def pet_list(request):
     if not _is_pet_owner(request.user):
         return HttpResponseForbidden("Only pet owners can view their pets.")
     pets = Pet.objects.filter(owner=request.user).order_by("name")
-    return render(request, "pet_list.html", {"pets": pets})
+
+    # pass blank form so the "Add pet" modal works from this page
+    from .forms import PetForm as PF
+    form = PF()
+    return render(request, "pet_list.html", {"pets": pets, "form": form})
 
 
 @login_required
@@ -267,119 +311,236 @@ def _appointment_queryset(user):
     return Appointment.objects.filter(owner=user).select_related("owner", "pet", "staff")
 
 
+# ── AJAX: available slots ──────────────────────────────────────────────────────
+
+@login_required
+@require_GET
+def get_available_slots(request):
+    """
+    GET /accounts/appointments/slots/?date=YYYY-MM-DD&time=HH:MM
+    Returns JSON: {"slots": [{"number": 1, "available": true}, ...]}
+    """
+    date_str = request.GET.get("date", "")
+    time_str = request.GET.get("time", "")
+
+    # ── parse & validate date ──────────────────────────────────────────────
+    try:
+        appt_date = date.fromisoformat(date_str)
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Invalid date."}, status=400)
+
+    today = date.today()
+    if appt_date < today:
+        return JsonResponse({"error": "Cannot book a past date."}, status=400)
+
+    # ── parse & validate time ──────────────────────────────────────────────
+    try:
+        appt_time = time.fromisoformat(time_str)
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Invalid time."}, status=400)
+
+    if appt_date == today:
+        now = datetime.now().time()
+        if appt_time <= now:
+            return JsonResponse({"error": "Cannot book a past time slot."}, status=400)
+
+    slots = _slot_data(appt_date, appt_time)
+    return JsonResponse({"slots": slots})
+
+
+# ── Owner booking ──────────────────────────────────────────────────────────────
+
 @login_required
 def appointment_book(request):
     if not _is_pet_owner(request.user):
         return HttpResponseForbidden("Only pet owners can book appointments.")
+
     pets = Pet.objects.filter(owner=request.user).order_by("name")
     if not pets.exists():
         return redirect("pet_add")
+
+    error = None
+
     if request.method == "POST":
         form = AppointmentBookingForm(request.POST, owner=request.user)
-        if form.is_valid():
-            apt = form.save(commit=False)
-            apt.owner = request.user
-            apt.status = Appointment.STATUS_PENDING
-            apt.appointment_type = Appointment.TYPE_SCHEDULED
-            apt.save()
-            return redirect("appointment_calendar")
+        slot_number = request.POST.get("slot_number")
+
+        try:
+            slot_number = int(slot_number)
+            if not (1 <= slot_number <= MAX_SLOTS):
+                raise ValueError
+        except (ValueError, TypeError):
+            error = "Please select a valid slot (1–5)."
+            form.is_valid()  # populate cleaned_data even on slot error
+        else:
+            if form.is_valid():
+                appt_date = form.cleaned_data["appointment_date"]
+                appt_time = form.cleaned_data["start_time"]
+
+                # ── past-date / past-time guard ────────────────────────────
+                today = date.today()
+                if appt_date < today:
+                    error = "Cannot book an appointment in the past."
+                elif appt_date == today and appt_time <= datetime.now().time():
+                    error = "Cannot book a past time slot for today."
+                else:
+                    # ── atomic slot reservation ────────────────────────────
+                    try:
+                        with transaction.atomic():
+                            taken = _taken_slots(appt_date, appt_time)
+                            if len(taken) >= MAX_SLOTS:
+                                error = "This time slot is fully booked. Please choose another."
+                            elif slot_number in taken:
+                                error = f"Slot {slot_number} was just taken. Please pick another slot."
+                            else:
+                                apt = form.save(commit=False)
+                                apt.owner = request.user
+                                apt.slot_number = slot_number
+                                apt.status = Appointment.STATUS_PENDING
+                                apt.appointment_type = Appointment.TYPE_SCHEDULED
+                                apt.save()
+                                return redirect("appointment_calendar")
+                    except IntegrityError:
+                        error = "That slot was just taken by another booking. Please try again."
     else:
         form = AppointmentBookingForm(owner=request.user)
-    return render(request, "appointment_book.html", {"form": form})
 
+    return render(request, "appointment_calendar.html", {
+        "form": form,
+        "pets": pets,
+        "error": error,
+        "is_staff": False,
+        **_calendar_context(request),
+    })
+
+
+# ── Staff schedule / walk-in ───────────────────────────────────────────────────
 
 @login_required
-def appointment_calendar(request):
+def appointment_schedule(request):
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can schedule appointments.")
+
+    error = None
+
+    if request.method == "POST":
+        form = AppointmentStaffForm(request.POST)
+        slot_number = request.POST.get("slot_number")
+
+        try:
+            slot_number = int(slot_number)
+            if not (1 <= slot_number <= MAX_SLOTS):
+                raise ValueError
+        except (ValueError, TypeError):
+            error = "Please select a valid slot (1–5)."
+            form.is_valid()
+        else:
+            if form.is_valid():
+                appt_date = form.cleaned_data["appointment_date"]
+                appt_time = form.cleaned_data["start_time"]
+
+                try:
+                    with transaction.atomic():
+                        taken = _taken_slots(appt_date, appt_time)
+                        if len(taken) >= MAX_SLOTS:
+                            error = "This time slot is fully booked."
+                        elif slot_number in taken:
+                            error = f"Slot {slot_number} was just taken. Please pick another."
+                        else:
+                            apt = form.save(commit=False)
+                            apt.staff = request.user
+                            apt.slot_number = slot_number
+                            apt.appointment_type = (
+                                Appointment.TYPE_WALK_IN
+                                if form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
+                                else Appointment.TYPE_SCHEDULED
+                            )
+                            apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
+                            apt.save()
+                            return redirect("appointment_manage")
+                except IntegrityError:
+                    error = "That slot was just taken by another booking. Please try again."
+    else:
+        form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
+
+    owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
+    pets = Pet.objects.select_related("owner").order_by("name")
+
+    return render(request, "appointment_calendar.html", {
+        "staff_form": form,
+        "owners": owners,
+        "pets": pets,
+        "staff_error": error,
+        "is_staff": True,
+        **_calendar_context(request),
+    })
+
+
+# ── Calendar helper ────────────────────────────────────────────────────────────
+
+def _calendar_context(request):
     year = int(request.GET.get("year", date.today().year))
     month = int(request.GET.get("month", date.today().month))
     try:
         cal_date = date(year, month, 1)
     except ValueError:
-        cal_date = date.today()
+        cal_date = date.today().replace(day=1)
+
     if month == 1:
         prev_month = date(year - 1, 12, 1)
         next_month = date(year, 2, 1)
     else:
         prev_month = date(year, month - 1, 1)
         next_month = date(year, month + 1, 1) if month < 12 else date(year + 1, 1, 1)
+
     start = cal_date
     if cal_date.month == 12:
         end = date(cal_date.year + 1, 1, 1) - timedelta(days=1)
     else:
         end = date(cal_date.year, cal_date.month + 1, 1) - timedelta(days=1)
+
     appointments = _appointment_queryset(request.user).filter(
         appointment_date__gte=start,
         appointment_date__lte=end,
     ).order_by("appointment_date", "start_time")
+
     by_date = {}
     for apt in appointments:
         key = apt.appointment_date.isoformat()
-        if key not in by_date:
-            by_date[key] = []
-        by_date[key].append(apt)
+        by_date.setdefault(key, []).append(apt)
 
-    cal = calendar.Calendar(firstweekday=6)  # Sunday first
-    weeks = cal.monthdatescalendar(cal_date.year, cal_date.month)
+    cal_obj = calendar.Calendar(firstweekday=6)
+    weeks = cal_obj.monthdatescalendar(cal_date.year, cal_date.month)
     calendar_weeks = [
         [(d, by_date.get(d.isoformat(), [])) for d in week]
         for week in weeks
     ]
-    
-    is_staff = _is_staff_or_manager(request.user)
-    if is_staff:
-        if request.method == "POST":
-            staff_form = AppointmentStaffForm(request.POST)
-            if staff_form.is_valid():
-                apt = staff_form.save(commit=False)
-                apt.staff = request.user
-                apt.appointment_type = (
-                    Appointment.TYPE_WALK_IN
-                    if staff_form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
-                    else Appointment.TYPE_SCHEDULED
-                )
-                apt.status = staff_form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
-                apt.save()
-                return redirect("appointment_calendar", year=cal_date.year, month=cal_date.month)
-        else:
-            staff_form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
-        
-        owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
-        pets = Pet.objects.select_related("owner").order_by("owner__username", "name")
-        context = {
-            "cal_date": cal_date,
-            "prev_month": prev_month,
-            "next_month": next_month,
-            "calendar_weeks": calendar_weeks,
-            "is_staff": is_staff,
-            "staff_form": staff_form,
-            "owners": owners,
-            "pets": pets,
-        }
-    else:
-        if request.method == "POST":
-            form = AppointmentBookingForm(request.POST, owner=request.user)
-            if form.is_valid():
-                apt = form.save(commit=False)
-                apt.owner = request.user
-                apt.status = Appointment.STATUS_PENDING
-                apt.appointment_type = Appointment.TYPE_SCHEDULED
-                apt.save()
-                return redirect("appointment_calendar")
-        else:
-            form = AppointmentBookingForm(owner=request.user)
-        
-        pets = Pet.objects.filter(owner=request.user).order_by("name")
-        context = {
-            "cal_date": cal_date,
-            "prev_month": prev_month,
-            "next_month": next_month,
-            "calendar_weeks": calendar_weeks,
-            "is_staff": is_staff,
-            "form": form,
-            "pets": pets,
-        }
-    
-    return render(request, "appointment_calendar.html", context)
+
+    return {
+        "cal_date": cal_date,
+        "prev_month": prev_month,
+        "next_month": next_month,
+        "calendar_weeks": calendar_weeks,
+        "today": date.today(),
+    }
+
+
+@login_required
+def appointment_calendar(request):
+    pets = Pet.objects.filter(owner=request.user).order_by("name") if _is_pet_owner(request.user) else Pet.objects.none()
+    owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username") if _is_staff_or_manager(request.user) else User.objects.none()
+    all_pets = Pet.objects.select_related("owner").order_by("name") if _is_staff_or_manager(request.user) else Pet.objects.none()
+
+    ctx = {
+        "form": AppointmentBookingForm(owner=request.user),
+        "staff_form": AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN}),
+        "pets": pets,
+        "owners": owners,
+        "all_pets": all_pets,
+        "is_staff": _is_staff_or_manager(request.user),
+        **_calendar_context(request),
+    }
+    return render(request, "appointment_calendar.html", ctx)
 
 
 @login_required
@@ -392,15 +553,16 @@ def appointment_queue(request):
             view_date = date.today()
     else:
         view_date = date.today()
+
     appointments = _appointment_queryset(request.user).filter(
         appointment_date=view_date,
-    ).order_by("start_time")
-    context = {
+    ).order_by("start_time", "slot_number")
+
+    return render(request, "appointment_queue.html", {
         "view_date": view_date,
         "appointments": appointments,
         "is_staff": _is_staff_or_manager(request.user),
-    }
-    return render(request, "appointment_queue.html", context)
+    })
 
 
 @login_required
@@ -410,79 +572,26 @@ def appointment_manage(request):
 
     if request.method == "POST":
         action = request.POST.get("action")
-
-        if action in ("confirm", "reject", "complete"):
-            apt_id = request.POST.get("appointment_id")
-            if apt_id:
-                apt = get_object_or_404(Appointment, pk=apt_id)
-                if action == "confirm":
-                    apt.status = Appointment.STATUS_CONFIRMED
-                    apt.staff = request.user
-                    apt.save(update_fields=["status", "staff", "updated_at"])
-                elif action == "reject":
-                    apt.status = Appointment.STATUS_REJECTED
-                    apt.staff = request.user
-                    apt.save(update_fields=["status", "staff", "updated_at"])
-                elif action == "complete":
-                    apt.status = Appointment.STATUS_COMPLETED
-                    apt.staff = request.user
-                    apt.save(update_fields=["status", "staff", "updated_at"])
-            return redirect("appointment_manage")
-        else:
-            form = AppointmentStaffForm(request.POST)
-            if form.is_valid():
-                apt = form.save(commit=False)
+        apt_id = request.POST.get("appointment_id")
+        if action and apt_id:
+            apt = get_object_or_404(Appointment, pk=apt_id)
+            if action == "confirm":
+                apt.status = Appointment.STATUS_CONFIRMED
                 apt.staff = request.user
-                apt.appointment_type = (
-                    Appointment.TYPE_WALK_IN
-                    if form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
-                    else Appointment.TYPE_SCHEDULED
-                )
-                apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
-                apt.save()
-                return redirect("appointment_manage")
-
-    else:
-        form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
+                apt.save(update_fields=["status", "staff", "updated_at"])
+            elif action == "reject":
+                apt.status = Appointment.STATUS_REJECTED
+                apt.staff = request.user
+                apt.save(update_fields=["status", "staff", "updated_at"])
+            elif action == "complete":
+                apt.status = Appointment.STATUS_COMPLETED
+                apt.staff = request.user
+                apt.save(update_fields=["status", "staff", "updated_at"])
 
     appointments = Appointment.objects.select_related("owner", "pet", "staff").order_by(
-        "-appointment_date", "-start_time"
+        "-appointment_date", "-start_time", "slot_number"
     )
-    owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
-    pets   = Pet.objects.select_related("owner").order_by("owner__username", "name")
-
     return render(request, "appointment_manage.html", {
         "appointments": appointments,
-        "form": form,
-        "owners": owners,
-        "pets": pets,
-    })
-
-@login_required
-def appointment_schedule(request):
-    if not _is_staff_or_manager(request.user):
-        return HttpResponseForbidden("Only staff can schedule appointments.")
-    if request.method == "POST":
-        form = AppointmentStaffForm(request.POST)
-        if form.is_valid():
-            apt = form.save(commit=False)
-            apt.staff = request.user
-            apt.appointment_type = (
-                Appointment.TYPE_WALK_IN
-                if form.cleaned_data.get("appointment_type") == Appointment.TYPE_WALK_IN
-                else Appointment.TYPE_SCHEDULED
-            )
-            apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
-            apt.save()
-            return redirect("appointment_manage")
-    else:
-        form = AppointmentStaffForm(initial={"appointment_type": Appointment.TYPE_WALK_IN})
-
-    owners = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")
-    pets   = Pet.objects.select_related("owner").order_by("owner__username", "name")
-
-    return render(request, "appointment_schedule.html", {
-        "form": form,
-        "owners": owners,
-        "pets": pets,
+        "form": AppointmentStaffForm(),
     })
