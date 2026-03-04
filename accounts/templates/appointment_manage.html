@@ -31,21 +31,29 @@
 
       {% if appointments %}
       <div class="manage-stats">
-        <div class="stat-card stat-card--pending">
-          <div class="stat-card__num">{{ appointments|dictsort:"status"|dictsortreversed:"status"|length }}</div>
+        <div class="stat-card stat-card--total">
+          <div class="stat-card__num">{{ stats.total }}</div>
           <div class="stat-card__label">Total</div>
         </div>
+        <div class="stat-card stat-card--pending">
+          <div class="stat-card__num">{{ stats.pending }}</div>
+          <div class="stat-card__label">Pending</div>
+        </div>
         <div class="stat-card stat-card--confirm">
-          <div class="stat-card__num">{{ appointments|length }}</div>
-          <div class="stat-card__label">All</div>
+          <div class="stat-card__num">{{ stats.confirmed }}</div>
+          <div class="stat-card__label">Confirmed</div>
         </div>
         <div class="stat-card stat-card--complete">
-          <div class="stat-card__num">—</div>
+          <div class="stat-card__num">{{ stats.completed }}</div>
           <div class="stat-card__label">Completed</div>
         </div>
-        <div class="stat-card stat-card--reject">
-          <div class="stat-card__num">—</div>
-          <div class="stat-card__label">Pending action</div>
+        <div class="stat-card stat-card--cancel">
+          <div class="stat-card__num">{{ stats.cancelled }}</div>
+          <div class="stat-card__label">Cancelled</div>
+        </div>
+        <div class="stat-card stat-card--noshow">
+          <div class="stat-card__num">{{ stats.no_show }}</div>
+          <div class="stat-card__label">No Show</div>
         </div>
       </div>
       {% endif %}
@@ -98,6 +106,14 @@
                 <i class="fa-solid fa-xmark" style="font-size:0.65rem;"></i> Reject
               </button>
             </form>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="cancel" />
+              <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+              <button type="submit" class="action-btn action-btn--cancel">
+                <i class="fa-solid fa-ban" style="font-size:0.65rem;"></i> Cancel
+              </button>
+            </form>
             {% elif apt.status == 'confirmed' %}
             <form method="post">
               {% csrf_token %}
@@ -105,6 +121,22 @@
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--complete">
                 <i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> Complete
+              </button>
+            </form>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="no_show" />
+              <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+              <button type="submit" class="action-btn action-btn--noshow">
+                <i class="fa-solid fa-user-xmark" style="font-size:0.65rem;"></i> No Show
+              </button>
+            </form>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="cancel" />
+              <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+              <button type="submit" class="action-btn action-btn--cancel">
+                <i class="fa-solid fa-ban" style="font-size:0.65rem;"></i> Cancel
               </button>
             </form>
             {% else %}

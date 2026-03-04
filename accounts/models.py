@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 MAX_SLOTS = 2
@@ -30,6 +31,9 @@ class Profile(models.Model):
     )
     phone = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    is_profile_completed = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.user.username} ({self.get_role_display()})"
@@ -124,6 +128,7 @@ class Appointment(models.Model):
     STATUS_REJECTED = "rejected"
     STATUS_CANCELLED = "cancelled"
     STATUS_COMPLETED = "completed"
+    STATUS_NO_SHOW = "no_show"
 
     STATUS_CHOICES = [
         (STATUS_PENDING, "Pending"),
@@ -131,6 +136,7 @@ class Appointment(models.Model):
         (STATUS_REJECTED, "Rejected"),
         (STATUS_CANCELLED, "Cancelled"),
         (STATUS_COMPLETED, "Completed"),
+        (STATUS_NO_SHOW, "No Show"),
     ]
 
     TYPE_SCHEDULED = "scheduled"
@@ -167,8 +173,10 @@ class Appointment(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField(null=True, blank=True)
     slot_number = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
         default=1,
-        help_text="Slot position (1–2) within a date/time block",
+        help_text="Slot position (1–2) within a date/time block. NULL for cancelled/rejected.",
     )
     status = models.CharField(
         max_length=20,
@@ -188,17 +196,28 @@ class Appointment(models.Model):
     class Meta:
         ordering = ["appointment_date", "start_time", "slot_number"]
         constraints = [
+            # Global 2-slot limit per time range: each (date, time, slot_number,
+            # type) combination can only have ONE appointment across ALL owners.
+            # Cancelled / rejected appointments have slot_number set to NULL,
+            # which MySQL allows as duplicates in a UNIQUE index.
             models.UniqueConstraint(
-                fields=["appointment_date", "start_time", "slot_number"],
-                name="unique_slot_per_datetime",
+                fields=["appointment_date", "start_time", "slot_number", "appointment_type"],
+                name="unique_active_slot_per_datetime_and_type",
             ),
         ]
 
     def clean(self):
-        if self.slot_number is not None and not (1 <= self.slot_number <= MAX_SLOTS):
+        if (
+            self.appointment_type == self.TYPE_SCHEDULED
+            and self.slot_number is not None
+            and not (1 <= self.slot_number <= MAX_SLOTS)
+        ):
             raise ValidationError(
                 {"slot_number": f"Slot number must be between 1 and {MAX_SLOTS}."}
             )
+        # Cancelled / rejected appointments must have slot_number cleared.
+        if self.status in (self.STATUS_CANCELLED, self.STATUS_REJECTED):
+            self.slot_number = None
 
     def __str__(self) -> str:
         pet_name = self.pet.name if self.pet else "Walk-in"

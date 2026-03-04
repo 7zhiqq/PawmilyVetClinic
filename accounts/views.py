@@ -13,7 +13,8 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
 
 from .forms import (
     AppointmentBookingForm,
@@ -47,11 +48,19 @@ def _is_staff_or_manager(user):
 
 
 def _taken_slots(appt_date, start_time):
-    """Return a set of slot numbers already booked for a date/time."""
+    """Return a set of slot numbers already booked for scheduled appointments at a date/time.
+
+    This is a GLOBAL check across ALL owners — each time range has at most
+    MAX_SLOTS (2) scheduled appointments regardless of who booked them.
+    Cancelled and rejected appointments do NOT block slots.
+    """
     return set(
         Appointment.objects.filter(
             appointment_date=appt_date,
             start_time=start_time,
+            appointment_type=Appointment.TYPE_SCHEDULED,
+        ).exclude(
+            status__in=[Appointment.STATUS_CANCELLED, Appointment.STATUS_REJECTED],
         ).values_list("slot_number", flat=True)
     )
 
@@ -75,10 +84,11 @@ def _slot_data(appt_date, start_time):
 
 
 def _count_appointments_for_time(appt_date, start_time):
-    """Count the number of appointments for a given date and time (for walk-ins)."""
+    """Count the number of walk-in appointments for a given date and time."""
     return Appointment.objects.filter(
         appointment_date=appt_date,
         start_time=start_time,
+        appointment_type=Appointment.TYPE_WALK_IN,
     ).count()
 
 
@@ -482,11 +492,11 @@ def appointment_schedule(request):
                 with transaction.atomic():
                     if appointment_type == "walk_in":
                         # ── Walk-in appointments: unlimited slots, auto-assign next slot number ──
-                        # Get the highest slot number currently used for this date/time
-                        # Walk-ins don't have the MAX_SLOTS limit, so slot numbers can go beyond 2
+                        # Only count walk-in appointments (separate from scheduled slots)
                         max_slot = Appointment.objects.filter(
                             appointment_date=appt_date,
                             start_time=appt_time,
+                            appointment_type=Appointment.TYPE_WALK_IN,
                         ).aggregate(models.Max('slot_number'))['slot_number__max'] or 0
                         
                         apt = form.save(commit=False)
@@ -607,25 +617,16 @@ def appointment_queue(request):
     else:
         view_date = date.today()
 
-    appointments = _appointment_queryset(request.user).filter(
-        appointment_date=view_date,
-    ).order_by("start_time", "slot_number")
-
     return render(request, "appointment_queue.html", {
         "view_date": view_date,
-        "appointments": appointments,
         "is_staff": _is_staff_or_manager(request.user),
     })
 
 
 @login_required
 @require_GET
-def get_queue_data(request):
-    """
-    AJAX endpoint returning real-time queue data.
-    GET /accounts/appointments/queue-data/?date=YYYY-MM-DD
-    Returns JSON with queue status, appointments, and statistics.
-    """
+def queue_data(request):
+    """API endpoint returning current queue state as JSON for real-time polling."""
     day_str = request.GET.get("date")
     if day_str:
         try:
@@ -635,64 +636,174 @@ def get_queue_data(request):
     else:
         view_date = date.today()
 
-    appointments_qs = _appointment_queryset(request.user).filter(
-        appointment_date=view_date,
-    ).order_by("start_time", "slot_number")
+    is_today = view_date == date.today()
+    current_user_id = request.user.id
+    is_staff = _is_staff_or_manager(request.user)
 
-    # Build appointment list
-    appointments_data = []
-    for apt in appointments_qs:
-        pet_emoji = "🐾"
-        if apt.pet:
-            species_emojis = {
-                "dog": "🐶",
-                "cat": "🐱",
-                "bird": "🐦",
-            }
-            pet_emoji = species_emojis.get(apt.pet.species, "🐾")
-        
-        apt_data = {
+    # ── Helper to serialise an appointment row ──
+    def _apt_to_dict(apt, queue_number=None):
+        species = apt.pet.species if apt.pet else "other"
+        return {
             "id": apt.id,
+            "queue_number": queue_number,
             "pet_name": apt.pet.name if apt.pet else "Walk-in",
+            "species": species,
+            "owner_id": apt.owner_id,
             "owner_name": apt.owner.get_full_name() or apt.owner.username,
-            "owner_id": apt.owner.id,
-            "time": apt.start_time.strftime("%H:%M"),
-            "time_ampm": apt.start_time.strftime("%I:%M %p"),
+            "appointment_type": apt.get_appointment_type_display(),
+            "reason": apt.reason or "",
+            "start_time": apt.start_time.strftime("%I:%M").lstrip("0") if hasattr(apt.start_time, 'strftime') else str(apt.start_time),
+            "start_time_ampm": apt.start_time.strftime("%p") if hasattr(apt.start_time, 'strftime') else "",
             "status": apt.status,
             "status_display": apt.get_status_display(),
-            "type": apt.appointment_type,
-            "type_display": apt.get_appointment_type_display(),
-            "emoji": pet_emoji,
-            "reason": apt.reason or "",
-            "slot_number": apt.slot_number,
         }
-        appointments_data.append(apt_data)
 
-    # Calculate queue statistics
-    confirmed_count = appointments_qs.filter(status=Appointment.STATUS_CONFIRMED).count()
-    pending_count = appointments_qs.filter(status=Appointment.STATUS_PENDING).count()
-    completed_count = appointments_qs.filter(status=Appointment.STATUS_COMPLETED).count()
-    active_count = appointments_qs.exclude(
-        status__in=[Appointment.STATUS_REJECTED, Appointment.STATUS_CANCELLED, Appointment.STATUS_COMPLETED]
+    # ══════════════════════════════════════════════════════════════════
+    # NON-TODAY: schedule-only view — no live queue logic
+    # ══════════════════════════════════════════════════════════════════
+    if not is_today:
+        schedule_qs = Appointment.objects.select_related("owner", "pet", "staff").filter(
+            appointment_date=view_date,
+        ).order_by("start_time", "slot_number")
+
+        if not is_staff:
+            schedule_qs = schedule_qs.filter(owner=request.user)
+
+        scheduled_items = [_apt_to_dict(apt) for apt in schedule_qs]
+
+        return JsonResponse({
+            "view_date": view_date.isoformat(),
+            "view_date_display": view_date.strftime("%A, %B %d, %Y"),
+            "is_today": False,
+            "scheduled": scheduled_items,
+            "total_count": len(scheduled_items),
+            "is_staff": is_staff,
+            "current_user_id": current_user_id,
+            # These are intentionally empty for non-today
+            "now_serving": None,
+            "waiting": [],
+            "waiting_count": 0,
+            "my_queue_info": [],
+        })
+
+    # ══════════════════════════════════════════════════════════════════
+    # TODAY: full live-queue logic
+    # ══════════════════════════════════════════════════════════════════
+    active_statuses = [Appointment.STATUS_PENDING, Appointment.STATUS_CONFIRMED]
+    queue_qs = Appointment.objects.select_related("owner", "pet", "staff").filter(
+        appointment_date=view_date,
+        status__in=active_statuses,
+    ).order_by("start_time", "slot_number")
+
+    # Count already-served appointments today for running queue numbering
+    served_count = Appointment.objects.filter(
+        appointment_date=view_date,
+        status__in=[Appointment.STATUS_COMPLETED, Appointment.STATUS_NO_SHOW],
     ).count()
-    waiting_count = appointments_qs.filter(status=Appointment.STATUS_PENDING).count()
 
-    queue_stats = {
-        "date": view_date.isoformat(),
-        "date_display": view_date.strftime("%A, %B %d, %Y"),
-        "total_appointments": appointments_qs.count(),
-        "confirmed": confirmed_count,
-        "pending": pending_count,
-        "completed": completed_count,
-        "active": active_count,
-        "waiting": waiting_count,
-    }
+    items = []
+    my_positions = []  # 0-based positions of the current owner in the queue
+
+    for idx, apt in enumerate(queue_qs):
+        queue_number = served_count + idx + 1  # running number for the day
+        items.append(_apt_to_dict(apt, queue_number))
+        if apt.owner_id == current_user_id:
+            my_positions.append(idx)
+
+    now_serving = items[0] if items else None
+    waiting = items[1:] if len(items) > 1 else []
+
+    # Build owner-facing position summary
+    my_queue_info = []
+    for pos in my_positions:
+        item = items[pos]
+        my_queue_info.append({
+            "position": pos + 1,        # 1-based
+            "ahead": pos,               # how many before this one
+            "pet_name": item["pet_name"],
+            "is_now_serving": pos == 0,
+            "appointment_type": item["appointment_type"],
+            "reason": item["reason"],
+            "species": item["species"],
+            "start_time": item["start_time"],
+            "start_time_ampm": item["start_time_ampm"],
+            "status": item["status"],
+            "status_display": item["status_display"],
+        })
+
+    # For non-staff, only send their own items (no other clients visible)
+    if is_staff:
+        resp_now_serving = now_serving
+        resp_waiting = waiting
+    else:
+        resp_now_serving = None
+        resp_waiting = []
 
     return JsonResponse({
-        "appointments": appointments_data,
-        "stats": queue_stats,
-        "timestamp": datetime.now().isoformat(),
+        "view_date": view_date.isoformat(),
+        "view_date_display": view_date.strftime("%A, %B %d, %Y"),
+        "is_today": True,
+        "now_serving": resp_now_serving,
+        "waiting": resp_waiting,
+        "total_count": len(items),
+        "waiting_count": len(waiting),
+        "current_user_id": current_user_id,
+        "my_queue_info": my_queue_info,
+        "is_staff": is_staff,
     })
+
+
+@login_required
+@require_POST
+def queue_action(request):
+    """Handle Completed / No Show actions from the queue view."""
+    if not _is_staff_or_manager(request.user):
+        return JsonResponse({"error": "Only staff can perform queue actions."}, status=403)
+
+    apt_id = request.POST.get("appointment_id")
+    action = request.POST.get("action")
+
+    if not apt_id or action not in ("completed", "no_show"):
+        return JsonResponse({"error": "Invalid request."}, status=400)
+
+    apt = get_object_or_404(Appointment, pk=apt_id)
+
+    if action == "completed":
+        apt.status = Appointment.STATUS_COMPLETED
+    elif action == "no_show":
+        apt.status = Appointment.STATUS_NO_SHOW
+
+    apt.staff = request.user
+    apt.save(update_fields=["status", "staff", "updated_at"])
+
+    return JsonResponse({"success": True, "new_status": apt.status})
+
+
+@login_required
+@require_POST
+def appointment_cancel(request):
+    """Allow a pet owner to cancel their own pending or confirmed appointment."""
+    apt_id = request.POST.get("appointment_id")
+    if not apt_id:
+        return JsonResponse({"error": "Missing appointment ID."}, status=400)
+
+    apt = get_object_or_404(Appointment, pk=apt_id)
+
+    # Staff can cancel any; owners can only cancel their own
+    if not _is_staff_or_manager(request.user) and apt.owner_id != request.user.id:
+        return JsonResponse({"error": "You can only cancel your own appointments."}, status=403)
+
+    if apt.status not in (Appointment.STATUS_PENDING, Appointment.STATUS_CONFIRMED):
+        return JsonResponse({"error": "Only pending or confirmed appointments can be cancelled."}, status=400)
+
+    apt.status = Appointment.STATUS_CANCELLED
+    apt.slot_number = None
+    apt.save(update_fields=["status", "slot_number", "updated_at"])
+
+    # If called via AJAX, return JSON; otherwise redirect
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"success": True})
+    return redirect("appointment_calendar")
 
 
 @login_required
@@ -711,17 +822,41 @@ def appointment_manage(request):
                 apt.save(update_fields=["status", "staff", "updated_at"])
             elif action == "reject":
                 apt.status = Appointment.STATUS_REJECTED
+                apt.slot_number = None
                 apt.staff = request.user
-                apt.save(update_fields=["status", "staff", "updated_at"])
+                apt.save(update_fields=["status", "slot_number", "staff", "updated_at"])
+            elif action == "cancel":
+                apt.status = Appointment.STATUS_CANCELLED
+                apt.slot_number = None
+                apt.staff = request.user
+                apt.save(update_fields=["status", "slot_number", "staff", "updated_at"])
             elif action == "complete":
                 apt.status = Appointment.STATUS_COMPLETED
+                apt.staff = request.user
+                apt.save(update_fields=["status", "staff", "updated_at"])
+            elif action == "no_show":
+                apt.status = Appointment.STATUS_NO_SHOW
                 apt.staff = request.user
                 apt.save(update_fields=["status", "staff", "updated_at"])
 
     appointments = Appointment.objects.select_related("owner", "pet", "staff").order_by(
         "-appointment_date", "-start_time", "slot_number"
     )
+
+    # Statistics
+    from django.db.models import Count
+    stats = Appointment.objects.aggregate(
+        total=Count("id"),
+        pending=Count("id", filter=models.Q(status=Appointment.STATUS_PENDING)),
+        confirmed=Count("id", filter=models.Q(status=Appointment.STATUS_CONFIRMED)),
+        completed=Count("id", filter=models.Q(status=Appointment.STATUS_COMPLETED)),
+        cancelled=Count("id", filter=models.Q(status=Appointment.STATUS_CANCELLED)),
+        rejected=Count("id", filter=models.Q(status=Appointment.STATUS_REJECTED)),
+        no_show=Count("id", filter=models.Q(status=Appointment.STATUS_NO_SHOW)),
+    )
+
     return render(request, "appointment_manage.html", {
         "appointments": appointments,
         "form": AppointmentStaffForm(),
+        "stats": stats,
     })

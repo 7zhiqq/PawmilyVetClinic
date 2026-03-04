@@ -311,9 +311,22 @@
           <div class="cal-day {% if day_date.month != cal_date.month %}cal-day--other{% endif %} {% if day_date == today %}cal-day--today{% endif %}">
             <div class="cal-day__num">{{ day_date.day }}</div>
             {% for apt in day_appointments %}
-            <span class="cal-event {{ apt.status }}">
-              {{ apt.pet.name|default:"Walk-in" }} #{{ apt.slot_number }} {{ apt.start_time|time:"g:i A" }}
-            </span>
+            <div class="cal-event-wrapper">
+              <span class="cal-event {{ apt.status }}" {% if not is_staff and apt.status == 'pending' or apt.status == 'confirmed' %}data-cancel-id="{{ apt.id }}"{% endif %}>
+                {{ apt.pet.name|default:"Walk-in" }} #{{ apt.slot_number }} {{ apt.start_time|time:"g:i A" }}
+              </span>
+              {% if not is_staff %}
+              {% if apt.status == 'pending' or apt.status == 'confirmed' %}
+              <form class="cal-cancel-form" id="cancel-form-{{ apt.id }}" method="post" action="{% url 'appointment_cancel' %}">
+                {% csrf_token %}
+                <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
+                <button type="submit" class="cal-cancel-btn" title="Cancel this appointment">
+                  <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+              </form>
+              {% endif %}
+              {% endif %}
+            </div>
             {% endfor %}
           </div>
           {% endfor %}
@@ -326,6 +339,8 @@
       <div class="cal-legend__item"><span class="cal-legend__dot confirmed"></span> Confirmed</div>
       <div class="cal-legend__item"><span class="cal-legend__dot rejected"></span> Rejected</div>
       <div class="cal-legend__item"><span class="cal-legend__dot completed"></span> Completed</div>
+      <div class="cal-legend__item"><span class="cal-legend__dot cancelled"></span> Cancelled</div>
+      <div class="cal-legend__item"><span class="cal-legend__dot no_show"></span> No Show</div>
     </div>
   </main>
 </div>
@@ -884,6 +899,14 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   });
 })();
 /* {% endif %} */
+
+/* ───── Calendar cancel-button toggle ───── */
+document.querySelectorAll('.cal-event[data-cancel-id]').forEach(el => {
+  el.addEventListener('click', () => {
+    const form = document.getElementById('cancel-form-' + el.dataset.cancelId);
+    if (form) form.classList.toggle('show');
+  });
+});
 
 </script>
 </body>

@@ -20,13 +20,8 @@
     <main class="queue-page">
       <div class="queue-header">
         <div>
-          <h1>Live Queue Dashboard</h1>
-          <div class="queue-subtitle">
-            <p>Appointments for <span id="queue-date">{{ view_date|date:"l, F j, Y" }}</span></p>
-            <span class="live-indicator" id="live-indicator">
-              <i class="fa-solid fa-circle"></i> Live
-            </span>
-          </div>
+          <h1>Queue</h1>
+          <p id="queue-date-label">Appointments for {{ view_date|date:"l, F j, Y" }}</p>
         </div>
         {% if is_staff %}
         <a href="{% url 'appointment_schedule' %}" class="btn-primary">
@@ -39,60 +34,79 @@
         {% endif %}
       </div>
 
-      <!-- Queue Statistics Dashboard -->
-      <div class="queue-stats-grid">
-        <div class="stat-card active">
-          <div class="stat-icon"><i class="fa-solid fa-person-walking"></i></div>
-          <div class="stat-content">
-            <span class="stat-value" id="stat-active">0</span>
-            <span class="stat-label">Active</span>
-          </div>
-        </div>
-        <div class="stat-card waiting">
-          <div class="stat-icon"><i class="fa-solid fa-hourglass-end"></i></div>
-          <div class="stat-content">
-            <span class="stat-value" id="stat-waiting">0</span>
-            <span class="stat-label">Waiting</span>
-          </div>
-        </div>
-        <div class="stat-card confirmed">
-          <div class="stat-icon"><i class="fa-solid fa-check-circle"></i></div>
-          <div class="stat-content">
-            <span class="stat-value" id="stat-confirmed">0</span>
-            <span class="stat-label">Confirmed</span>
-          </div>
-        </div>
-        <div class="stat-card completed">
-          <div class="stat-icon"><i class="fa-solid fa-flag-checkered"></i></div>
-          <div class="stat-content">
-            <span class="stat-value" id="stat-completed">0</span>
-            <span class="stat-label">Completed</span>
-          </div>
-        </div>
-      </div>
-
       <div class="queue-toolbar">
         <a href="?date={% now 'Y-m-d' %}" class="queue-toolbar__today">
           <i class="fa-regular fa-calendar-check"></i> Today
         </a>
-        <form method="get" action="{% url 'appointment_queue' %}" id="date-nav-form">
+        <form method="get" action="{% url 'appointment_queue' %}">
           <label for="qdate">Date</label>
           <input type="date" id="qdate" name="date" value="{{ view_date|date:'Y-m-d' }}" />
           <button type="submit">Go</button>
         </form>
-        <div class="queue-toolbar__controls">
-          <button id="refresh-btn" class="btn-icon" title="Refresh queue">
-            <i class="fa-solid fa-rotate-right"></i>
-          </button>
-          <label class="switch-label">
-            <input type="checkbox" id="auto-refresh-toggle" checked>
-            <span>Auto-refresh</span>
-          </label>
+        <div class="queue-live-indicator" id="live-indicator">
+          <span class="live-dot"></span> LIVE
         </div>
       </div>
 
-      <div id="queue-container">
-        <!-- Queue will be dynamically populated -->
+      <!-- ═══ Owner-only view (pet owners) ═══ -->
+      <div id="owner-queue-view" style="display:none;"></div>
+
+      <!-- ═══ Staff view ═══ -->
+      <div id="staff-queue-view" style="display:none;">
+        <!-- Stats bar -->
+        <div class="queue-stats" id="queue-stats">
+          <div class="queue-stat">
+            <div class="queue-stat__value" id="stat-total">0</div>
+            <div class="queue-stat__label">In Queue</div>
+          </div>
+          <div class="queue-stat queue-stat--serving">
+            <div class="queue-stat__value" id="stat-serving">—</div>
+            <div class="queue-stat__label">Now Serving</div>
+          </div>
+          <div class="queue-stat">
+            <div class="queue-stat__value" id="stat-waiting">0</div>
+            <div class="queue-stat__label">Waiting</div>
+          </div>
+        </div>
+
+        <!-- Now Serving -->
+        <div class="queue-section" id="now-serving-section">
+          <div class="queue-section__header">
+            <h2><i class="fa-solid fa-bell-concierge"></i> Now Serving</h2>
+          </div>
+          <div id="now-serving-content"></div>
+        </div>
+
+        <!-- Waiting in Queue -->
+        <div class="queue-section" id="waiting-section">
+          <div class="queue-section__header">
+            <h2><i class="fa-solid fa-clock"></i> Waiting in Queue</h2>
+            <span class="count-badge" id="waiting-badge">0</span>
+          </div>
+          <div class="apt-list" id="waiting-list"></div>
+        </div>
+      </div>
+
+      <!-- ═══ Schedule-only view (non-today dates) ═══ -->
+      <div id="schedule-view" style="display:none;">
+        <div class="schedule-banner">
+          <i class="fa-solid fa-calendar-day"></i>
+          <span>Viewing scheduled appointments — live queue is only active for today.</span>
+        </div>
+        <div class="schedule-stats" id="schedule-stats">
+          <div class="queue-stat">
+            <div class="queue-stat__value" id="sched-total">0</div>
+            <div class="queue-stat__label">Appointments</div>
+          </div>
+        </div>
+        <div class="apt-list" id="schedule-list"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="queue-empty" id="queue-empty" style="display:none;">
+        <span class="queue-empty__icon">📋</span>
+        <h3 id="empty-title">No patients in queue</h3>
+        <p id="empty-subtitle">No pending or confirmed appointments for this day.</p>
       </div>
 
       <div class="queue-footer">
@@ -105,223 +119,19 @@
         </a>
         {% endif %}
       </div>
-
-      <div class="queue-last-updated" id="last-updated">
-        Updated: <time id="update-time">now</time>
-      </div>
     </main>
   </div>
 
   <script>
-    // Real-time Queue Dashboard
-    class QueueDashboard {
-      constructor() {
-        this.updateInterval = 3000; // 3 seconds
-        this.autoRefresh = true;
-        this.currentDate = new Date('{{ view_date|date:"Y-m-d" }}');
-        this.intervalId = null;
-        this.lastUpdateTime = null;
-        this.init();
-      }
-
-      init() {
-        this.setupEventListeners();
-        this.loadQueueData();
-        this.startAutoRefresh();
-      }
-
-      setupEventListeners() {
-        document.getElementById('refresh-btn').addEventListener('click', () => this.refreshNow());
-        document.getElementById('auto-refresh-toggle').addEventListener('change', (e) => {
-          this.autoRefresh = e.target.checked;
-          if (this.autoRefresh) {
-            this.startAutoRefresh();
-          } else {
-            this.stopAutoRefresh();
-          }
-        });
-
-        // Handle date form submission
-        document.getElementById('date-nav-form').addEventListener('submit', (e) => {
-          e.preventDefault();
-          const newDate = document.getElementById('qdate').value;
-          window.location.href = `?date=${newDate}`;
-        });
-      }
-
-      async loadQueueData() {
-        try {
-          const dateStr = this.currentDate.toISOString().split('T')[0];
-          const response = await fetch(`/accounts/appointments/queue-data/?date=${dateStr}`);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          this.updateDashboard(data);
-          this.updateLiveIndicator(true);
-        } catch (error) {
-          console.error('Error fetching queue data:', error);
-          this.updateLiveIndicator(false);
-        }
-      }
-
-      updateDashboard(data) {
-        // Update stats
-        document.getElementById('stat-active').textContent = data.stats.active;
-        document.getElementById('stat-waiting').textContent = data.stats.waiting;
-        document.getElementById('stat-confirmed').textContent = data.stats.confirmed;
-        document.getElementById('stat-completed').textContent = data.stats.completed;
-
-        // Update queue list
-        this.renderQueueList(data.appointments);
-
-        // Update last updated time
-        this.lastUpdateTime = new Date(data.timestamp);
-        this.updateTimeDisplay();
-      }
-
-      renderQueueList(appointments) {
-        const container = document.getElementById('queue-container');
-        
-        if (appointments.length === 0) {
-          container.innerHTML = `
-            <div class="queue-empty">
-              <span class="queue-empty__icon">📋</span>
-              <h3>No appointments</h3>
-              <p>Nothing scheduled for this day.</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Group appointments by time
-        const grouped = this.groupAppointmentsByTime(appointments);
-        let html = '';
-
-        for (const [time, apts] of Object.entries(grouped)) {
-          html += `
-            <div class="queue-time-group">
-              <div class="queue-time-heading">
-                <span class="time-display">${time}</span>
-                <span class="count-badge">${apts.length}</span>
-              </div>
-              <div class="apt-list">
-                ${apts.map(apt => this.buildAppointmentCard(apt)).join('')}
-              </div>
-            </div>
-          `;
-        }
-
-        container.innerHTML = html;
-      }
-
-      groupAppointmentsByTime(appointments) {
-        return appointments.reduce((acc, apt) => {
-          if (!acc[apt.time_ampm]) {
-            acc[apt.time_ampm] = [];
-          }
-          acc[apt.time_ampm].push(apt);
-          return acc;
-        }, {});
-      }
-
-      buildAppointmentCard(apt) {
-        const statusClasses = {
-          'pending': 'pending',
-          'confirmed': 'confirmed',
-          'completed': 'completed',
-          'rejected': 'rejected',
-          'cancelled': 'cancelled',
-        };
-
-        const statusClass = statusClasses[apt.status] || 'pending';
-        const [hour, min] = apt.time.split(':');
-        const timeAmpm = apt.time_ampm;
-
-        return `
-          <div class="apt-card ${statusClass}" data-apt-id="${apt.id}">
-            <div class="apt-card__time">
-              <div class="apt-card__time-val">${hour}:${min}</div>
-              <div class="apt-card__time-ampm">${timeAmpm.split(' ')[1]}</div>
-            </div>
-
-            <div class="apt-card__pet-icon">${apt.emoji}</div>
-
-            <div class="apt-card__info">
-              <div class="apt-card__pet-name">${apt.pet_name}</div>
-              <div class="apt-card__meta">
-                ${apt.owner_name} · ${apt.type_display}
-              </div>
-              ${apt.reason ? `<div class="apt-card__reason">"${apt.reason}"</div>` : ''}
-            </div>
-
-            <div class="apt-card__status">
-              <span class="apt-status-badge ${statusClass}">
-                <span class="apt-status-dot"></span>
-                ${apt.status_display}
-              </span>
-            </div>
-          </div>
-        `;
-      }
-
-      updateLiveIndicator(isLive) {
-        const indicator = document.getElementById('live-indicator');
-        if (isLive) {
-          indicator.classList.add('live');
-          indicator.classList.remove('offline');
-        } else {
-          indicator.classList.remove('live');
-          indicator.classList.add('offline');
-        }
-      }
-
-      updateTimeDisplay() {
-        if (this.lastUpdateTime) {
-          const now = new Date();
-          const diff = now - this.lastUpdateTime;
-          let timeText = 'just now';
-
-          if (diff > 60000) {
-            timeText = Math.floor(diff / 60000) + 'm ago';
-          } else if (diff > 1000) {
-            timeText = Math.floor(diff / 1000) + 's ago';
-          }
-
-          document.getElementById('update-time').textContent = timeText;
-        }
-      }
-
-      refreshNow() {
-        const btn = document.getElementById('refresh-btn');
-        btn.classList.add('spinning');
-        this.loadQueueData().finally(() => {
-          btn.classList.remove('spinning');
-        });
-      }
-
-      startAutoRefresh() {
-        if (this.intervalId) return;
-        
-        this.intervalId = setInterval(() => {
-          this.loadQueueData();
-        }, this.updateInterval);
-      }
-
-      stopAutoRefresh() {
-        if (this.intervalId) {
-          clearInterval(this.intervalId);
-          this.intervalId = null;
-        }
-      }
-    }
-
-    // Initialize dashboard when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      new QueueDashboard();
-    });
+    const QUEUE_DATA_URL = "{% url 'queue_data' %}";
+    const QUEUE_ACTION_URL = "{% url 'queue_action' %}";
+    const VIEW_DATE = "{{ view_date|date:'Y-m-d' }}";
+    const TODAY = "{% now 'Y-m-d' %}";
+    const IS_TODAY = (VIEW_DATE === TODAY);
+    const IS_STAFF = {% if is_staff %}true{% else %}false{% endif %};
+    const USER_ID = {{ request.user.id }};
+    const CSRF_TOKEN = "{{ csrf_token }}";
   </script>
+  <script src="{% static 'js/queue.js' %}"></script>
 </body>
 </html>

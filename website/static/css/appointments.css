@@ -42,7 +42,7 @@
 
 .manage-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
@@ -55,9 +55,12 @@
   border-top: 3px solid transparent;
 }
 
+.stat-card--total    { border-top-color: #111827; }
 .stat-card--pending  { border-top-color: #fbbf24; }
 .stat-card--confirm  { border-top-color: #34d399; }
 .stat-card--complete { border-top-color: #818cf8; }
+.stat-card--cancel   { border-top-color: #9ca3af; }
+.stat-card--noshow   { border-top-color: #fb923c; }
 .stat-card--reject   { border-top-color: #f87171; }
 
 .stat-card__num {
@@ -109,6 +112,7 @@
 .apt-card.rejected  { border-left-color: #f87171; }
 .apt-card.cancelled { border-left-color: #9ca3af; }
 .apt-card.completed { border-left-color: #818cf8; }
+.apt-card.no_show   { border-left-color: #fb923c; }
 
 .apt-card__date {
   text-align: center;
@@ -183,6 +187,7 @@
 .apt-pill.rejected  { background: #fee2e2; color: #991b1b; }
 .apt-pill.cancelled { background: #f3f4f6; color: #4b5563; }
 .apt-pill.completed { background: #e0e7ff; color: #3730a3; }
+.apt-pill.no_show   { background: #ffedd5; color: #9a3412; }
 .apt-pill.walk_in   { background: #ede9fe; color: #6d28d9; }
 
 .apt-reason {
@@ -238,6 +243,18 @@
   color: #3730a3;
 }
 
+.action-btn--cancel:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.action-btn--noshow:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #9a3412;
+}
+
 .manage-empty {
   background: #fff;
   border-radius: 20px;
@@ -251,7 +268,7 @@
 .manage-empty p  { font-size: 0.875rem; color: #6b7280; }
 
 @media (max-width: 700px) {
-  .manage-stats { grid-template-columns: repeat(2, 1fr); }
+  .manage-stats { grid-template-columns: repeat(3, 1fr); }
 
   .apt-card {
     grid-template-columns: 56px 1fr auto;

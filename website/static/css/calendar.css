@@ -173,6 +173,49 @@
 .cal-event.rejected  { background: #fee2e2; color: #991b1b; }
 .cal-event.cancelled { background: #f3f4f6; color: #4b5563; }
 .cal-event.completed { background: #e0e7ff; color: #3730a3; }
+.cal-event.no_show   { background: #ffedd5; color: #9a3412; }
+
+.cal-event-wrapper {
+  position: relative;
+}
+
+.cal-event[data-cancel-id] {
+  cursor: pointer;
+}
+
+.cal-event[data-cancel-id]:hover {
+  opacity: 0.85;
+}
+
+.cal-cancel-form {
+  display: none;
+  margin-top: 0.15rem;
+  margin-bottom: 0.2rem;
+}
+
+.cal-cancel-form.show {
+  display: block;
+}
+
+.cal-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid #fca5a5;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.cal-cancel-btn:hover {
+  background: #fca5a5;
+}
 
 .cal-legend {
   display: flex;
@@ -200,6 +243,8 @@
 .cal-legend__dot.confirmed { background: #d1fae5; border: 1px solid #6ee7b7; }
 .cal-legend__dot.rejected  { background: #fee2e2; border: 1px solid #fca5a5; }
 .cal-legend__dot.completed { background: #e0e7ff; border: 1px solid #a5b4fc; }
+.cal-legend__dot.cancelled { background: #f3f4f6; border: 1px solid #9ca3af; }
+.cal-legend__dot.no_show   { background: #ffedd5; border: 1px solid #fdba74; }
 
 .btn-primary {
   display: inline-flex;
