@@ -75,9 +75,9 @@
                 <a href="{% url 'medical_records_list' pet.pk %}" class="pet-card__records">
                   <i class="fa-solid fa-file-medical" style="font-size:0.75rem;"></i> Medical records
                 </a>
-                <a href="{% url 'pet_edit' pet.pk %}" class="pet-card__edit">
+                <button type="button" class="pet-card__edit" data-edit-pet="{{ pet.pk }}">
                   <i class="fa-solid fa-pen-to-square" style="font-size:0.75rem;"></i> Edit profile
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -187,6 +187,152 @@
     </div>
   </div>
 
+  <script src="{% static 'js/modal_utils.js' %}"></script>
   <script src="{% static 'js/pet_list.js' %}"></script>
+
+  {# ─── Edit Pet Modals (one per pet) ─── #}
+  {% for pet in pets %}
+  <div class="modal-backdrop" id="editPetModal_{{ pet.pk }}" role="dialog" aria-modal="true"
+    aria-labelledby="editModalTitle_{{ pet.pk }}"
+    data-has-errors="{% if edit_pet_id == pet.pk %}true{% else %}false{% endif %}">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="editModalTitle_{{ pet.pk }}">Edit {{ pet.name }} 🐾</div>
+          <div class="modal__subtitle">Update {{ pet.name }}'s profile details.</div>
+        </div>
+        <button class="modal__close" data-close-edit="{{ pet.pk }}" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+
+        {% if edit_pet_id == pet.pk and edit_error_form %}
+        <div class="modal-form__errors">
+          {% for field in edit_error_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in edit_error_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'pet_edit' pet.pk %}" class="modal-form">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-name"><i class="fa-solid fa-tag"></i> Name</label>
+            <input type="text" id="edit_{{ pet.pk }}-name" name="edit_{{ pet.pk }}-name"
+              value="{{ pet.name }}" required />
+          </div>
+
+          <div class="field-group">
+            <label><i class="fa-solid fa-paw"></i> Species</label>
+            <div class="species-grid">
+              <div>
+                <input type="radio" id="edit_{{ pet.pk }}_sp_dog" name="edit_{{ pet.pk }}-species" value="dog"
+                  {% if pet.species == 'dog' %}checked{% endif %} />
+                <label for="edit_{{ pet.pk }}_sp_dog"><span class="emoji">🐶</span> Dog</label>
+              </div>
+              <div>
+                <input type="radio" id="edit_{{ pet.pk }}_sp_cat" name="edit_{{ pet.pk }}-species" value="cat"
+                  {% if pet.species == 'cat' %}checked{% endif %} />
+                <label for="edit_{{ pet.pk }}_sp_cat"><span class="emoji">🐱</span> Cat</label>
+              </div>
+              <div>
+                <input type="radio" id="edit_{{ pet.pk }}_sp_bird" name="edit_{{ pet.pk }}-species" value="bird"
+                  {% if pet.species == 'bird' %}checked{% endif %} />
+                <label for="edit_{{ pet.pk }}_sp_bird"><span class="emoji">🐦</span> Bird</label>
+              </div>
+              <div>
+                <input type="radio" id="edit_{{ pet.pk }}_sp_other" name="edit_{{ pet.pk }}-species" value="other"
+                  {% if pet.species == 'other' %}checked{% endif %} />
+                <label for="edit_{{ pet.pk }}_sp_other"><span class="emoji">🐾</span> Other</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="edit_{{ pet.pk }}-breed"><i class="fa-solid fa-dna"></i> Breed</label>
+              <input type="text" id="edit_{{ pet.pk }}-breed" name="edit_{{ pet.pk }}-breed"
+                placeholder="e.g. Golden Retriever" value="{{ pet.breed|default:'' }}" />
+            </div>
+            <div class="field-group">
+              <label for="edit_{{ pet.pk }}-gender"><i class="fa-solid fa-mars-and-venus"></i> Gender</label>
+              <select id="edit_{{ pet.pk }}-gender" name="edit_{{ pet.pk }}-gender">
+                <option value="" {% if not pet.gender %}selected{% endif %}>—</option>
+                <option value="male" {% if pet.gender == 'male' %}selected{% endif %}>Male</option>
+                <option value="female" {% if pet.gender == 'female' %}selected{% endif %}>Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="edit_{{ pet.pk }}-birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
+              <input type="date" id="edit_{{ pet.pk }}-birth_date" name="edit_{{ pet.pk }}-birth_date"
+                value="{{ pet.birth_date|date:'Y-m-d'|default:'' }}" />
+            </div>
+            <div class="field-group">
+              <label for="edit_{{ pet.pk }}-weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
+              <input type="number" id="edit_{{ pet.pk }}-weight_kg" name="edit_{{ pet.pk }}-weight_kg"
+                step="0.01" min="0" placeholder="0.00" value="{{ pet.weight_kg|default:'' }}" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-color"><i class="fa-solid fa-palette"></i> Color / Markings</label>
+            <input type="text" id="edit_{{ pet.pk }}-color" name="edit_{{ pet.pk }}-color"
+              placeholder="e.g. Brown, Black and white" value="{{ pet.color|default:'' }}" />
+          </div>
+
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+            <textarea id="edit_{{ pet.pk }}-notes" name="edit_{{ pet.pk }}-notes"
+              placeholder="Medical notes, allergies, etc.">{{ pet.notes|default:'' }}</textarea>
+          </div>
+
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-floppy-disk"></i> Save changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <script>
+  (function () {
+    'use strict';
+    // Edit pet modals
+    document.querySelectorAll('[data-edit-pet]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = this.dataset.editPet;
+        var modal = document.getElementById('editPetModal_' + id);
+        if (modal) { modal.classList.add('is-open'); document.body.style.overflow = 'hidden'; }
+      });
+    });
+    document.querySelectorAll('[data-close-edit]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = this.dataset.closeEdit;
+        var modal = document.getElementById('editPetModal_' + id);
+        if (modal) { modal.classList.remove('is-open'); document.body.style.overflow = ''; }
+      });
+    });
+    document.querySelectorAll('[id^="editPetModal_"]').forEach(function (modal) {
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) { modal.classList.remove('is-open'); document.body.style.overflow = ''; }
+      });
+      if (modal.dataset.hasErrors === 'true') {
+        modal.classList.add('is-open'); document.body.style.overflow = 'hidden';
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('[id^="editPetModal_"].is-open').forEach(function (modal) {
+          modal.classList.remove('is-open'); document.body.style.overflow = '';
+        });
+      }
+    });
+  })();
+  </script>
 </body>
 </html>

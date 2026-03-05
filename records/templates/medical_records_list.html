@@ -12,31 +12,44 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
 </head>
 <body>
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
 
     <main class="medical-page">
+      <!-- Back link -->
+      <div class="medical-back-link">
+        {% if is_staff %}
+        <a href="{% url 'pet_records_search' %}"><i class="fa-solid fa-arrow-left"></i> Back to Pet Records</a>
+        {% else %}
+        <a href="{% url 'pet_list' %}"><i class="fa-solid fa-arrow-left"></i> Back to My Pets</a>
+        {% endif %}
+      </div>
+
       <!-- Pet header -->
       <div class="medical-pet-header">
-        <div class="medical-pet-header__avatar">
-          {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
-        </div>
-        <div class="medical-pet-header__info">
-          <h1>{{ pet.name }}</h1>
-          <p>{{ pet.get_species_display }}{% if pet.breed %} · {{ pet.breed }}{% endif %}
-            {% if pet.birth_date %} · Born {{ pet.birth_date|date:"M j, Y" }}{% endif %}
-          </p>
+        <div class="medical-pet-header__left">
+          <div class="medical-pet-header__avatar">
+            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+          </div>
+          <div class="medical-pet-header__info">
+            <h1>{{ pet.name }}</h1>
+            <p>{{ pet.get_species_display }}{% if pet.breed %} · {{ pet.breed }}{% endif %}
+              {% if pet.birth_date %} · Born {{ pet.birth_date|date:"M j, Y" }}{% endif %}
+              · {{ records|length }} record{{ records|length|pluralize }}
+            </p>
+          </div>
         </div>
         <div class="medical-pet-header__actions">
           {% if is_staff %}
-          <a href="{% url 'medical_record_add' pet.pk %}" class="btn-primary">
+          <button type="button" class="btn-primary" id="openRecordModal">
             <i class="fa-solid fa-plus"></i> New Record
-          </a>
-          <a href="{% url 'vaccination_add' pet.pk %}" class="btn-secondary">
+          </button>
+          <button type="button" class="btn-secondary" id="openVaxModal">
             <i class="fa-solid fa-syringe"></i> Add Vaccination
-          </a>
+          </button>
           {% endif %}
         </div>
       </div>
@@ -122,14 +135,145 @@
             {% else %}No consultation records have been added for {{ pet.name }} yet.{% endif %}
           </p>
           {% if is_staff %}
-          <a href="{% url 'medical_record_add' pet.pk %}" class="btn-primary">
+          <button type="button" class="btn-primary" id="openRecordModalEmpty">
             <i class="fa-solid fa-plus"></i> Create first record
-          </a>
+          </button>
           {% endif %}
         </div>
         {% endif %}
       </section>
     </main>
   </div>
+
+  {# ─── New Medical Record Modal ─── #}
+  {% if is_staff %}
+  <div class="modal-backdrop" id="recordModal" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle"
+    data-has-errors="{% if record_form and record_form.errors %}true{% else %}false{% endif %}">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="recordModalTitle">New Medical Record</div>
+          <div class="modal__subtitle">
+            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            {{ pet.name }}
+          </div>
+        </div>
+        <button class="modal__close" id="closeRecordModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        {% if record_form and record_form.errors %}
+        <div class="modal-form__errors">
+          {% for field in record_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in record_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'medical_record_add' pet.pk %}" class="modal-form">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="id_visit_date"><i class="fa-solid fa-calendar"></i> Visit Date</label>
+            {{ record_form.visit_date }}
+          </div>
+          <div class="field-group">
+            <label for="id_chief_complaint"><i class="fa-solid fa-comment-medical"></i> Chief Complaint</label>
+            {{ record_form.chief_complaint }}
+          </div>
+          <div class="field-group">
+            <label for="id_consultation_notes"><i class="fa-solid fa-clipboard"></i> Consultation Notes</label>
+            {{ record_form.consultation_notes }}
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_diagnosis"><i class="fa-solid fa-stethoscope"></i> Diagnosis</label>
+              {{ record_form.diagnosis }}
+            </div>
+            <div class="field-group">
+              <label for="id_treatment"><i class="fa-solid fa-pills"></i> Treatment</label>
+              {{ record_form.treatment }}
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="id_prescription"><i class="fa-solid fa-prescription"></i> Prescription</label>
+            {{ record_form.prescription }}
+          </div>
+          <div class="field-group">
+            <label for="id_follow_up_date"><i class="fa-solid fa-calendar-check"></i> Follow-up Date</label>
+            {{ record_form.follow_up_date }}
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-check"></i> Create Record
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ─── Add Vaccination Modal ─── #}
+  <div class="modal-backdrop" id="vaxModal" role="dialog" aria-modal="true" aria-labelledby="vaxModalTitle"
+    data-has-errors="{% if vaccination_form and vaccination_form.errors %}true{% else %}false{% endif %}">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="vaxModalTitle">Add Vaccination</div>
+          <div class="modal__subtitle">
+            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            {{ pet.name }}
+          </div>
+        </div>
+        <button class="modal__close" id="closeVaxModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        {% if vaccination_form and vaccination_form.errors %}
+        <div class="modal-form__errors">
+          {% for field in vaccination_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in vaccination_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'vaccination_add' pet.pk %}" class="modal-form">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="id_vaccine_name"><i class="fa-solid fa-syringe"></i> Vaccine Name</label>
+            {{ vaccination_form.vaccine_name }}
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_date_administered"><i class="fa-solid fa-calendar"></i> Date Administered</label>
+              {{ vaccination_form.date_administered }}
+            </div>
+            <div class="field-group">
+              <label for="id_next_due_date"><i class="fa-solid fa-calendar-check"></i> Next Due Date</label>
+              {{ vaccination_form.next_due_date }}
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="id_batch_number"><i class="fa-solid fa-barcode"></i> Batch Number</label>
+            {{ vaccination_form.batch_number }}
+          </div>
+          <div class="field-group">
+            <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+            {{ vaccination_form.notes }}
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-check"></i> Save Vaccination
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script src="{% static 'js/modal_utils.js' %}"></script>
+  <script>
+  (function () {
+    'use strict';
+    initModal('recordModal', ['openRecordModal', 'openRecordModalEmpty'], 'closeRecordModal');
+    initModal('vaxModal', ['openVaxModal'], 'closeVaxModal');
+  })();
+  </script>
 </body>
 </html>

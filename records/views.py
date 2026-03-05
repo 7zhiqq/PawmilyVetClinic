@@ -35,12 +35,19 @@ def medical_records_list(request, pet_id):
     records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
     vaccinations = pet.vaccinations.all()
 
-    return render(request, "medical_records_list.html", {
+    ctx = {
         "pet": pet,
         "records": records,
         "vaccinations": vaccinations,
         "is_staff": _is_staff_or_manager(request.user),
-    })
+    }
+
+    # Provide blank forms for modals (staff only)
+    if _is_staff_or_manager(request.user):
+        ctx["record_form"] = MedicalRecordForm()
+        ctx["vaccination_form"] = VaccinationRecordForm()
+
+    return render(request, "medical_records_list.html", ctx)
 
 
 @login_required
@@ -56,11 +63,19 @@ def medical_record_detail(request, pet_id, record_id):
         pet=pet,
     )
 
-    return render(request, "medical_record_detail.html", {
+    ctx = {
         "pet": pet,
         "record": record,
         "is_staff": _is_staff_or_manager(request.user),
-    })
+    }
+
+    # Provide blank forms for modals (staff only)
+    if _is_staff_or_manager(request.user):
+        ctx["edit_form"] = MedicalRecordForm(instance=record)
+        ctx["vaccination_form"] = VaccinationRecordForm()
+        ctx["attachment_form"] = MedicalAttachmentForm()
+
+    return render(request, "medical_record_detail.html", ctx)
 
 
 @login_required
@@ -81,14 +96,18 @@ def medical_record_add(request, pet_id):
             record.save()
             messages.success(request, "Medical record created.")
             return redirect("medical_record_detail", pet_id=pet.pk, record_id=record.pk)
-    else:
-        form = MedicalRecordForm()
-
-    return render(request, "medical_record_form.html", {
-        "pet": pet,
-        "form": form,
-        "title": "New Medical Record",
-    })
+        # Re-render records list with invalid form so modal auto-opens
+        records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
+        vaccinations = pet.vaccinations.all()
+        return render(request, "medical_records_list.html", {
+            "pet": pet,
+            "records": records,
+            "vaccinations": vaccinations,
+            "is_staff": True,
+            "record_form": form,
+            "vaccination_form": VaccinationRecordForm(),
+        })
+    return redirect("medical_records_list", pet_id=pet_id)
 
 
 @login_required
@@ -107,15 +126,16 @@ def medical_record_edit(request, pet_id, record_id):
             form.save()
             messages.success(request, "Medical record updated.")
             return redirect("medical_record_detail", pet_id=pet.pk, record_id=record.pk)
-    else:
-        form = MedicalRecordForm(instance=record)
-
-    return render(request, "medical_record_form.html", {
-        "pet": pet,
-        "form": form,
-        "record": record,
-        "title": "Edit Medical Record",
-    })
+        # Re-render detail page with invalid form so edit modal auto-opens
+        return render(request, "medical_record_detail.html", {
+            "pet": pet,
+            "record": record,
+            "is_staff": True,
+            "edit_form": form,
+            "vaccination_form": VaccinationRecordForm(),
+            "attachment_form": MedicalAttachmentForm(),
+        })
+    return redirect("medical_record_detail", pet_id=pet_id, record_id=record_id)
 
 
 @login_required
@@ -141,15 +161,29 @@ def vaccination_add(request, pet_id):
             if vax.medical_record_id:
                 return redirect("medical_record_detail", pet_id=pet.pk, record_id=vax.medical_record_id)
             return redirect("medical_records_list", pet_id=pet.pk)
-    else:
-        form = VaccinationRecordForm()
-
-    return render(request, "vaccination_form.html", {
-        "pet": pet,
-        "form": form,
-        "medical_record_id": medical_record_id,
-        "title": "Add Vaccination",
-    })
+        # Re-render the appropriate page with the invalid form so modal auto-opens
+        if medical_record_id:
+            record = get_object_or_404(MedicalRecord, pk=int(medical_record_id), pet=pet)
+            return render(request, "medical_record_detail.html", {
+                "pet": pet,
+                "record": record,
+                "is_staff": True,
+                "edit_form": MedicalRecordForm(instance=record),
+                "vaccination_form": form,
+                "attachment_form": MedicalAttachmentForm(),
+            })
+        else:
+            records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
+            vaccinations = pet.vaccinations.all()
+            return render(request, "medical_records_list.html", {
+                "pet": pet,
+                "records": records,
+                "vaccinations": vaccinations,
+                "is_staff": True,
+                "record_form": MedicalRecordForm(),
+                "vaccination_form": form,
+            })
+    return redirect("medical_records_list", pet_id=pet_id)
 
 
 @login_required
@@ -171,14 +205,16 @@ def attachment_add(request, pet_id, record_id):
             att.save()
             messages.success(request, "Attachment uploaded.")
             return redirect("medical_record_detail", pet_id=pet.pk, record_id=record.pk)
-    else:
-        form = MedicalAttachmentForm()
-
-    return render(request, "attachment_form.html", {
-        "pet": pet,
-        "record": record,
-        "form": form,
-    })
+        # Re-render detail page with invalid form so attachment modal auto-opens
+        return render(request, "medical_record_detail.html", {
+            "pet": pet,
+            "record": record,
+            "is_staff": True,
+            "edit_form": MedicalRecordForm(instance=record),
+            "vaccination_form": VaccinationRecordForm(),
+            "attachment_form": form,
+        })
+    return redirect("medical_record_detail", pet_id=pet_id, record_id=record_id)
 
 
 @login_required

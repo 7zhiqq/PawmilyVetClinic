@@ -15,7 +15,7 @@ from datetime import date
 
 from django.contrib.auth import get_user_model
 
-from accounts.forms import PetForm
+from accounts.forms import PetForm, ProfileForm
 from accounts.models import Pet, Profile
 from appointments.forms import AppointmentBookingForm, AppointmentStaffForm
 from appointments.models import Appointment
@@ -41,6 +41,7 @@ def dashboard(request):
         context["book_form"] = AppointmentBookingForm(owner=request.user)
         context["book_error"] = None
         context["pet_form"]  = PetForm()
+        context["profile_form"] = ProfileForm(instance=profile)
 
         # Upcoming appointments for the Reminders card
         context["upcoming_appointments"] = (

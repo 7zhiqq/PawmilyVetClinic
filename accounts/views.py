@@ -222,7 +222,7 @@ def profile_edit(request):
         form = ProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect("profile_edit")
+            return redirect("dashboard")
     else:
         form = ProfileForm(instance=profile)
     return render(request, "profile_edit.html", {"form": form})
@@ -233,10 +233,7 @@ def pet_list(request):
     if not _is_pet_owner(request.user):
         return HttpResponseForbidden("Only pet owners can view their pets.")
     pets = Pet.objects.filter(owner=request.user).order_by("name")
-
-    # pass blank form so the "Add pet" modal works from this page
-    from .forms import PetForm as PF
-    form = PF()
+    form = PetForm()
     return render(request, "pet_list.html", {"pets": pets, "form": form})
 
 
@@ -251,9 +248,10 @@ def pet_add(request):
             pet.owner = request.user
             pet.save()
             return redirect("pet_list")
-    else:
-        form = PetForm()
-    return render(request, "pet_form.html", {"form": form, "title": "Add pet"})
+        # Re-render pet_list with the invalid form so the add-pet modal auto-opens
+        pets = Pet.objects.filter(owner=request.user).order_by("name")
+        return render(request, "pet_list.html", {"pets": pets, "form": form})
+    return redirect("pet_list")
 
 
 @login_required
@@ -262,13 +260,17 @@ def pet_edit(request, pk):
         return HttpResponseForbidden("Only pet owners can edit their pets.")
     pet = get_object_or_404(Pet, pk=pk, owner=request.user)
     if request.method == "POST":
-        form = PetForm(request.POST, instance=pet)
+        form = PetForm(request.POST, instance=pet, prefix=f"edit_{pk}")
         if form.is_valid():
             form.save()
             return redirect("pet_list")
-    else:
-        form = PetForm(instance=pet)
-    return render(request, "pet_form.html", {"form": form, "title": "Edit pet", "pet": pet})
+        # Re-render pet_list with the invalid edit form so the edit modal auto-opens
+        pets = Pet.objects.filter(owner=request.user).order_by("name")
+        return render(request, "pet_list.html", {
+            "pets": pets, "form": PetForm(), "edit_pet_id": pk,
+            "edit_error_form": form,
+        })
+    return redirect("pet_list")
 
 
 # ─── Walk-in client registration (staff) ──────────────────────────────────────

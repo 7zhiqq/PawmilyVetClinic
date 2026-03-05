@@ -1,18 +1,25 @@
 /* ─── Medical Records Styles ────────────────────────────────────────────── */
 
 .medical-page {
-  max-width: 960px;
+  max-width: 1120px;
   padding: 2.5rem 1.5rem 3rem;
-  margin: 0 auto;
+  margin: 0 150px 10px 150px;
 }
 
 /* ── Pet header ── */
 .medical-pet-header {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 2.5rem;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
+}
+
+.medical-pet-header__left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .medical-pet-header__avatar {
@@ -33,11 +40,11 @@
 }
 
 .medical-pet-header__info h1 {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: #111827;
   letter-spacing: -0.03em;
-  margin: 0 0 0.15rem;
+  margin: 0 0 0.2rem;
 }
 
 .medical-pet-header__info p {
@@ -109,15 +116,16 @@
 }
 
 .medical-section__title {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #111827;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  letter-spacing: -0.02em;
 }
 
 .medical-section__title i {
@@ -128,8 +136,10 @@
 /* ── Vaccination table ── */
 .vax-table-wrap {
   overflow-x: auto;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07);
+  background: #fff;
 }
 
 .vax-table {
@@ -195,19 +205,32 @@
   align-items: center;
   gap: 1.25rem;
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 1rem 1.25rem;
+  border: none;
+  border-radius: 22px;
+  padding: 1.15rem 1.35rem;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: cardIn 0.4s ease both;
 }
 
 .record-card:hover {
-  border-color: #7c3aed;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.13);
 }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.record-card:nth-child(1) { animation-delay: 0.05s; }
+.record-card:nth-child(2) { animation-delay: 0.10s; }
+.record-card:nth-child(3) { animation-delay: 0.15s; }
+.record-card:nth-child(4) { animation-delay: 0.20s; }
+.record-card:nth-child(5) { animation-delay: 0.25s; }
+.record-card:nth-child(6) { animation-delay: 0.30s; }
 
 .record-card__date {
   display: flex;
@@ -282,10 +305,11 @@
 /* ── Empty state ── */
 .medical-empty {
   text-align: center;
-  padding: 3rem 1rem;
-  background: #f9fafb;
-  border-radius: 18px;
-  border: 2px dashed #e5e7eb;
+  padding: 3.5rem 2rem;
+  background: #fff;
+  border-radius: 22px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
 .medical-empty__icon {
@@ -337,7 +361,7 @@
 }
 
 .record-detail-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: #111827;
   letter-spacing: -0.03em;
@@ -394,9 +418,16 @@
 
 .detail-card {
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border: none;
+  border-radius: 22px;
   padding: 1.25rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.detail-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.13);
 }
 
 .detail-card h3 {
@@ -421,8 +452,8 @@
 }
 
 .detail-card--highlight {
-  border-color: #7c3aed;
   background: #faf5ff;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.1);
 }
 
 .follow-up-date {
@@ -442,10 +473,17 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 22px;
+  padding: 0.85rem 1.1rem;
+  border: none;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.attachment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1);
 }
 
 .attachment-card__icon {
@@ -496,6 +534,25 @@
   border-top: 1px solid #f3f4f6;
   padding-top: 1rem;
   margin-top: 1rem;
+}
+
+/* ── Back link on list ── */
+.medical-back-link {
+  margin-bottom: 1.5rem;
+}
+
+.medical-back-link a {
+  font-size: 0.85rem;
+  color: #7c3aed;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.medical-back-link a:hover {
+  text-decoration: underline;
 }
 
 /* ── Forms ── */
@@ -590,25 +647,11 @@
   margin-top: 1.75rem;
 }
 
-/* ── Pet card records link ── */
-.pet-card__records {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #7c3aed;
-  text-decoration: none;
-}
-
-.pet-card__records:hover {
-  text-decoration: underline;
-}
-
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .medical-page {
     padding: 1.5rem 1rem;
+    margin: 0;
   }
 
   .record-detail-grid {
@@ -616,6 +659,11 @@
   }
 
   .medical-pet-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .medical-pet-header__left {
     flex-direction: column;
     align-items: flex-start;
   }
