@@ -26,11 +26,17 @@ class RoleBasedAccessMiddleware:
         '/appointments/calendar/',
     ]
     
+    # Routes accessible to both staff and clients
+    SHARED_ROUTES = [
+        '/pets/',  # medical records nested under /pets/<id>/records/
+    ]
+    
     STAFF_ROUTES = [
         '/appointments/queue/',
         '/appointments/manage/',
         '/appointments/schedule/',
         '/appointments/calendar/',
+        '/walkin/register/',
     ]
     
     MANAGER_ROUTES = [
@@ -43,6 +49,7 @@ class RoleBasedAccessMiddleware:
         '/logout/',
         '/register/',
         '/invite/',
+        '/walkin/activate/',
         '/',
         '/admin/',
         '/static/',
@@ -101,6 +108,7 @@ class RoleBasedAccessMiddleware:
             staff_only_routes = [
                 '/appointments/manage/',
                 '/appointments/schedule/',
+                '/walkin/register/',
             ]
             if any(path.startswith(route) for route in staff_only_routes):
                 return HttpResponseForbidden(

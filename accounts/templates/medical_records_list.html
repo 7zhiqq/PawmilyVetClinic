@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ pet.name }} — Medical Records — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="medical-page">
+      <!-- Pet header -->
+      <div class="medical-pet-header">
+        <div class="medical-pet-header__avatar">
+          {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+        </div>
+        <div class="medical-pet-header__info">
+          <h1>{{ pet.name }}</h1>
+          <p>{{ pet.get_species_display }}{% if pet.breed %} · {{ pet.breed }}{% endif %}
+            {% if pet.birth_date %} · Born {{ pet.birth_date|date:"M j, Y" }}{% endif %}
+          </p>
+        </div>
+        <div class="medical-pet-header__actions">
+          {% if is_staff %}
+          <a href="{% url 'medical_record_add' pet.pk %}" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> New Record
+          </a>
+          <a href="{% url 'vaccination_add' pet.pk %}" class="btn-secondary">
+            <i class="fa-solid fa-syringe"></i> Add Vaccination
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Vaccination summary -->
+      {% if vaccinations %}
+      <section class="medical-section">
+        <h2 class="medical-section__title"><i class="fa-solid fa-syringe"></i> Vaccination History</h2>
+        <div class="vax-table-wrap">
+          <table class="vax-table">
+            <thead>
+              <tr>
+                <th>Vaccine</th>
+                <th>Date</th>
+                <th>Next Due</th>
+                <th>Batch #</th>
+                <th>Administered By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in vaccinations %}
+              <tr>
+                <td class="vax-name">{{ v.vaccine_name }}</td>
+                <td>{{ v.date_administered|date:"M j, Y" }}</td>
+                <td>
+                  {% if v.next_due_date %}
+                    <span class="vax-due">{{ v.next_due_date|date:"M j, Y" }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>{{ v.batch_number|default:"—" }}</td>
+                <td>{{ v.administered_by.get_full_name|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- Medical records timeline -->
+      <section class="medical-section">
+        <h2 class="medical-section__title"><i class="fa-solid fa-file-medical"></i> Consultation Records</h2>
+
+        {% if records %}
+        <div class="records-timeline">
+          {% for rec in records %}
+          <a href="{% url 'medical_record_detail' pet.pk rec.pk %}" class="record-card">
+            <div class="record-card__date">
+              <span class="record-card__day">{{ rec.visit_date|date:"d" }}</span>
+              <span class="record-card__month">{{ rec.visit_date|date:"M Y" }}</span>
+            </div>
+            <div class="record-card__body">
+              <div class="record-card__complaint">
+                {% if rec.chief_complaint %}{{ rec.chief_complaint }}{% else %}General consultation{% endif %}
+              </div>
+              {% if rec.diagnosis %}
+              <div class="record-card__diagnosis">
+                <i class="fa-solid fa-stethoscope"></i> {{ rec.diagnosis|truncatewords:15 }}
+              </div>
+              {% endif %}
+              <div class="record-card__meta">
+                <span><i class="fa-solid fa-user-doctor"></i> {{ rec.created_by.get_full_name|default:"Staff" }}</span>
+                {% if rec.vaccinations.count %}
+                <span><i class="fa-solid fa-syringe"></i> {{ rec.vaccinations.count }} vaccination{{ rec.vaccinations.count|pluralize }}</span>
+                {% endif %}
+                {% if rec.attachments.count %}
+                <span><i class="fa-solid fa-paperclip"></i> {{ rec.attachments.count }} file{{ rec.attachments.count|pluralize }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="record-card__arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="medical-empty">
+          <span class="medical-empty__icon">📋</span>
+          <h3>No medical records yet</h3>
+          <p>
+            {% if is_staff %}Create the first consultation record for {{ pet.name }}.
+            {% else %}No consultation records have been added for {{ pet.name }} yet.{% endif %}
+          </p>
+          {% if is_staff %}
+          <a href="{% url 'medical_record_add' pet.pk %}" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> Create first record
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </section>
+    </main>
+  </div>
+</body>
+</html>

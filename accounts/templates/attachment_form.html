@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Attachment — {{ pet.name }} — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="medical-page">
+      <div class="medical-breadcrumb">
+        <a href="{% url 'medical_record_detail' pet.pk record.pk %}"><i class="fa-solid fa-arrow-left"></i> Back to Record</a>
+      </div>
+
+      <div class="medical-form-container">
+        <h1>Upload Attachment</h1>
+        <p class="medical-form-subtitle">
+          Record: {{ record.visit_date|date:"M j, Y" }}
+          {% if record.chief_complaint %} — {{ record.chief_complaint }}{% endif %}
+        </p>
+
+        {% if form.errors %}
+        <div class="medical-form-errors">
+          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="medical-form">
+          {% csrf_token %}
+
+          <div class="field-group">
+            <label for="id_file"><i class="fa-solid fa-upload"></i> File</label>
+            {{ form.file }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_description"><i class="fa-solid fa-align-left"></i> Description</label>
+            {{ form.description }}
+          </div>
+
+          <div class="medical-form-actions">
+            <button type="submit" class="btn-primary">
+              <i class="fa-solid fa-upload"></i> Upload
+            </button>
+            <a href="{% url 'medical_record_detail' pet.pk record.pk %}" class="btn-ghost">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

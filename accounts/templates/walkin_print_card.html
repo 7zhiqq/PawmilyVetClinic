@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Activation Card — {{ registration.user.get_full_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* ── Screen-only toolbar ── */
+    .print-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .print-toolbar__btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: inherit;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+      text-decoration: none;
+    }
+    .print-toolbar__btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .print-toolbar__btn--primary { background: #111827; color: #fff; }
+    .print-toolbar__btn--secondary { background: #e5e7eb; color: #374151; }
+
+    /* ── Card ── */
+    .activation-card {
+      width: 420px;
+      background: #fff;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+    }
+
+    .card-header {
+      background: #111827;
+      color: #fff;
+      padding: 1.5rem 1.8rem;
+      text-align: center;
+    }
+    .card-header__brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .card-header__brand-icon {
+      width: 36px; height: 36px;
+      background: #7c3aed;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-header__brand-icon i { color: #fff; font-size: 1rem; }
+    .card-header__brand-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+    .card-header__title {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #d1d5db;
+      margin-top: 0.2rem;
+    }
+
+    .card-body {
+      padding: 1.8rem;
+      text-align: center;
+    }
+
+    .card-client {
+      margin-bottom: 1.2rem;
+    }
+    .card-client__label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 0.2rem;
+    }
+    .card-client__name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .card-qr {
+      display: flex;
+      justify-content: center;
+      margin: 1.2rem 0;
+    }
+    .card-qr img {
+      width: 200px;
+      height: 200px;
+      border: 3px solid #f3f4f6;
+      border-radius: 16px;
+    }
+
+    .card-instructions {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      margin-top: 1rem;
+    }
+    .card-instructions__title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+    .card-instructions__steps {
+      list-style: none;
+      text-align: left;
+    }
+    .card-instructions__steps li {
+      font-size: 0.8rem;
+      color: #374151;
+      padding: 0.25rem 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .card-instructions__step-num {
+      width: 20px; height: 20px;
+      background: #7c3aed;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+
+    .card-url {
+      margin-top: 1rem;
+      font-size: 0.68rem;
+      color: #9ca3af;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .card-url strong {
+      display: block;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #b0b5be;
+      margin-bottom: 0.15rem;
+    }
+
+    .card-footer {
+      background: #f9fafb;
+      border-top: 1px solid #f3f4f6;
+      padding: 0.8rem 1.8rem;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    /* ── Print styles ── */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        display: block;
+      }
+      .print-toolbar { display: none !important; }
+      .activation-card {
+        box-shadow: none;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        page-break-inside: avoid;
+      }
+      .card-qr img {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .card-header {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .card-instructions__step-num {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-toolbar">
+    <button class="print-toolbar__btn print-toolbar__btn--primary" onclick="window.print()">
+      <i class="fa-solid fa-print"></i> Print card
+    </button>
+    <a href="{% url 'walkin_register' %}" class="print-toolbar__btn print-toolbar__btn--secondary">
+      <i class="fa-solid fa-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <div class="activation-card">
+    <div class="card-header">
+      <div class="card-header__brand">
+        <div class="card-header__brand-icon">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <span class="card-header__brand-name">PAWMILY</span>
+      </div>
+      <div class="card-header__title">Veterinary Clinic &bull; Account Activation</div>
+    </div>
+
+    <div class="card-body">
+      <div class="card-client">
+        <div class="card-client__label">Registered client</div>
+        <div class="card-client__name">{{ registration.user.get_full_name }}</div>
+      </div>
+
+      <div class="card-qr">
+        <img src="{{ qr_url }}" alt="QR Code — Scan to activate your account">
+      </div>
+
+      <div class="card-instructions">
+        <div class="card-instructions__title">
+          <i class="fa-solid fa-circle-info"></i> How to activate your account
+        </div>
+        <ol class="card-instructions__steps">
+          <li>
+            <span class="card-instructions__step-num">1</span>
+            <span>Open your phone's camera and scan the QR code above.</span>
+          </li>
+          <li>
+            <span class="card-instructions__step-num">2</span>
+            <span>Choose a username and set your password.</span>
+          </li>
+          <li>
+            <span class="card-instructions__step-num">3</span>
+            <span>You're all set! View your pet records, book appointments, and more.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="card-url">
+        <strong>Or visit this link:</strong>
+        {{ activate_url }}
+      </div>
+    </div>
+
+    <div class="card-footer">
+      Thank you for choosing Pawmily &hearts;
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ pet.name }} — Record {{ record.visit_date|date:"M j, Y" }} — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="medical-page">
+      <!-- Breadcrumb -->
+      <div class="medical-breadcrumb">
+        <a href="{% url 'medical_records_list' pet.pk %}"><i class="fa-solid fa-arrow-left"></i> {{ pet.name }}'s Records</a>
+      </div>
+
+      <!-- Record header -->
+      <div class="record-detail-header">
+        <div>
+          <h1>
+            {% if record.chief_complaint %}{{ record.chief_complaint }}{% else %}Consultation{% endif %}
+          </h1>
+          <p class="record-detail-header__date">
+            <i class="fa-solid fa-calendar"></i> {{ record.visit_date|date:"F j, Y" }}
+            · Created by {{ record.created_by.get_full_name|default:"Staff" }}
+          </p>
+        </div>
+        {% if is_staff %}
+        <div class="record-detail-header__actions">
+          <a href="{% url 'medical_record_edit' pet.pk record.pk %}" class="btn-secondary">
+            <i class="fa-solid fa-pen"></i> Edit
+          </a>
+          <a href="{% url 'vaccination_add' pet.pk %}?record={{ record.pk }}" class="btn-secondary">
+            <i class="fa-solid fa-syringe"></i> Add Vaccination
+          </a>
+          <a href="{% url 'attachment_add' pet.pk record.pk %}" class="btn-secondary">
+            <i class="fa-solid fa-paperclip"></i> Upload File
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Messages -->
+      {% if messages %}
+      <div class="medical-messages">
+        {% for msg in messages %}
+        <div class="medical-msg medical-msg--{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Record fields -->
+      <div class="record-detail-grid">
+        {% if record.consultation_notes %}
+        <div class="detail-card">
+          <h3><i class="fa-solid fa-clipboard"></i> Consultation Notes</h3>
+          <p>{{ record.consultation_notes|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.diagnosis %}
+        <div class="detail-card">
+          <h3><i class="fa-solid fa-stethoscope"></i> Diagnosis</h3>
+          <p>{{ record.diagnosis|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.treatment %}
+        <div class="detail-card">
+          <h3><i class="fa-solid fa-pills"></i> Treatment</h3>
+          <p>{{ record.treatment|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.prescription %}
+        <div class="detail-card">
+          <h3><i class="fa-solid fa-prescription"></i> Prescription</h3>
+          <p>{{ record.prescription|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.follow_up_date %}
+        <div class="detail-card detail-card--highlight">
+          <h3><i class="fa-solid fa-calendar-check"></i> Follow-up Date</h3>
+          <p class="follow-up-date">{{ record.follow_up_date|date:"F j, Y" }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Vaccinations linked to this record -->
+      {% if record.vaccinations.count %}
+      <section class="medical-section">
+        <h2 class="medical-section__title"><i class="fa-solid fa-syringe"></i> Vaccinations</h2>
+        <div class="vax-table-wrap">
+          <table class="vax-table">
+            <thead>
+              <tr>
+                <th>Vaccine</th>
+                <th>Date</th>
+                <th>Next Due</th>
+                <th>Batch #</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in record.vaccinations.all %}
+              <tr>
+                <td class="vax-name">{{ v.vaccine_name }}</td>
+                <td>{{ v.date_administered|date:"M j, Y" }}</td>
+                <td>{% if v.next_due_date %}<span class="vax-due">{{ v.next_due_date|date:"M j, Y" }}</span>{% else %}—{% endif %}</td>
+                <td>{{ v.batch_number|default:"—" }}</td>
+                <td>{{ v.notes|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- Attachments -->
+      {% if record.attachments.count %}
+      <section class="medical-section">
+        <h2 class="medical-section__title"><i class="fa-solid fa-paperclip"></i> Attachments</h2>
+        <div class="attachments-grid">
+          {% for att in record.attachments.all %}
+          <div class="attachment-card">
+            <div class="attachment-card__icon"><i class="fa-solid fa-file"></i></div>
+            <div class="attachment-card__info">
+              <a href="{{ att.file.url }}" target="_blank" class="attachment-card__name">{{ att.filename }}</a>
+              <span class="attachment-card__desc">{{ att.description|default:"No description" }}</span>
+              <span class="attachment-card__meta">Uploaded {{ att.uploaded_at|date:"M j, Y" }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- Record metadata -->
+      <div class="record-meta">
+        <span>Created {{ record.created_at|date:"M j, Y g:i A" }}</span>
+        {% if record.updated_at != record.created_at %}
+        <span> · Updated {{ record.updated_at|date:"M j, Y g:i A" }}</span>
+        {% endif %}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

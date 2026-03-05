@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ title }} — {{ pet.name }} — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="medical-page">
+      <div class="medical-breadcrumb">
+        <a href="{% url 'medical_records_list' pet.pk %}"><i class="fa-solid fa-arrow-left"></i> {{ pet.name }}'s Records</a>
+      </div>
+
+      <div class="medical-form-container">
+        <h1>{{ title }}</h1>
+        <p class="medical-form-subtitle">
+          {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+          {{ pet.name }}
+        </p>
+
+        {% if form.errors %}
+        <div class="medical-form-errors">
+          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="medical-form">
+          {% csrf_token %}
+
+          <div class="field-group">
+            <label for="id_visit_date"><i class="fa-solid fa-calendar"></i> Visit Date</label>
+            {{ form.visit_date }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_chief_complaint"><i class="fa-solid fa-comment-medical"></i> Chief Complaint</label>
+            {{ form.chief_complaint }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_consultation_notes"><i class="fa-solid fa-clipboard"></i> Consultation Notes</label>
+            {{ form.consultation_notes }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_diagnosis"><i class="fa-solid fa-stethoscope"></i> Diagnosis</label>
+            {{ form.diagnosis }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_treatment"><i class="fa-solid fa-pills"></i> Treatment</label>
+            {{ form.treatment }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_prescription"><i class="fa-solid fa-prescription"></i> Prescription</label>
+            {{ form.prescription }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_follow_up_date"><i class="fa-solid fa-calendar-check"></i> Follow-up Date</label>
+            {{ form.follow_up_date }}
+          </div>
+
+          <div class="medical-form-actions">
+            <button type="submit" class="btn-primary">
+              <i class="fa-solid fa-check"></i>
+              {% if record %}Update Record{% else %}Create Record{% endif %}
+            </button>
+            <a href="{% url 'medical_records_list' pet.pk %}" class="btn-ghost">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

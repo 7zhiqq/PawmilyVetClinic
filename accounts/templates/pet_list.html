@@ -72,6 +72,9 @@
               {% endif %}
 
               <div class="pet-card__footer">
+                <a href="{% url 'medical_records_list' pet.pk %}" class="pet-card__records">
+                  <i class="fa-solid fa-file-medical" style="font-size:0.75rem;"></i> Medical records
+                </a>
                 <a href="{% url 'pet_edit' pet.pk %}" class="pet-card__edit">
                   <i class="fa-solid fa-pen-to-square" style="font-size:0.75rem;"></i> Edit profile
                 </a>

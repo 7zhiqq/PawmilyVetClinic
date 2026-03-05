@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pet Records — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="medical-page">
+      <div class="medical-pet-header" style="margin-bottom:1.5rem;">
+        <div class="medical-pet-header__info">
+          <h1>Pet Records</h1>
+          <p>Search for a pet to view or manage their medical records.</p>
+        </div>
+      </div>
+
+      <form method="GET" class="pet-search-bar">
+        <div class="pet-search-bar__input-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" value="{{ query }}" placeholder="Search by pet name, breed, or owner name…" autofocus />
+        </div>
+        <button type="submit" class="btn-primary">Search</button>
+      </form>
+
+      {% if pets %}
+      <div class="pet-search-results">
+        {% for pet in pets %}
+        <a href="{% url 'medical_records_list' pet.pk %}" class="record-card">
+          <div class="record-card__date">
+            <span style="font-size:1.8rem;">
+              {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            </span>
+          </div>
+          <div class="record-card__body">
+            <div class="record-card__complaint">{{ pet.name }}</div>
+            <div class="record-card__diagnosis">
+              {{ pet.get_species_display }}{% if pet.breed %} · {{ pet.breed }}{% endif %}
+            </div>
+            <div class="record-card__meta">
+              <span><i class="fa-solid fa-user"></i> {{ pet.owner.get_full_name|default:pet.owner.username }}</span>
+              {% if pet.birth_date %}
+              <span><i class="fa-solid fa-cake-candles"></i> {{ pet.birth_date|date:"M j, Y" }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="record-card__arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+        {% endfor %}
+      </div>
+      {% elif query %}
+      <div class="medical-empty">
+        <span class="medical-empty__icon">🔍</span>
+        <h3>No pets found</h3>
+        <p>No pets match "{{ query }}". Try a different search term.</p>
+      </div>
+      {% endif %}
+    </main>
+  </div>
+</body>
+</html>

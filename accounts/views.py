@@ -1,6 +1,10 @@
 import calendar
+import io
 import json
 from datetime import date, datetime, time, timedelta
+
+import qrcode
+import qrcode.constants
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
@@ -9,7 +13,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.db import IntegrityError, transaction
 from django.db import models
 from django.db.models import Q
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -20,12 +24,21 @@ from .forms import (
     AppointmentBookingForm,
     AppointmentStaffForm,
     InvitationForm,
+    MedicalAttachmentForm,
+    MedicalRecordForm,
     PetForm,
     PetOwnerRegistrationForm,
     ProfileForm,
     StaffInviteRegistrationForm,
+    VaccinationRecordForm,
+    WalkInActivationForm,
+    WalkInClientForm,
+    WalkInPetForm,
 )
-from .models import MAX_SLOTS, Appointment, Invitation, Pet, Profile
+from .models import (
+    MAX_SLOTS, Appointment, Invitation, MedicalAttachment, MedicalRecord,
+    Pet, Profile, VaccinationRecord, WalkInRegistration,
+)
 
 User = get_user_model()
 
@@ -858,4 +871,412 @@ def appointment_manage(request):
         "appointments": appointments,
         "form": AppointmentStaffForm(),
         "stats": stats,
+    })
+
+
+# ─── Walk-in client registration (staff) ──────────────────────────────────────
+
+
+@login_required
+@transaction.atomic
+def walkin_register(request):
+    """Staff registers a new walk-in client and their pet."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can register walk-in clients.")
+
+    success_info = None
+
+    if request.method == "POST":
+        client_form = WalkInClientForm(request.POST)
+        pet_form = WalkInPetForm(request.POST)
+
+        if client_form.is_valid() and pet_form.is_valid():
+            # Create user with unusable password (can't log in until activated)
+            email = client_form.cleaned_data.get("email") or ""
+            first = client_form.cleaned_data["first_name"]
+            last = client_form.cleaned_data["last_name"]
+
+            # Generate a unique username from first+last name
+            base_username = f"{first.lower()}.{last.lower()}"[:30]
+            base_username = "".join(c for c in base_username if c.isalnum() or c == ".")
+            username = base_username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            user = User(
+                username=username,
+                first_name=first,
+                last_name=last,
+                email=email,
+            )
+            user.set_unusable_password()
+            user.save()
+
+            # Create profile
+            Profile.objects.create(
+                user=user,
+                role=Profile.ROLE_PET_OWNER,
+                phone=client_form.cleaned_data.get("phone", ""),
+                address=client_form.cleaned_data.get("address", ""),
+                is_profile_completed=True,
+            )
+
+            # Create pet
+            pet = pet_form.save(commit=False)
+            pet.owner = user
+            pet.save()
+
+            # Create activation token
+            registration = WalkInRegistration.objects.create(
+                user=user,
+                created_by=request.user,
+            )
+
+            activate_path = reverse("walkin_activate", args=[registration.token])
+            activate_url = request.build_absolute_uri(activate_path)
+
+            qr_path = reverse("walkin_qr_image", args=[registration.token])
+            qr_url = request.build_absolute_uri(qr_path)
+            print_path = reverse("walkin_print_card", args=[registration.token])
+            print_url = request.build_absolute_uri(print_path)
+
+            success_info = {
+                "client_name": user.get_full_name(),
+                "pet_name": pet.name,
+                "activate_url": activate_url,
+                "qr_url": qr_url,
+                "print_url": print_url,
+            }
+
+            # Reset forms for next registration
+            client_form = WalkInClientForm()
+            pet_form = WalkInPetForm()
+    else:
+        client_form = WalkInClientForm()
+        pet_form = WalkInPetForm()
+
+    # List recent walk-in registrations created by any staff
+    recent_registrations = (
+        WalkInRegistration.objects.select_related("user", "user__profile", "created_by")
+        .order_by("-created_at")[:20]
+    )
+
+    return render(request, "walkin_register.html", {
+        "client_form": client_form,
+        "pet_form": pet_form,
+        "success_info": success_info,
+        "recent_registrations": recent_registrations,
+    })
+
+
+# ─── Walk-in account activation (client) ─────────────────────────────────────
+
+
+@transaction.atomic
+def walkin_activate(request, token):
+    """Walk-in client sets username & password to activate their account."""
+    if request.user.is_authenticated:
+        return redirect("/dashboard/")
+
+    registration = get_object_or_404(WalkInRegistration, token=token)
+
+    if registration.is_activated:
+        return render(request, "walkin_activate.html", {
+            "already_activated": True,
+        })
+
+    user = registration.user
+
+    if request.method == "POST":
+        form = WalkInActivationForm(request.POST, instance=user)
+        if form.is_valid():
+            activated_user = form.save()
+            registration.is_activated = True
+            registration.activated_at = timezone.now()
+            registration.save(update_fields=["is_activated", "activated_at"])
+            login(request, activated_user)
+            messages.success(request, "Your account has been activated! Welcome to Pawmily.")
+            return redirect("/dashboard/")
+    else:
+        form = WalkInActivationForm(instance=user)
+
+    return render(request, "walkin_activate.html", {
+        "form": form,
+        "registration": registration,
+        "user_info": user,
+    })
+
+
+# ─── Link existing walk-in record to new account ─────────────────────────────
+
+
+@transaction.atomic
+def register_pet_owner_link(request):
+    """
+    During normal pet-owner registration, allow linking to an existing
+    walk-in record by email.
+    """
+    if request.user.is_authenticated:
+        return redirect("/dashboard/")
+
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip().lower()
+        if email:
+            try:
+                walkin_reg = WalkInRegistration.objects.select_related("user").get(
+                    user__email__iexact=email,
+                    is_activated=False,
+                )
+                # Redirect to the activation page for this walk-in record
+                return redirect("walkin_activate", token=walkin_reg.token)
+            except WalkInRegistration.DoesNotExist:
+                messages.error(
+                    request,
+                    "No walk-in record found for this email. "
+                    "Please register a new account or check the email address."
+                )
+
+    return render(request, "walkin_link.html")
+
+
+# ─── Walk-in QR code generation ───────────────────────────────────────────────
+
+
+@login_required
+@require_GET
+def walkin_qr_image(request, token):
+    """Return a QR code PNG image for the activation link."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can generate QR codes.")
+
+    registration = get_object_or_404(WalkInRegistration, token=token)
+    activate_path = reverse("walkin_activate", args=[registration.token])
+    activate_url = request.build_absolute_uri(activate_path)
+
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(activate_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return HttpResponse(buf.getvalue(), content_type="image/png")
+
+
+@login_required
+def walkin_print_card(request, token):
+    """Render a print-friendly card with QR code for the client."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can print activation cards.")
+
+    registration = get_object_or_404(
+        WalkInRegistration.objects.select_related("user"),
+        token=token,
+    )
+    activate_path = reverse("walkin_activate", args=[registration.token])
+    activate_url = request.build_absolute_uri(activate_path)
+    qr_url = request.build_absolute_uri(
+        reverse("walkin_qr_image", args=[registration.token])
+    )
+
+    return render(request, "walkin_print_card.html", {
+        "registration": registration,
+        "activate_url": activate_url,
+        "qr_url": qr_url,
+    })
+
+
+# ─── Medical Records ─────────────────────────────────────────────────────────
+
+
+def _can_view_medical_records(user, pet):
+    """Staff/managers can view any pet's records; owners can view their own."""
+    if _is_staff_or_manager(user):
+        return True
+    return pet.owner_id == user.id
+
+
+@login_required
+def medical_records_list(request, pet_id):
+    """List all medical records for a given pet."""
+    pet = get_object_or_404(Pet, pk=pet_id)
+    if not _can_view_medical_records(request.user, pet):
+        return HttpResponseForbidden("You do not have access to this pet's records.")
+
+    records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
+    vaccinations = pet.vaccinations.all()
+
+    return render(request, "medical_records_list.html", {
+        "pet": pet,
+        "records": records,
+        "vaccinations": vaccinations,
+        "is_staff": _is_staff_or_manager(request.user),
+    })
+
+
+@login_required
+def medical_record_detail(request, pet_id, record_id):
+    """View a single medical record with vaccinations and attachments."""
+    pet = get_object_or_404(Pet, pk=pet_id)
+    if not _can_view_medical_records(request.user, pet):
+        return HttpResponseForbidden("You do not have access to this pet's records.")
+
+    record = get_object_or_404(
+        MedicalRecord.objects.prefetch_related("vaccinations", "attachments"),
+        pk=record_id,
+        pet=pet,
+    )
+
+    return render(request, "medical_record_detail.html", {
+        "pet": pet,
+        "record": record,
+        "is_staff": _is_staff_or_manager(request.user),
+    })
+
+
+@login_required
+@transaction.atomic
+def medical_record_add(request, pet_id):
+    """Staff creates a new medical record for a pet."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can create medical records.")
+
+    pet = get_object_or_404(Pet, pk=pet_id)
+
+    if request.method == "POST":
+        form = MedicalRecordForm(request.POST)
+        if form.is_valid():
+            record = form.save(commit=False)
+            record.pet = pet
+            record.created_by = request.user
+            record.save()
+            messages.success(request, "Medical record created.")
+            return redirect("medical_record_detail", pet_id=pet.pk, record_id=record.pk)
+    else:
+        form = MedicalRecordForm()
+
+    return render(request, "medical_record_form.html", {
+        "pet": pet,
+        "form": form,
+        "title": "New Medical Record",
+    })
+
+
+@login_required
+@transaction.atomic
+def medical_record_edit(request, pet_id, record_id):
+    """Staff edits an existing medical record."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can edit medical records.")
+
+    pet = get_object_or_404(Pet, pk=pet_id)
+    record = get_object_or_404(MedicalRecord, pk=record_id, pet=pet)
+
+    if request.method == "POST":
+        form = MedicalRecordForm(request.POST, instance=record)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Medical record updated.")
+            return redirect("medical_record_detail", pet_id=pet.pk, record_id=record.pk)
+    else:
+        form = MedicalRecordForm(instance=record)
+
+    return render(request, "medical_record_form.html", {
+        "pet": pet,
+        "form": form,
+        "record": record,
+        "title": "Edit Medical Record",
+    })
+
+
+@login_required
+@transaction.atomic
+def vaccination_add(request, pet_id):
+    """Staff adds a vaccination record, optionally linked to a medical record."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can add vaccination records.")
+
+    pet = get_object_or_404(Pet, pk=pet_id)
+    medical_record_id = request.GET.get("record") or request.POST.get("medical_record")
+
+    if request.method == "POST":
+        form = VaccinationRecordForm(request.POST)
+        if form.is_valid():
+            vax = form.save(commit=False)
+            vax.pet = pet
+            vax.administered_by = request.user
+            if medical_record_id:
+                vax.medical_record_id = int(medical_record_id)
+            vax.save()
+            messages.success(request, "Vaccination record added.")
+            if vax.medical_record_id:
+                return redirect("medical_record_detail", pet_id=pet.pk, record_id=vax.medical_record_id)
+            return redirect("medical_records_list", pet_id=pet.pk)
+    else:
+        form = VaccinationRecordForm()
+
+    return render(request, "vaccination_form.html", {
+        "pet": pet,
+        "form": form,
+        "medical_record_id": medical_record_id,
+        "title": "Add Vaccination",
+    })
+
+
+@login_required
+@transaction.atomic
+def attachment_add(request, pet_id, record_id):
+    """Staff uploads a file attachment to a medical record."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can upload attachments.")
+
+    pet = get_object_or_404(Pet, pk=pet_id)
+    record = get_object_or_404(MedicalRecord, pk=record_id, pet=pet)
+
+    if request.method == "POST":
+        form = MedicalAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            att = form.save(commit=False)
+            att.medical_record = record
+            att.uploaded_by = request.user
+            att.save()
+            messages.success(request, "Attachment uploaded.")
+            return redirect("medical_record_detail", pet_id=pet.pk, record_id=record.pk)
+    else:
+        form = MedicalAttachmentForm()
+
+    return render(request, "attachment_form.html", {
+        "pet": pet,
+        "record": record,
+        "form": form,
+    })
+
+
+@login_required
+def pet_records_search(request):
+    """Staff view to search for any pet and access their medical records."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can access this page.")
+
+    query = request.GET.get("q", "").strip()
+    pets = Pet.objects.select_related("owner").order_by("name")
+    if query:
+        pets = pets.filter(
+            Q(name__icontains=query)
+            | Q(owner__first_name__icontains=query)
+            | Q(owner__last_name__icontains=query)
+            | Q(breed__icontains=query)
+        )
+
+    return render(request, "pet_records_search.html", {
+        "pets": pets,
+        "query": query,
     })

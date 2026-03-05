@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Link Existing Record — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+  <div class="login-page">
+    <div class="login-card">
+
+      <a href="/" class="login-card__brand">
+        <span class="login-card__brand-icon">
+          <i class="fa-solid fa-paw"></i>
+        </span>
+        <span class="login-card__brand-name">PAWMILY</span>
+      </a>
+
+      <h1 class="login-card__title">Link your clinic record</h1>
+      <p class="login-card__sub">
+        Already visited our clinic? Enter the email address used during your visit to link your existing records to a new online account.
+      </p>
+
+      {% if messages %}
+      <div class="login-errors">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="login-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="id_email"><i class="fa-solid fa-envelope"></i> Email used at the clinic</label>
+          <input type="email" name="email" id="id_email" required placeholder="your@email.com">
+        </div>
+
+        <button type="submit" class="login-form__btn">
+          <i class="fa-solid fa-link"></i> Find my record
+        </button>
+      </form>
+
+      <div class="login-divider">or</div>
+
+      <p class="login-card__register">
+        New client? <a href="/accounts/register/">Create a new account</a><br>
+        Already have an account? <a href="/accounts/login/">Sign in</a>
+      </p>
+
+    </div>
+  </div>
+
+</body>
+</html>

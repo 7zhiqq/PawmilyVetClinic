@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Walk-in Client — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/walkin.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="walkin-page">
+      <div class="walkin-header">
+        <div class="walkin-header__text">
+          <h1><i class="fa-solid fa-user-plus"></i> Register Walk-in Client</h1>
+          <p>Create a client profile and pet record for a walk-in visitor. They can activate their online account later.</p>
+        </div>
+      </div>
+
+      {% if success_info %}
+      <div class="walkin-success">
+        <div class="walkin-success__icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="walkin-success__body">
+          <h3>Client registered successfully!</h3>
+          <p><strong>{{ success_info.client_name }}</strong> and their pet <strong>{{ success_info.pet_name }}</strong> have been added to the system.</p>
+          <div class="walkin-success__link-box">
+            <label>Activation link (share with client):</label>
+            <div class="walkin-success__link-row">
+              <input type="text" value="{{ success_info.activate_url }}" readonly id="activateLink" class="walkin-success__link-input">
+              <button type="button" class="btn-copy" onclick="copyLink()">
+                <i class="fa-solid fa-copy"></i> Copy
+              </button>
+            </div>
+            <p class="walkin-success__hint">The client can use this link to set their username and password to access their account online.</p>
+          </div>
+
+          <div class="walkin-success__qr-section">
+            <div class="walkin-success__qr">
+              <img src="{{ success_info.qr_url }}" alt="QR Code" width="150" height="150">
+            </div>
+            <div class="walkin-success__qr-actions">
+              <p class="walkin-success__qr-hint">Scan this QR code to activate your account, or print the card to give to the client.</p>
+              <a href="{{ success_info.print_url }}" target="_blank" class="btn-print-card">
+                <i class="fa-solid fa-print"></i> Print activation card
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="walkin-body">
+        <div class="walkin-card">
+          <div class="walkin-card__header">
+            <div class="walkin-card__title"><i class="fa-solid fa-clipboard-list"></i> New walk-in registration</div>
+            <div class="walkin-card__sub">Enter the client's details and their pet's information below.</div>
+          </div>
+
+          {% if client_form.errors or pet_form.errors %}
+          <div class="walkin-errors">
+            {% for field in client_form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
+            {% for error in client_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            {% for field in pet_form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
+            {% for error in pet_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+
+          <form method="POST" class="walkin-form">
+            {% csrf_token %}
+
+            <div class="walkin-section-label"><i class="fa-solid fa-user"></i> Client information</div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_first_name">First name *</label>
+                {{ client_form.first_name }}
+              </div>
+              <div class="field-group">
+                <label for="id_last_name">Last name *</label>
+                {{ client_form.last_name }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_email"><i class="fa-solid fa-envelope"></i> Email</label>
+                {{ client_form.email }}
+              </div>
+              <div class="field-group">
+                <label for="id_phone"><i class="fa-solid fa-phone"></i> Phone</label>
+                {{ client_form.phone }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row walkin-form__row--full">
+              <div class="field-group">
+                <label for="id_address"><i class="fa-solid fa-location-dot"></i> Address</label>
+                {{ client_form.address }}
+              </div>
+            </div>
+
+            <div class="walkin-section-label"><i class="fa-solid fa-paw"></i> Pet information</div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_name">Pet name *</label>
+                {{ pet_form.name }}
+              </div>
+              <div class="field-group">
+                <label for="id_species">Species *</label>
+                {{ pet_form.species }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_breed">Breed</label>
+                {{ pet_form.breed }}
+              </div>
+              <div class="field-group">
+                <label for="id_gender">Gender</label>
+                {{ pet_form.gender }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_birth_date">Birth date</label>
+                {{ pet_form.birth_date }}
+              </div>
+              <div class="field-group">
+                <label for="id_weight_kg">Weight (kg)</label>
+                {{ pet_form.weight_kg }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_color">Color</label>
+                {{ pet_form.color }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row walkin-form__row--full">
+              <div class="field-group">
+                <label for="id_notes">Notes</label>
+                {{ pet_form.notes }}
+              </div>
+            </div>
+
+            <div class="walkin-form__actions">
+              <button type="submit" class="btn-walkin-submit">
+                <i class="fa-solid fa-user-plus"></i> Register client &amp; pet
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Recent registrations sidebar -->
+        <div class="walkin-card walkin-recent">
+          <div class="walkin-card__header">
+            <div class="walkin-card__title"><i class="fa-solid fa-clock-rotate-left"></i> Recent registrations</div>
+          </div>
+
+          {% if recent_registrations %}
+          <div class="walkin-recent__list">
+            {% for reg in recent_registrations %}
+            <div class="walkin-recent__item">
+              <div class="walkin-recent__name">
+                <i class="fa-solid fa-user"></i>
+                {{ reg.user.get_full_name|default:reg.user.username }}
+              </div>
+              <div class="walkin-recent__meta">
+                <span>{{ reg.created_at|date:"M j, Y g:i A" }}</span>
+                <span class="walkin-recent__pill {% if reg.is_activated %}walkin-recent__pill--active{% else %}walkin-recent__pill--pending{% endif %}">
+                  {% if reg.is_activated %}Activated{% else %}Pending{% endif %}
+                </span>
+              </div>
+              {% if reg.user.email %}
+              <div class="walkin-recent__email"><i class="fa-solid fa-envelope"></i> {{ reg.user.email }}</div>
+              {% endif %}
+              {% if not reg.is_activated %}
+              <a href="{% url 'walkin_print_card' reg.token %}" target="_blank" class="walkin-recent__print-link">
+                <i class="fa-solid fa-qrcode"></i> Print QR card
+              </a>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="walkin-empty">
+            <i class="fa-solid fa-inbox"></i>
+            <p>No walk-in registrations yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  function copyLink() {
+    const input = document.getElementById('activateLink');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value);
+    const btn = document.querySelector('.btn-copy');
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy'; }, 2000);
+  }
+  </script>
+</body>
+</html>

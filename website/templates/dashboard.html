@@ -12,208 +12,167 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/modal.css' %}">
-</head>
   <style>
-    /* ── Modal backdrop ───────────────────────────────────────── */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,.52);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 1rem;
-    }
-    .modal-backdrop.is-open { display: flex; }
-
-    .modal {
+    /* ── Aside card ── */
+    .aside-card {
       background: #fff;
-      border-radius: 24px;
-      width: 100%;
-      max-width: 500px;
-      max-height: 92vh;
-      overflow-y: auto;
-      box-shadow: 0 28px 72px rgba(15,23,42,.22);
-      animation: modalIn .25s ease;
+      border-radius: 18px;
+      padding: 1.4rem 1.5rem;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
-    .modal--wide { max-width: 640px; }
-
-    @keyframes modalIn {
-      from { opacity:0; transform:translateY(18px) scale(.97); }
-      to   { opacity:1; transform:translateY(0)    scale(1);   }
+    .aside-card__section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.1rem;
     }
+    .aside-card__section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #f3f4f6;
+    }
+    .aside-card__title { font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 0.2rem; }
+    .aside-card__sub   { font-size: 0.83rem; color: #6b7280; }
 
-    .modal__header {
+    /* ── Reminder items (pet owner) ── */
+    .reminder-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .reminder-item {
       display: flex;
       align-items: flex-start;
-      justify-content: space-between;
-      padding: 1.6rem 1.75rem 0;
-      margin-bottom: 1.1rem;
+      gap: 0.75rem;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 0.75rem 0.9rem;
+      border-left: 3px solid #e5e7eb;
+      transition: border-color 0.15s, background 0.15s;
     }
+    .reminder-item:hover { background: #f3f4f6; border-left-color: #7c3aed; }
+    .reminder-item__icon {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: #ede9fe; color: #7c3aed;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; flex-shrink: 0;
+    }
+    .reminder-item__text { flex: 1; min-width: 0; }
+    .reminder-item__label { font-size: 0.85rem; font-weight: 600; color: #111827; }
+    .reminder-item__meta {
+      font-size: 0.76rem; color: #6b7280; margin-top: 0.1rem;
+      display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap;
+    }
+    .reminder-item__meta i { font-size: 0.68rem; }
+
+    /* ── Stat grid (staff / manager) ── */
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .stat-item { background: #f9fafb; border-radius: 14px; padding: 0.85rem 1rem; border-top: 3px solid #e5e7eb; }
+    .stat-item--purple { border-top-color: #7c3aed; }
+    .stat-item--green  { border-top-color: #34d399; }
+    .stat-item--yellow { border-top-color: #fbbf24; }
+    .stat-item--blue   { border-top-color: #60a5fa; }
+    .stat-item__num   { font-size: 1.5rem; font-weight: 800; color: #111827; letter-spacing: -0.04em; line-height: 1; }
+    .stat-item__label { font-size: 0.71rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.2rem; }
+
+    /* ── Status pill ── */
+    .apt-pill { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+    .apt-pill.pending   { background: #fef3c7; color: #92400e; }
+    .apt-pill.confirmed { background: #d1fae5; color: #065f46; }
+    .apt-pill.completed { background: #e0e7ff; color: #3730a3; }
+
+    /* ── Empty state ── */
+    .aside-empty { text-align: center; padding: 1.5rem 0.5rem; color: #9ca3af; font-size: 0.85rem; }
+    .aside-empty__icon { font-size: 1.75rem; display: block; margin-bottom: 0.5rem; }
+
+    /* ── Queue Now-Serving badge ── */
+    .queue-status-card { display: flex; justify-content: center; }
+    .queue-now-serving {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px;
+      padding: 0.6rem 1.2rem;
+    }
+    .queue-now-serving__label { font-size: 0.78rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.06em; }
+    .queue-now-serving__number { font-size: 1.25rem; font-weight: 800; color: #059669; }
+    .reminder-item--serving { border-left-color: #34d399 !important; background: #f0fdf4 !important; }
+
+    /* ── Footer link row ── */
+    .aside-card__footer { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }
+    .aside-card__link {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.45rem 0.85rem; border-radius: 999px;
+      border: 1.5px solid #e5e7eb; background: #f9fafb; color: #374151;
+      font-size: 0.8rem; font-weight: 500; text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .aside-card__link:hover { background: #f3f4f6; border-color: #d1d5db; }
+    .aside-card__link--primary { background: #111827; color: #fff; border-color: #111827; }
+    .aside-card__link--primary:hover { background: #1f2937; border-color: #1f2937; }
+
+    /* ── Modal styles ── */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(15,23,42,.52);
+      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      display: none; align-items: center; justify-content: center; z-index: 200; padding: 1rem;
+    }
+    .modal-backdrop.is-open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 24px; width: 100%; max-width: 500px;
+      max-height: 92vh; overflow-y: auto;
+      box-shadow: 0 28px 72px rgba(15,23,42,.22); animation: modalIn .25s ease;
+    }
+    .modal--wide { max-width: 640px; }
+    @keyframes modalIn { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+    .modal__header { display: flex; align-items: flex-start; justify-content: space-between; padding: 1.6rem 1.75rem 0; margin-bottom: 1.1rem; }
     .modal__title  { font-size:1.2rem; font-weight:800; color:#111827; letter-spacing:-.02em; }
     .modal__subtitle { font-size:.83rem; color:#6b7280; margin-top:.15rem; }
-    .modal__close {
-      width:32px; height:32px; border-radius:50%; border:none;
-      background:#f3f4f6; color:#6b7280; font-size:1.1rem;
-      cursor:pointer; display:flex; align-items:center; justify-content:center;
-      flex-shrink:0; transition:background .15s,color .15s;
-    }
+    .modal__close { width:32px; height:32px; border-radius:50%; border:none; background:#f3f4f6; color:#6b7280; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s,color .15s; }
     .modal__close:hover { background:#e5e7eb; color:#111827; }
     .modal__body  { padding:0 1.75rem 1.75rem; }
     .modal__divider { height:1px; background:#f3f4f6; margin-bottom:1.2rem; }
-
-    /* ── Form fields ──────────────────────────────────────────── */
     .modal-form { display:flex; flex-direction:column; gap:.9rem; }
     .modal-form__row { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
-
     .field-group { display:flex; flex-direction:column; gap:.35rem; }
-    .field-group label {
-      font-size:.82rem; font-weight:600; color:#374151;
-      display:flex; align-items:center; gap:.35rem;
-    }
+    .field-group label { font-size:.82rem; font-weight:600; color:#374151; display:flex; align-items:center; gap:.35rem; }
     .field-group label i { font-size:.72rem; color:#9ca3af; }
-
-    .field-group input,
-    .field-group select,
-    .field-group textarea {
-      width:100%; padding:.72rem .9rem;
-      border:1.5px solid #e5e7eb; border-radius:12px;
-      font-size:.875rem; font-family:inherit;
-      color:#111827; background:#fafafa; outline:none;
-      box-sizing:border-box; transition:border-color .2s,box-shadow .2s;
-    }
-    .field-group input:focus,
-    .field-group select:focus,
-    .field-group textarea:focus {
-      border-color:#7c3aed; box-shadow:0 0 0 3px #ede9fe; background:#fff;
-    }
-
-    .modal-form__submit {
-      width:100%; padding:.9rem;
-      background:#111827; color:#fff;
-      font-size:.95rem; font-weight:700; font-family:inherit;
-      border:none; border-radius:999px; cursor:pointer;
-      margin-top:.25rem; transition:opacity .2s,transform .2s;
-    }
+    .field-group input, .field-group select, .field-group textarea { width:100%; padding:.72rem .9rem; border:1.5px solid #e5e7eb; border-radius:12px; font-size:.875rem; font-family:inherit; color:#111827; background:#fafafa; outline:none; box-sizing:border-box; transition:border-color .2s,box-shadow .2s; }
+    .field-group input:focus, .field-group select:focus, .field-group textarea:focus { border-color:#7c3aed; box-shadow:0 0 0 3px #ede9fe; background:#fff; }
+    .modal-form__submit { width:100%; padding:.9rem; background:#111827; color:#fff; font-size:.95rem; font-weight:700; font-family:inherit; border:none; border-radius:999px; cursor:pointer; margin-top:.25rem; transition:opacity .2s,transform .2s; }
     .modal-form__submit:hover { opacity:.85; transform:translateY(-1px); }
     .modal-form__submit:disabled { opacity:.4; cursor:not-allowed; transform:none; }
-
-    .modal-form__errors {
-      background:#fef2f2; border:1px solid #fecaca;
-      border-radius:10px; padding:.7rem 1rem; margin-bottom:.5rem;
-    }
+    .modal-form__errors { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:.7rem 1rem; margin-bottom:.5rem; }
     .modal-form__errors p { font-size:.82rem; color:#dc2626; margin:.15rem 0; }
-
-    .modal-section-label {
-      font-size:.7rem; font-weight:700; text-transform:uppercase;
-      letter-spacing:.09em; color:#9ca3af;
-      display:flex; align-items:center; gap:.5rem; margin-top:.25rem;
-    }
+    .modal-section-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#9ca3af; display:flex; align-items:center; gap:.5rem; margin-top:.25rem; }
     .modal-section-label::after { content:''; flex:1; height:1px; background:#f3f4f6; }
-
-    /* ── Slot picker ──────────────────────────────────────────── */
-    .slot-section {
-      display:flex; flex-direction:column; gap:.6rem;
-      margin-top:.25rem;
-    }
-    .slot-section__label {
-      font-size:.82rem; font-weight:600; color:#374151;
-      display:flex; align-items:center; gap:.35rem;
-    }
+    .slot-section { display:flex; flex-direction:column; gap:.6rem; margin-top:.25rem; }
+    .slot-section__label { font-size:.82rem; font-weight:600; color:#374151; display:flex; align-items:center; gap:.35rem; }
     .slot-section__label i { font-size:.72rem; color:#9ca3af; }
-
-    /* ── Slot availability display ──────────────────────────── */
-    .slot-availability {
-      display:flex; flex-direction:column; gap:.5rem;
-      padding:.8rem 1rem; background:#f0fdf4; border-radius:12px;
-      border:1.5px solid #86efac;
-    }
-    .availability-info {
-      display:flex; flex-direction:column; gap:.3rem;
-      text-align:center;
-    }
-    .availability-count {
-      font-size:.95rem; font-weight:700; color:#16a34a;
-    }
-    .availability-status {
-      font-size:.82rem; color:#22c55e; font-weight:500;
-    }
-
-    .slot-grid {
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:.5rem;
-    }
-
-    /* ── Time chip grid ─────────────────────────────────────── */
-    .time-chip-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .4rem;
-      max-height: 112px;
-      overflow-y: auto;
-      padding: .25rem .1rem;
-      scrollbar-width: thin;
-      scrollbar-color: #e5e7eb transparent;
-    }
+    .slot-availability { display:flex; flex-direction:column; gap:.5rem; padding:.8rem 1rem; background:#f0fdf4; border-radius:12px; border:1.5px solid #86efac; }
+    .availability-info { display:flex; flex-direction:column; gap:.3rem; text-align:center; }
+    .availability-count { font-size:.95rem; font-weight:700; color:#16a34a; }
+    .availability-status { font-size:.82rem; color:#22c55e; font-weight:500; }
+    .time-chip-grid { display: flex; flex-wrap: wrap; gap: .4rem; max-height: 112px; overflow-y: auto; padding: .25rem .1rem; scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
     .time-chip-grid::-webkit-scrollbar { width: 4px; }
     .time-chip-grid::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
-
-    .time-chip {
-      padding: .38rem .7rem;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 999px;
-      font-size: .78rem;
-      font-weight: 600;
-      color: #6b7280;
-      background: #fafafa;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: border-color .15s, background .15s, color .15s;
-      user-select: none;
-      flex-shrink: 0;
-    }
-    .time-chip:hover     { border-color: #c4b5fd; color: #6d28d9; background: #f5f3ff; }
-    .time-chip.selected  { border-color: #7c3aed; color: #5b21b6; background: #ede9fe; }
-    .time-chip.past      { opacity: .35; cursor: not-allowed; pointer-events: none; }
-
-    /* ── Slot message & skeleton ────────────────────────────── */
-    .slot-message {
-      font-size:.82rem; color:#6b7280; text-align:center;
-      padding:.5rem; background:#fafafa; border-radius:10px;
-      border:1px dashed #e5e7eb;
-    }
-    .slot-message.loading { color:#a78bfa; }
-    .slot-message.error   { color:#ef4444; background:#fef2f2; border-color:#fecaca; }
-    .slot-message.full    { color:#b45309; background:#fffbeb; border-color:#fde68a; }
-
-    .slot-skeleton {
-      display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem;
-    }
-    .slot-skeleton__item {
-      height:56px; border-radius:14px;
-      background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%);
-      background-size:200% 100%;
-      animation:shimmer 1.2s infinite;
-    }
-    @keyframes shimmer {
-      0%   { background-position:200% 0; }
-      100% { background-position:-200% 0; }
-    }
-
-    /* ── Misc ────────────────────────────────────────────────── */
-    .btn-primary {
-      display:inline-flex; align-items:center; gap:.4rem;
-      padding:.6rem 1.1rem; background:#111827; color:#fff;
-      border-radius:999px; font-size:.875rem; font-weight:600;
-      text-decoration:none; cursor:pointer; border:none; font-family:inherit;
-      transition:opacity .2s,transform .2s;
-    }
+    .time-chip { padding: .38rem .7rem; border: 1.5px solid #e5e7eb; border-radius: 999px; font-size: .78rem; font-weight: 600; color: #6b7280; background: #fafafa; cursor: pointer; white-space: nowrap; transition: border-color .15s, background .15s, color .15s; user-select: none; flex-shrink: 0; }
+    .time-chip:hover    { border-color: #c4b5fd; color: #6d28d9; background: #f5f3ff; }
+    .time-chip.selected { border-color: #7c3aed; color: #5b21b6; background: #ede9fe; }
+    .time-chip.past     { opacity: .35; cursor: not-allowed; pointer-events: none; }
+    .slot-message { font-size:.82rem; color:#6b7280; text-align:center; padding:.5rem; background:#fafafa; border-radius:10px; border:1px dashed #e5e7eb; }
+    .slot-message.error { color:#ef4444; background:#fef2f2; border-color:#fecaca; }
+    .slot-message.full  { color:#b45309; background:#fffbeb; border-color:#fde68a; }
+    .slot-skeleton { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; }
+    .slot-skeleton__item { height:56px; border-radius:14px; background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%); background-size:200% 100%; animation:shimmer 1.2s infinite; }
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    .btn-primary { display:inline-flex; align-items:center; gap:.4rem; padding:.6rem 1.1rem; background:#111827; color:#fff; border-radius:999px; font-size:.875rem; font-weight:600; text-decoration:none; cursor:pointer; border:none; font-family:inherit; transition:opacity .2s,transform .2s; }
     .btn-primary:hover { opacity:.85; transform:translateY(-1px); }
   </style>
+</head>
 <body>
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
@@ -221,12 +180,8 @@
     <main class="dashboard-main">
       <header class="dashboard-header">
         <div>
-          <h1 class="dashboard-title">
-            Welcome back, {{ user.first_name|default:user.username }}
-          </h1>
-          <p class="dashboard-subtitle">
-            Manage your clinic activity in one place.
-          </p>
+          <h1 class="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}</h1>
+          <p class="dashboard-subtitle">Manage your clinic activity in one place.</p>
         </div>
         {% if role and role != 'pet_owner' %}
         <div class="dashboard-chip">
@@ -237,10 +192,11 @@
       </header>
 
       <section class="dashboard-grid">
+
+        <!-- ── Quick Actions ── -->
         <section class="dashboard-card">
           <h2 class="dashboard-card__title">Quick actions</h2>
           <p class="dashboard-card__sub">Jump straight into the most common.</p>
-
           <div class="dashboard-actions">
             {% if role == 'manager' %}
               <a href="/accounts/invitations/" class="dashboard-action-btn dashboard-action-btn--primary">
@@ -252,7 +208,6 @@
               <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
                 <i class="fa-solid fa-calendar-days"></i> Calendar
               </a>
-
             {% elif role == 'staff' %}
               <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="dashboard-action-btn dashboard-action-btn--primary">
                 <i class="fa-solid fa-stethoscope"></i> Today's queue
@@ -263,7 +218,6 @@
               <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
                 <i class="fa-solid fa-calendar-days"></i> Calendar
               </a>
-
             {% else %}
               <button type="button" class="dashboard-action-btn dashboard-action-btn--primary" id="openBookModal">
                 <i class="fa-solid fa-calendar-plus"></i> Book appointment
@@ -284,57 +238,184 @@
           </div>
         </section>
 
-        <aside class="dashboard-card">
+        <!-- ── Aside: role-specific panel ── -->
+        <aside class="aside-card">
+
           {% if role == 'pet_owner' %}
-            <h2 class="dashboard-card__title"><i class="fa-regular fa-bell"></i> Reminders</h2>
-            <p class="dashboard-card__sub">Your upcoming appointments</p>
+
+            <div>
+              <div class="aside-card__section-label">Reminders</div>
+              <div class="aside-card__title">Upcoming appointments</div>
+              <div class="aside-card__sub">Your next scheduled visits.</div>
+            </div>
 
             {% if upcoming_appointments %}
-            <ul class="reminder-list">
+            <ul class="reminder-list" style="list-style:none;margin:0;padding:0;">
               {% for apt in upcoming_appointments %}
               <li class="reminder-item">
-                <div class="reminder-icon">
+                <div class="reminder-item__icon">
                   {% if apt.pet.species == 'dog' %}🐶{% elif apt.pet.species == 'cat' %}🐱{% elif apt.pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
                 </div>
-                <div class="reminder-details">
-                  <span class="reminder-pet">{{ apt.pet.name|default:"Walk-in" }}</span>
-                  <span class="reminder-meta">
+                <div class="reminder-item__text">
+                  <div class="reminder-item__label">{{ apt.pet.name|default:"Walk-in" }}</div>
+                  <div class="reminder-item__meta">
                     <i class="fa-regular fa-calendar"></i>
                     {{ apt.appointment_date|date:"M d, Y" }}
                     &middot;
                     <i class="fa-regular fa-clock"></i>
                     {{ apt.start_time|time:"g:i A" }}
-                  </span>
-                  {% if apt.reason %}
-                  <span class="reminder-reason">{{ apt.reason }}</span>
-                  {% endif %}
+                    {% if apt.reason %}&middot; {{ apt.reason }}{% endif %}
+                  </div>
                 </div>
-                <span class="reminder-status reminder-status--{{ apt.status }}">
-                  {{ apt.get_status_display }}
-                </span>
+                <span class="apt-pill {{ apt.status }}">{{ apt.get_status_display }}</span>
               </li>
               {% endfor %}
             </ul>
             {% else %}
-            <div class="reminder-empty">
-              <i class="fa-regular fa-calendar-check"></i>
+            <div class="aside-empty">
+              <span class="aside-empty__icon">📅</span>
               <p>No upcoming appointments</p>
             </div>
             {% endif %}
 
+            <div class="aside-card__footer">
+              <button type="button" class="aside-card__link aside-card__link--primary" id="openBookModal2">
+                <i class="fa-solid fa-calendar-plus" style="font-size:0.7rem;"></i> Book now
+              </button>
+              <a href="/accounts/pets/" class="aside-card__link">
+                <i class="fa-solid fa-paw" style="font-size:0.7rem;"></i> My pets
+              </a>
+            </div>
+
+            <!-- ── Queue View ── -->
+            <div style="height:1px;background:#f3f4f6;margin:0.25rem 0;"></div>
+            <div>
+              <div class="aside-card__section-label">Queue View</div>
+              <div class="aside-card__title">Your queue status</div>
+              <div class="aside-card__sub">See your position in today's clinic queue.</div>
+            </div>
+
+            {% if my_queue_items %}
+              <div class="queue-status-card">
+                <div class="queue-now-serving">
+                  <span class="queue-now-serving__label">Now Serving</span>
+                  <span class="queue-now-serving__number">#{{ now_serving_number }}</span>
+                </div>
+              </div>
+              <ul class="reminder-list" style="list-style:none;margin:0;padding:0;">
+                {% for q in my_queue_items %}
+                <li class="reminder-item{% if q.is_now_serving %} reminder-item--serving{% endif %}">
+                  <div class="reminder-item__icon" style="{% if q.is_now_serving %}background:#d1fae5;color:#059669;{% endif %}">
+                    {% if q.species == 'dog' %}🐶{% elif q.species == 'cat' %}🐱{% elif q.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                  </div>
+                  <div class="reminder-item__text">
+                    <div class="reminder-item__label">{{ q.pet_name }}</div>
+                    <div class="reminder-item__meta">
+                      <i class="fa-solid fa-hashtag"></i> Queue #{{ q.queue_number }}
+                      &middot;
+                      {% if q.is_now_serving %}
+                        <span style="color:#059669;font-weight:700;">Now serving</span>
+                      {% else %}
+                        {{ q.ahead }} ahead of you
+                      {% endif %}
+                      {% if q.reason %}&middot; {{ q.reason }}{% endif %}
+                    </div>
+                  </div>
+                  {% if q.is_now_serving %}
+                    <span class="apt-pill confirmed">Now</span>
+                  {% else %}
+                    <span class="apt-pill pending">#{{ q.queue_number }}</span>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="aside-empty">
+                <span class="aside-empty__icon">📋</span>
+                <p>No queue for today</p>
+              </div>
+            {% endif %}
+
           {% elif role == 'staff' %}
-            <h2 class="dashboard-card__title">Appointments</h2>
-            <p class="dashboard-card__sub">This is a placeholder dashboard.</p>
+
+            <div>
+              <div class="aside-card__section-label">Today's snapshot</div>
+              <div class="aside-card__title">Appointments</div>
+              <div class="aside-card__sub">A quick look at today's clinic activity.</div>
+            </div>
+
+            <div class="stat-row">
+              <div class="stat-item stat-item--purple">
+                <div class="stat-item__num">{{ today_stats.total|default:"0" }}</div>
+                <div class="stat-item__label">Total today</div>
+              </div>
+              <div class="stat-item stat-item--yellow">
+                <div class="stat-item__num">{{ today_stats.pending|default:"0" }}</div>
+                <div class="stat-item__label">Pending</div>
+              </div>
+              <div class="stat-item stat-item--green">
+                <div class="stat-item__num">{{ today_stats.confirmed|default:"0" }}</div>
+                <div class="stat-item__label">Confirmed</div>
+              </div>
+              <div class="stat-item stat-item--blue">
+                <div class="stat-item__num">{{ today_stats.completed|default:"0" }}</div>
+                <div class="stat-item__label">Completed</div>
+              </div>
+            </div>
+
+            <div class="aside-card__footer">
+              <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="aside-card__link aside-card__link--primary">
+                <i class="fa-solid fa-list-check" style="font-size:0.7rem;"></i> View queue
+              </a>
+              <a href="/accounts/appointments/manage/" class="aside-card__link">
+                <i class="fa-solid fa-calendar-days" style="font-size:0.7rem;"></i> Manage all
+              </a>
+            </div>
+
           {% elif role == 'manager' %}
-            <h2 class="dashboard-card__title">Clinic performance</h2>
-            <p class="dashboard-card__sub">This is a placeholder dashboard.</p>
+
+            <div>
+              <div class="aside-card__section-label">Clinic overview</div>
+              <div class="aside-card__title">Performance</div>
+              <div class="aside-card__sub">High-level stats for your clinic.</div>
+            </div>
+
+            <div class="stat-row">
+              <div class="stat-item stat-item--purple">
+                <div class="stat-item__num">{{ clinic_stats.appointments|default:"0" }}</div>
+                <div class="stat-item__label">Appointments</div>
+              </div>
+              <div class="stat-item stat-item--green">
+                <div class="stat-item__num">{{ clinic_stats.completed|default:"0" }}</div>
+                <div class="stat-item__label">Completed</div>
+              </div>
+              <div class="stat-item stat-item--blue">
+                <div class="stat-item__num">{{ clinic_stats.pet_owners|default:"0" }}</div>
+                <div class="stat-item__label">Pet owners</div>
+              </div>
+              <div class="stat-item stat-item--yellow">
+                <div class="stat-item__num">{{ clinic_stats.staff_active|default:"0" }}</div>
+                <div class="stat-item__label">Staff active</div>
+              </div>
+            </div>
+
+            <div class="aside-card__footer">
+              <a href="/accounts/invitations/" class="aside-card__link aside-card__link--primary">
+                <i class="fa-solid fa-users-gear" style="font-size:0.7rem;"></i> Manage users
+              </a>
+              <a href="/accounts/appointments/manage/" class="aside-card__link">
+                <i class="fa-solid fa-calendar-days" style="font-size:0.7rem;"></i> Appointments
+              </a>
+            </div>
+
           {% endif %}
+
         </aside>
       </section>
     </main>
   </div>
 
-  {# ─── Book Appointment Modal (pet owner) ─────────────────────────────────── #}
+  {# ─── Book Appointment Modal (pet owner) ─── #}
   {% if role == 'pet_owner' %}
   <div class="modal-backdrop" id="bookModal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle"
     data-has-errors="{% if book_form.errors or book_error %}true{% else %}false{% endif %}">
@@ -350,20 +431,15 @@
       </div>
       <div class="modal__body">
         <div class="modal__divider"></div>
-
-        {% if book_error %}
-        <div class="modal-form__errors"><p>{{ book_error }}</p></div>
-        {% endif %}
+        {% if book_error %}<div class="modal-form__errors"><p>{{ book_error }}</p></div>{% endif %}
         {% if book_form and book_form.errors %}
         <div class="modal-form__errors">
           {% for field in book_form %}{% for err in field.errors %}<p>{{ err }}</p>{% endfor %}{% endfor %}
           {% for err in book_form.non_field_errors %}<p>{{ err }}</p>{% endfor %}
         </div>
         {% endif %}
-
         <form method="POST" action="{% url 'appointment_book' %}" class="modal-form" id="bookForm">
           {% csrf_token %}
-
           <div class="field-group">
             <label for="id_pet"><i class="fa-solid fa-paw"></i> Pet</label>
             <select id="id_pet" name="pet" required>
@@ -376,40 +452,30 @@
               {% endfor %}
             </select>
           </div>
-
           <div class="field-group">
             <label for="id_appointment_date"><i class="fa-regular fa-calendar"></i> Date</label>
             <input type="date" id="id_appointment_date" name="appointment_date"
               value="{% if book_form %}{{ book_form.appointment_date.value|default:'' }}{% endif %}"
               min="{% now 'Y-m-d' %}" required />
           </div>
-
           <div class="field-group">
             <label><i class="fa-regular fa-clock"></i> Time</label>
             <div class="time-chip-grid" id="timeChipsOwner"></div>
             <input type="hidden" name="start_time" id="id_start_time"
               value="{% if book_form %}{{ book_form.start_time.value|default:'' }}{% endif %}" />
           </div>
-
           <div class="field-group">
             <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
-            <input type="text" id="id_reason" name="reason"
-              placeholder="e.g. Vaccination, check-up"
+            <input type="text" id="id_reason" name="reason" placeholder="e.g. Vaccination, check-up"
               value="{% if book_form %}{{ book_form.reason.value|default:'' }}{% endif %}" />
           </div>
-
           <div class="slot-section">
-            <div class="slot-section__label">
-              <i class="fa-solid fa-clock"></i> Availability
-            </div>
+            <div class="slot-section__label"><i class="fa-solid fa-clock"></i> Availability</div>
             <div id="slotPickerOwner">
-              <div class="slot-message">
-                Pick a date and time above to see available slots.
-              </div>
+              <div class="slot-message">Pick a date and time above to see available slots.</div>
             </div>
             <input type="hidden" name="slot_number" id="slotNumberOwner" value="{{ request.POST.slot_number|default:'' }}" />
           </div>
-
           <button type="submit" class="modal-form__submit" id="bookSubmitBtn" disabled>
             <i class="fa-solid fa-calendar-check"></i> Book appointment
           </button>
@@ -418,7 +484,7 @@
     </div>
   </div>
 
-  {# ─── Add Pet Modal (pet owner) ───────────────────────────────────────────── #}
+  {# ─── Add Pet Modal ─── #}
   <div class="modal-backdrop" id="addPetModal" role="dialog" aria-modal="true" aria-labelledby="addPetModalTitle"
     data-has-errors="{% if pet_form and pet_form.errors %}true{% else %}false{% endif %}">
     <div class="modal">
@@ -449,66 +515,45 @@
           <div class="field-group">
             <label><i class="fa-solid fa-paw"></i> Species</label>
             <div class="species-grid">
-              <div>
-                <input type="radio" id="dash_sp_dog" name="species" value="dog"
-                  {% if not pet_form or not pet_form.species.value or pet_form.species.value == 'dog' %}checked{% endif %} />
-                <label for="dash_sp_dog"><span class="emoji">🐶</span> Dog</label>
-              </div>
-              <div>
-                <input type="radio" id="dash_sp_cat" name="species" value="cat"
-                  {% if pet_form and pet_form.species.value == 'cat' %}checked{% endif %} />
-                <label for="dash_sp_cat"><span class="emoji">🐱</span> Cat</label>
-              </div>
-              <div>
-                <input type="radio" id="dash_sp_bird" name="species" value="bird"
-                  {% if pet_form and pet_form.species.value == 'bird' %}checked{% endif %} />
-                <label for="dash_sp_bird"><span class="emoji">🐦</span> Bird</label>
-              </div>
-              <div>
-                <input type="radio" id="dash_sp_other" name="species" value="other"
-                  {% if pet_form and pet_form.species.value == 'other' %}checked{% endif %} />
-                <label for="dash_sp_other"><span class="emoji">🐾</span> Other</label>
-              </div>
+              <div><input type="radio" id="dash_sp_dog" name="species" value="dog" {% if not pet_form or not pet_form.species.value or pet_form.species.value == 'dog' %}checked{% endif %} /><label for="dash_sp_dog"><span class="emoji">🐶</span> Dog</label></div>
+              <div><input type="radio" id="dash_sp_cat" name="species" value="cat" {% if pet_form and pet_form.species.value == 'cat' %}checked{% endif %} /><label for="dash_sp_cat"><span class="emoji">🐱</span> Cat</label></div>
+              <div><input type="radio" id="dash_sp_bird" name="species" value="bird" {% if pet_form and pet_form.species.value == 'bird' %}checked{% endif %} /><label for="dash_sp_bird"><span class="emoji">🐦</span> Bird</label></div>
+              <div><input type="radio" id="dash_sp_other" name="species" value="other" {% if pet_form and pet_form.species.value == 'other' %}checked{% endif %} /><label for="dash_sp_other"><span class="emoji">🐾</span> Other</label></div>
             </div>
           </div>
           <div class="modal-form__row">
             <div class="field-group">
               <label for="dash_breed"><i class="fa-solid fa-dna"></i> Breed</label>
-              <input type="text" id="dash_breed" name="breed" placeholder="e.g. Golden Retriever"
-                value="{% if pet_form %}{{ pet_form.breed.value|default:'' }}{% endif %}" />
+              <input type="text" id="dash_breed" name="breed" placeholder="e.g. Golden Retriever" value="{% if pet_form %}{{ pet_form.breed.value|default:'' }}{% endif %}" />
             </div>
             <div class="field-group">
               <label for="dash_birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
-              <input type="date" id="dash_birth_date" name="birth_date"
-                value="{% if pet_form %}{{ pet_form.birth_date.value|default:'' }}{% endif %}" />
+              <input type="date" id="dash_birth_date" name="birth_date" value="{% if pet_form %}{{ pet_form.birth_date.value|default:'' }}{% endif %}" />
             </div>
           </div>
           <div class="field-group">
             <label for="dash_weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
-            <input type="number" id="dash_weight_kg" name="weight_kg" step="0.01" min="0"
-              placeholder="0.00" value="{% if pet_form %}{{ pet_form.weight_kg.value|default:'' }}{% endif %}" />
+            <input type="number" id="dash_weight_kg" name="weight_kg" step="0.01" min="0" placeholder="0.00" value="{% if pet_form %}{{ pet_form.weight_kg.value|default:'' }}{% endif %}" />
           </div>
           <div class="field-group">
             <label for="dash_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
-            <textarea id="dash_notes" name="notes"
-              placeholder="Medical notes, allergies, etc.">{% if pet_form %}{{ pet_form.notes.value|default:'' }}{% endif %}</textarea>
+            <textarea id="dash_notes" name="notes" placeholder="Medical notes, allergies, etc.">{% if pet_form %}{{ pet_form.notes.value|default:'' }}{% endif %}</textarea>
           </div>
-          <button type="submit" class="modal-form__submit">
-            <i class="fa-solid fa-plus"></i> Add pet
-          </button>
+          <button type="submit" class="modal-form__submit"><i class="fa-solid fa-plus"></i> Add pet</button>
         </form>
       </div>
     </div>
   </div>
   {% endif %}
 
+  {# ─── Schedule / Walk-in Modal (staff & manager) ─── #}
   {% if role == 'staff' or role == 'manager' %}
   <div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle"
     data-has-errors="{% if staff_form and staff_form.errors %}true{% else %}false{% endif %}">
     <div class="modal modal--wide">
       <div class="modal__header">
         <div>
-          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in </div>
+          <div class="modal__title" id="scheduleModalTitle">Schedule / Walk-in</div>
           <div class="modal__subtitle">Add a scheduled appointment or register a walk-in visit.</div>
         </div>
         <button class="modal__close" id="closeScheduleModal" aria-label="Close">
@@ -577,39 +622,29 @@
             <input type="date" id="id_appointment_date" name="appointment_date"
               value="{% if staff_form %}{{ staff_form.appointment_date.value|default:'' }}{% endif %}" required />
           </div>
-
           <div class="field-group">
             <label><i class="fa-regular fa-clock"></i> Time</label>
             <div class="time-chip-grid" id="timeChipsStaff"></div>
             <input type="hidden" name="start_time" id="id_staff_start_time"
               value="{% if staff_form %}{{ staff_form.start_time.value|default:'' }}{% endif %}" />
           </div>
-
           <div class="field-group">
             <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason</label>
             <input type="text" id="id_reason" name="reason" placeholder="Reason for visit"
               value="{% if staff_form %}{{ staff_form.reason.value|default:'' }}{% endif %}" />
           </div>
-
           <div class="slot-section">
-            <div class="slot-section__label">
-              <i class="fa-solid fa-clock"></i> Availability
-            </div>
+            <div class="slot-section__label"><i class="fa-solid fa-clock"></i> Availability</div>
             <div id="slotPickerStaff">
-              <div class="slot-message">
-                Pick a date and time above to see available slots.
-              </div>
+              <div class="slot-message">Pick a date and time above to see available slots.</div>
             </div>
             <input type="hidden" name="slot_number" id="slotNumberStaff" value="{{ request.POST.slot_number|default:'' }}" />
           </div>
-
           <div class="modal-section-label">Notes</div>
           <div class="field-group">
             <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Internal notes</label>
-            <textarea id="id_notes" name="notes"
-              placeholder="Any internal notes…">{% if staff_form %}{{ staff_form.notes.value|default:'' }}{% endif %}</textarea>
+            <textarea id="id_notes" name="notes" placeholder="Any internal notes…">{% if staff_form %}{{ staff_form.notes.value|default:'' }}{% endif %}</textarea>
           </div>
-
           <button type="submit" class="modal-form__submit" id="scheduleSubmitBtn" disabled>
             <i class="fa-solid fa-calendar-check"></i> Save appointment
           </button>
@@ -622,186 +657,85 @@
   <script>
   'use strict';
 
-  /* ── Clinic time constants ──────────────────────────────────── */
-  const CLINIC_START_H = 8;   // 8:00 AM
-  const CLINIC_END_H   = 17;  // 5:00 PM (last slot 4:00 PM)
-  const SLOT_INTERVAL  = 60;  // minutes (1-hour intervals)
-  const SLOTS_URL      = "{% url 'get_available_slots' %}";
-  const MAX_SLOTS      = 2;
+  const CLINIC_START_H = 8, CLINIC_END_H = 17;
+  const SLOTS_URL = "{% url 'get_available_slots' %}";
+  const MAX_SLOTS = 2;
 
-  /* ── Generate clinic time slots (1-hour intervals) ─────────────── */
   function buildClinicTimes() {
     const times = [];
     for (let h = CLINIC_START_H; h < CLINIC_END_H; h++) {
-      const hh  = String(h).padStart(2, '0');
-      const val = `${hh}:00`;
-      
-      // Format start time
-      const h12_start = h % 12 === 0 ? 12 : h % 12;
-      const ampm_start = h < 12 ? 'AM' : 'PM';
-      
-      // Format end time
-      const h_end = h + 1;
-      const h12_end = h_end % 12 === 0 ? 12 : h_end % 12;
-      const ampm_end = h_end < 12 ? 'AM' : 'PM';
-      
-      const label = `${h12_start}:00 ${ampm_start}–${h12_end}:00 ${ampm_end}`;
-      times.push({ val, label });
+      const val  = `${String(h).padStart(2,'0')}:00`;
+      const h12s = h % 12 === 0 ? 12 : h % 12, aps = h < 12 ? 'AM' : 'PM';
+      const h12e = (h+1) % 12 === 0 ? 12 : (h+1) % 12, ape = (h+1) < 12 ? 'AM' : 'PM';
+      times.push({ val, label: `${h12s}:00 ${aps}–${h12e}:00 ${ape}` });
     }
     return times;
   }
   const CLINIC_TIMES = buildClinicTimes();
 
-  /* ── Render time chip grid ──────────────────────────────────── */
   function renderTimeChips(containerEl, hiddenInput, selectedVal, onSelect) {
     containerEl.innerHTML = '';
-    const now     = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const now = new Date(), todayStr = now.toISOString().slice(0,10);
     const dateInput = document.getElementById('id_appointment_date');
     const chosenDate = dateInput ? dateInput.value : '';
-
     CLINIC_TIMES.forEach(({ val, label }) => {
       const chip = document.createElement('button');
-      chip.type      = 'button';
-      chip.className = 'time-chip';
-      chip.textContent = label;
-      chip.dataset.value = val;
-
+      chip.type = 'button'; chip.className = 'time-chip'; chip.textContent = label; chip.dataset.value = val;
       if (chosenDate === todayStr) {
-        const [sh, sm] = val.split(':').map(Number);
-        const slotMinutes = sh * 60 + sm;
-        const nowMinutes  = now.getHours() * 60 + now.getMinutes();
-        if (slotMinutes <= nowMinutes) {
-          chip.classList.add('past');
-        }
+        const [sh] = val.split(':').map(Number);
+        if (sh * 60 <= now.getHours() * 60 + now.getMinutes()) chip.classList.add('past');
       }
-
       if (val === selectedVal) chip.classList.add('selected');
-
-      chip.addEventListener('click', (e) => {
-        if (e) e.preventDefault();
+      chip.addEventListener('click', e => {
+        e && e.preventDefault();
         containerEl.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        hiddenInput.value = val;
-        onSelect(val);
+        chip.classList.add('selected'); hiddenInput.value = val; onSelect(val);
       });
-
       containerEl.appendChild(chip);
     });
   }
 
-  /* ── Slot availability display (show available count) ──────────── */
   function buildSlotGrid(slots, pickerEl, hiddenInput, submitBtn) {
     const available = slots.filter(s => s.available).length;
-    const allTaken = available === 0;
-    
-    if (allTaken) {
-      pickerEl.innerHTML = '<div class="slot-message full">⚠️ Fully booked for this time. Please choose another.</div>';
-      submitBtn.disabled = true;
-      hiddenInput.value  = '';
-      return;
-    }
-
-    // Automatically select the first available slot and show availability
-    const firstAvailable = slots.find(s => s.available);
-    hiddenInput.value = firstAvailable.number;
-    submitBtn.disabled = false;
-
-    // Display the number of available slots
-    const availabilityDisplay = document.createElement('div');
-    availabilityDisplay.className = 'slot-availability';
-    availabilityDisplay.innerHTML = `
-      <div class="availability-info">
-        <span class="availability-count">${available} slot${available !== 1 ? 's' : ''} available</span>
-        <span class="availability-status"> ✓ Ready to book</span>
-      </div>
-    `;
-
-    pickerEl.innerHTML = '';
-    pickerEl.appendChild(availabilityDisplay);
+    if (!available) { pickerEl.innerHTML = '<div class="slot-message full">⚠️ Fully booked for this time. Please choose another.</div>'; submitBtn.disabled = true; hiddenInput.value = ''; return; }
+    hiddenInput.value = slots.find(s => s.available).number; submitBtn.disabled = false;
+    const el = document.createElement('div'); el.className = 'slot-availability';
+    el.innerHTML = `<div class="availability-info"><span class="availability-count">${available} slot${available !== 1 ? 's' : ''} available</span><span class="availability-status">✓ Ready to book</span></div>`;
+    pickerEl.innerHTML = ''; pickerEl.appendChild(el);
   }
 
-  /* ── Walk-in load display (show appointment count) ─────────────── */
-  function buildWalkInLoadDisplay(appointmentCount, loadStatus, pickerEl, hiddenInput, submitBtn) {
-    hiddenInput.value = '1'; // Walk-in doesn't need a specific slot, just mark as ready
-    submitBtn.disabled = false;
-
-    const statusEmoji = {
-      'light': '🟢',
-      'moderate': '🟡',
-      'heavy': '🟠',
-      'very_heavy': '🔴'
-    }[loadStatus] || '⚪';
-
-    const statusText = {
-      'light': 'Light load',
-      'moderate': 'Moderate load',
-      'heavy': 'Heavy load',
-      'very_heavy': 'Very heavy load'
-    }[loadStatus] || 'Unknown';
-
-    const loadDisplay = document.createElement('div');
-    loadDisplay.className = 'slot-availability';
-    loadDisplay.innerHTML = `
-      <div class="availability-info">
-        <span class="availability-count">${statusEmoji} ${appointmentCount} appointment${appointmentCount !== 1 ? 's' : ''}</span>
-        <span class="availability-status">${statusText}</span>
-      </div>
-    `;
-
-    pickerEl.innerHTML = '';
-    pickerEl.appendChild(loadDisplay);
+  function buildWalkInLoadDisplay(count, status, pickerEl, hiddenInput, submitBtn) {
+    hiddenInput.value = '1'; submitBtn.disabled = false;
+    const emoji = { light:'🟢', moderate:'🟡', heavy:'🟠', very_heavy:'🔴' }[status] || '⚪';
+    const text  = { light:'Light load', moderate:'Moderate load', heavy:'Heavy load', very_heavy:'Very heavy load' }[status] || '';
+    const el = document.createElement('div'); el.className = 'slot-availability';
+    el.innerHTML = `<div class="availability-info"><span class="availability-count">${emoji} ${count} appointment${count !== 1 ? 's' : ''}</span><span class="availability-status">${text}</span></div>`;
+    pickerEl.innerHTML = ''; pickerEl.appendChild(el);
   }
 
-  function showSkeleton(pickerEl) {
-    pickerEl.innerHTML = `<div class="slot-skeleton">${Array(MAX_SLOTS).fill('<div class="slot-skeleton__item"></div>').join('')}</div>`;
-  }
-
-  function showMessage(pickerEl, msg, cls) {
-    pickerEl.innerHTML = `<div class="slot-message ${cls}">${msg}</div>`;
-  }
+  function showSkeleton(el) { el.innerHTML = `<div class="slot-skeleton">${Array(MAX_SLOTS).fill('<div class="slot-skeleton__item"></div>').join('')}</div>`; }
+  function showMessage(el, msg, cls) { el.innerHTML = `<div class="slot-message ${cls}">${msg}</div>`; }
 
   async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abortRef, appointmentType = 'scheduled') {
-    if (!dateVal || !timeVal) {
-      showMessage(pickerEl, 'Pick a date and time above to see available slots.', '');
-      submitBtn.disabled = true;
-      slotHidden.value   = '';
-      return;
-    }
-
+    if (!dateVal || !timeVal) { showMessage(pickerEl,'Pick a date and time above to see available slots.',''); submitBtn.disabled = true; slotHidden.value = ''; return; }
     if (abortRef.ctrl) abortRef.ctrl.abort();
     abortRef.ctrl = new AbortController();
-
-    showSkeleton(pickerEl);
-    submitBtn.disabled = true;
-    slotHidden.value   = '';
-
+    showSkeleton(pickerEl); submitBtn.disabled = true; slotHidden.value = '';
     try {
-      const url  = `${SLOTS_URL}?date=${encodeURIComponent(dateVal)}&time=${encodeURIComponent(timeVal)}&type=${appointmentType}`;
+      const url = `${SLOTS_URL}?date=${encodeURIComponent(dateVal)}&time=${encodeURIComponent(timeVal)}&type=${appointmentType}`;
       const resp = await fetch(url, { signal: abortRef.ctrl.signal });
       const data = await resp.json();
-      if (!resp.ok) {
-        showMessage(pickerEl, `⚠️ ${data.error || 'Could not load slots.'}`, 'error');
-        return;
-      }
-      
-      // Handle different response formats for walk-in vs scheduled
-      if (appointmentType === 'walk_in') {
-        buildWalkInLoadDisplay(data.appointment_count, data.load_status, pickerEl, slotHidden, submitBtn);
-      } else {
-        buildSlotGrid(data.slots, pickerEl, slotHidden, submitBtn);
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        showMessage(pickerEl, '⚠️ Network error. Please try again.', 'error');
-      }
-    }
+      if (!resp.ok) { showMessage(pickerEl, `⚠️ ${data.error || 'Could not load slots.'}`, 'error'); return; }
+      appointmentType === 'walk_in'
+        ? buildWalkInLoadDisplay(data.appointment_count, data.load_status, pickerEl, slotHidden, submitBtn)
+        : buildSlotGrid(data.slots, pickerEl, slotHidden, submitBtn);
+    } catch (err) { if (err.name !== 'AbortError') showMessage(pickerEl, '⚠️ Network error. Please try again.', 'error'); }
   }
 
-  /* ── OWNER MODAL ────────────────────────────────────────────── */
+  /* ── OWNER MODAL ── */
   (function () {
     const modal      = document.getElementById('bookModal');
-    const openBtn    = document.getElementById('openBookModal');
+    const openBtns   = ['openBookModal','openBookModal2'].map(id => document.getElementById(id)).filter(Boolean);
     const closeBtn   = document.getElementById('closeBookModal');
     const dateInput  = document.getElementById('id_appointment_date');
     const timeHidden = document.getElementById('id_start_time');
@@ -809,46 +743,29 @@
     const picker     = document.getElementById('slotPickerOwner');
     const slotHidden = document.getElementById('slotNumberOwner');
     const submit     = document.getElementById('bookSubmitBtn');
-    const ctrl       = {};
-
+    const ctrl = {};
     if (!modal) return;
 
-    function openModal()  { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
-    function closeModal() { modal.classList.remove('is-open'); document.body.style.overflow = '';       }
-
-    openBtn  && openBtn.addEventListener('click', openModal);
+    const openModal  = () => { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; };
+    const closeModal = () => { modal.classList.remove('is-open'); document.body.style.overflow = ''; };
+    openBtns.forEach(btn => btn.addEventListener('click', openModal));
     closeBtn && closeBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
 
-    function onTimeSelected(timeVal) {
-      loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl);
-    }
-
-    function refreshChips() {
+    const onTimeSelected = t => loadSlots(dateInput.value, t, picker, slotHidden, submit, ctrl);
+    const refreshChips = () => {
       renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
-      if (timeHidden.value && dateInput.value) {
-        loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl);
-      } else {
-        showMessage(picker, 'Pick a date and time above to see available slots.', '');
-        submit.disabled  = true;
-        slotHidden.value = '';
-      }
-    }
-
+      timeHidden.value && dateInput.value
+        ? loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl)
+        : (showMessage(picker,'Pick a date and time above to see available slots.',''), submit.disabled = true, slotHidden.value = '');
+    };
     dateInput && dateInput.addEventListener('change', refreshChips);
-
     renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
-
-    if (modal.dataset.hasErrors === 'true') {
-      openModal();
-      refreshChips();
-    }
+    if (modal.dataset.hasErrors === 'true') { openModal(); refreshChips(); }
   })();
 
-  /* ── STAFF MODAL ────────────────────────────────────────────── */
+  /* ── STAFF MODAL ── */
   (function () {
     const modal      = document.getElementById('scheduleModal');
     const openBtn    = document.getElementById('openScheduleModal');
@@ -862,21 +779,17 @@
     const picker     = document.getElementById('slotPickerStaff');
     const slotHidden = document.getElementById('slotNumberStaff');
     const submit     = document.getElementById('scheduleSubmitBtn');
-    const ctrl       = {};
-
+    const ctrl = {};
     if (!modal) return;
 
-    function openModal()  { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
-    function closeModal() { modal.classList.remove('is-open'); document.body.style.overflow = '';       }
-
+    const openModal  = () => { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; };
+    const closeModal = () => { modal.classList.remove('is-open'); document.body.style.overflow = ''; };
     openBtn  && openBtn.addEventListener('click', openModal);
     closeBtn && closeBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
 
-    function filterPets() {
+    const filterPets = () => {
       const oid = ownerSel.value;
       petSel.querySelectorAll('option[data-owner-id]').forEach(opt => {
         const show = !oid || opt.dataset.ownerId === oid;
@@ -884,71 +797,59 @@
         if (!show && opt.selected) { opt.selected = false; petSel.value = ''; }
       });
       if (petSel.selectedOptions[0]?.style.display === 'none') petSel.value = '';
-    }
+    };
     ownerSel && ownerSel.addEventListener('change', filterPets);
 
-    function onTimeSelected(timeVal) {
-      const appointmentType = typeSelect.value;
-      if (picker) loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl, appointmentType);
-    }
-
-    function refreshChips() {
-      if (chipGrid) renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
-      if (timeHidden.value && dateInput.value && picker && submit) {
-        const appointmentType = typeSelect.value;
-        loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl, appointmentType);
-      } else if (picker && submit) {
-        showMessage(picker, 'Pick a date and time above to see available slots.', '');
-        submit.disabled  = true;
-        slotHidden.value = '';
-      }
-    }
-
+    const onTimeSelected = t => loadSlots(dateInput.value, t, picker, slotHidden, submit, ctrl, typeSelect.value);
+    const refreshChips = () => {
+      chipGrid && renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+      timeHidden.value && dateInput.value && picker && submit
+        ? loadSlots(dateInput.value, timeHidden.value, picker, slotHidden, submit, ctrl, typeSelect.value)
+        : (picker && submit && (showMessage(picker,'Pick a date and time above to see available slots.',''), submit.disabled = true, slotHidden.value = ''));
+    };
     dateInput && dateInput.addEventListener('change', refreshChips);
 
-    function applyWalkInDefaults() {
+    const applyWalkInDefaults = () => {
       if (typeSelect.value !== 'walk_in') return;
       const now = new Date();
-      const todayStr = now.toISOString().slice(0, 10);
-      if (!dateInput.value) dateInput.value = todayStr;
-
+      if (!dateInput.value) dateInput.value = now.toISOString().slice(0,10);
       if (!timeHidden.value) {
         const nowMins = now.getHours() * 60 + now.getMinutes();
-        const next = CLINIC_TIMES.find(({ val }) => {
-          const [sh, sm] = val.split(':').map(Number);
-          return sh * 60 + sm > nowMins;
-        });
+        const next = CLINIC_TIMES.find(({ val }) => { const [sh] = val.split(':').map(Number); return sh * 60 > nowMins; });
         if (next) timeHidden.value = next.val;
       }
       refreshChips();
-    }
+    };
 
     typeSelect && typeSelect.addEventListener('change', () => {
       if (typeSelect.value === 'walk_in') {
-        // Set status to Confirmed for walk-ins
-        const statusSelect = document.getElementById('id_status');
-        if (statusSelect) statusSelect.value = 'confirmed';
+        const ss = document.getElementById('id_status'); if (ss) ss.value = 'confirmed';
         applyWalkInDefaults();
-      } else {
-        refreshChips();
-      }
+      } else { refreshChips(); }
     });
 
-    if (chipGrid) renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
-
-    if (modal.dataset.hasErrors === 'true') {
-      openModal();
-      filterPets();
-      refreshChips();
-    }
-
+    chipGrid && renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+    if (modal.dataset.hasErrors === 'true') { openModal(); filterPets(); refreshChips(); }
     openBtn && openBtn.addEventListener('click', () => {
-      if (chipGrid) renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+      chipGrid && renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
       if (typeSelect.value === 'walk_in') applyWalkInDefaults();
     });
   })();
-  </script>
 
-  <script src="{% static 'js/dashboard.js' %}"></script>
+  /* ── ADD PET MODAL ── */
+  (function () {
+    const modal   = document.getElementById('addPetModal');
+    const openBtn = document.getElementById('openAddPetModal');
+    const closeBtn = document.getElementById('closeAddPetModal');
+    if (!modal) return;
+    const openModal  = () => { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; };
+    const closeModal = () => { modal.classList.remove('is-open'); document.body.style.overflow = ''; };
+    openBtn  && openBtn.addEventListener('click', openModal);
+    closeBtn && closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
+    if (modal.dataset.hasErrors === 'true') openModal();
+  })();
+  </script>
 </body>
 </html>

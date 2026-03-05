@@ -1,0 +1,478 @@
+/* ── Walk-in Registration Page ── */
+
+.walkin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 1.5rem 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.walkin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.walkin-header__text h1 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.walkin-header__text h1 i {
+  color: #7c3aed;
+  margin-right: 0.3rem;
+}
+
+.walkin-header__text p {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ── Success banner ── */
+
+.walkin-success {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 16px;
+}
+
+.walkin-success__icon {
+  font-size: 1.6rem;
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.walkin-success__body h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #065f46;
+  margin-bottom: 0.25rem;
+}
+
+.walkin-success__body p {
+  font-size: 0.88rem;
+  color: #047857;
+  margin-bottom: 0.7rem;
+}
+
+.walkin-success__link-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d1fae5;
+}
+
+.walkin-success__link-box label {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #065f46;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+
+.walkin-success__link-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.walkin-success__link-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  font-family: monospace;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #065f46;
+  outline: none;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 1rem;
+  background: #059669;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-copy:hover { background: #047857; }
+
+/* ── QR code section in success banner ── */
+
+.walkin-success__qr-section {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d1fae5;
+}
+
+.walkin-success__qr img {
+  border-radius: 12px;
+  border: 2px solid #d1fae5;
+  flex-shrink: 0;
+}
+
+.walkin-success__qr-actions {
+  flex: 1;
+}
+
+.walkin-success__qr-hint {
+  font-size: 0.82rem;
+  color: #047857;
+  margin-bottom: 0.7rem;
+}
+
+.btn-print-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  background: #111827;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.btn-print-card:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+/* ── Print link in recent registrations ── */
+
+.walkin-recent__print-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #7c3aed;
+  text-decoration: none;
+  margin-top: 0.35rem;
+  transition: color 0.15s;
+}
+
+.walkin-recent__print-link:hover {
+  color: #5b21b6;
+}
+
+.walkin-success__hint {
+  font-size: 0.76rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* ── Body layout ── */
+
+.walkin-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.walkin-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.walkin-card__header {
+  margin-bottom: 1.25rem;
+}
+
+.walkin-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.2rem;
+}
+
+.walkin-card__title i {
+  color: #7c3aed;
+  margin-right: 0.25rem;
+}
+
+.walkin-card__sub {
+  font-size: 0.83rem;
+  color: #6b7280;
+}
+
+/* ── Errors ── */
+
+.walkin-errors {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.walkin-errors p {
+  font-size: 0.83rem;
+  color: #b91c1c;
+  margin: 0.2rem 0;
+}
+
+/* ── Form ── */
+
+.walkin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.walkin-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7c3aed;
+  margin-top: 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.walkin-section-label i {
+  font-size: 0.75rem;
+}
+
+.walkin-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.walkin-form__row--full {
+  grid-template-columns: 1fr;
+}
+
+.walkin-form .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.walkin-form .field-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.walkin-form .field-group label i {
+  color: #9ca3af;
+  margin-right: 0.2rem;
+  font-size: 0.72rem;
+}
+
+.walkin-form .field-group input,
+.walkin-form .field-group select,
+.walkin-form .field-group textarea {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  color: #111827;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+
+.walkin-form .field-group input:focus,
+.walkin-form .field-group select:focus,
+.walkin-form .field-group textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.08);
+  background: #fff;
+}
+
+/* ── Submit button ── */
+
+.walkin-form__actions {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-walkin-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1.5rem;
+  background: #111827;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.btn-walkin-submit:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+/* ── Recent registrations sidebar ── */
+
+.walkin-recent__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.walkin-recent__item {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  border-left: 3px solid #e5e7eb;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.walkin-recent__item:hover {
+  background: #f3f4f6;
+  border-left-color: #7c3aed;
+}
+
+.walkin-recent__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.2rem;
+}
+
+.walkin-recent__name i {
+  color: #9ca3af;
+  margin-right: 0.25rem;
+  font-size: 0.78rem;
+}
+
+.walkin-recent__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: #6b7280;
+}
+
+.walkin-recent__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.walkin-recent__pill--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.walkin-recent__pill--active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.walkin-recent__email {
+  font-size: 0.76rem;
+  color: #9ca3af;
+  margin-top: 0.15rem;
+}
+
+.walkin-recent__email i {
+  font-size: 0.65rem;
+  margin-right: 0.2rem;
+}
+
+.walkin-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #9ca3af;
+}
+
+.walkin-empty i {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.walkin-empty p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ── Disabled input style (activation page) ── */
+
+.input-disabled {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #6b7280;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+  .walkin-body {
+    grid-template-columns: 1fr;
+  }
+  .walkin-form__row {
+    grid-template-columns: 1fr;
+  }
+  .walkin-success {
+    flex-direction: column;
+  }
+  .walkin-success__link-row {
+    flex-direction: column;
+  }
+  .walkin-success__qr-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

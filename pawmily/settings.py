@@ -142,5 +142,9 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 # Password reset timeout (in seconds) - 1 hour
 PASSWORD_RESET_TIMEOUT = 3600
 
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
