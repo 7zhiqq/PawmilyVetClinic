@@ -11,9 +11,12 @@ def landing_page(request):
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
+from datetime import date
+
+from django.contrib.auth import get_user_model
+
 from accounts.forms import AppointmentBookingForm, AppointmentStaffForm, PetForm
 from accounts.models import Appointment, Pet, Profile
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -36,6 +39,20 @@ def dashboard(request):
         context["book_form"] = AppointmentBookingForm(owner=request.user)
         context["book_error"] = None
         context["pet_form"]  = PetForm()
+
+        # Upcoming appointments for the Reminders card
+        context["upcoming_appointments"] = (
+            Appointment.objects.select_related("pet")
+            .filter(
+                owner=request.user,
+                appointment_date__gte=date.today(),
+                status__in=[
+                    Appointment.STATUS_PENDING,
+                    Appointment.STATUS_CONFIRMED,
+                ],
+            )
+            .order_by("appointment_date", "start_time")[:5]
+        )
 
     elif role in (Profile.ROLE_STAFF, Profile.ROLE_MANAGER):
         context["owners"]     = User.objects.filter(profile__role=Profile.ROLE_PET_OWNER).order_by("username")

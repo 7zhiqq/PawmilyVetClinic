@@ -689,10 +689,9 @@ def queue_data(request):
     # ══════════════════════════════════════════════════════════════════
     # TODAY: full live-queue logic
     # ══════════════════════════════════════════════════════════════════
-    active_statuses = [Appointment.STATUS_PENDING, Appointment.STATUS_CONFIRMED]
     queue_qs = Appointment.objects.select_related("owner", "pet", "staff").filter(
         appointment_date=view_date,
-        status__in=active_statuses,
+        status=Appointment.STATUS_CONFIRMED,
     ).order_by("start_time", "slot_number")
 
     # Count already-served appointments today for running queue numbering

@@ -286,8 +286,42 @@
 
         <aside class="dashboard-card">
           {% if role == 'pet_owner' %}
-            <h2 class="dashboard-card__title">Reminders</h2>
-            <p class="dashboard-card__sub">This is a placeholder.</p>
+            <h2 class="dashboard-card__title"><i class="fa-regular fa-bell"></i> Reminders</h2>
+            <p class="dashboard-card__sub">Your upcoming appointments</p>
+
+            {% if upcoming_appointments %}
+            <ul class="reminder-list">
+              {% for apt in upcoming_appointments %}
+              <li class="reminder-item">
+                <div class="reminder-icon">
+                  {% if apt.pet.species == 'dog' %}🐶{% elif apt.pet.species == 'cat' %}🐱{% elif apt.pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+                </div>
+                <div class="reminder-details">
+                  <span class="reminder-pet">{{ apt.pet.name|default:"Walk-in" }}</span>
+                  <span class="reminder-meta">
+                    <i class="fa-regular fa-calendar"></i>
+                    {{ apt.appointment_date|date:"M d, Y" }}
+                    &middot;
+                    <i class="fa-regular fa-clock"></i>
+                    {{ apt.start_time|time:"g:i A" }}
+                  </span>
+                  {% if apt.reason %}
+                  <span class="reminder-reason">{{ apt.reason }}</span>
+                  {% endif %}
+                </div>
+                <span class="reminder-status reminder-status--{{ apt.status }}">
+                  {{ apt.get_status_display }}
+                </span>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="reminder-empty">
+              <i class="fa-regular fa-calendar-check"></i>
+              <p>No upcoming appointments</p>
+            </div>
+            {% endif %}
+
           {% elif role == 'staff' %}
             <h2 class="dashboard-card__title">Appointments</h2>
             <p class="dashboard-card__sub">This is a placeholder dashboard.</p>
@@ -295,11 +329,6 @@
             <h2 class="dashboard-card__title">Clinic performance</h2>
             <p class="dashboard-card__sub">This is a placeholder dashboard.</p>
           {% endif %}
-          <ul class="dashboard-list">
-            <li>Angela Onyate gwapa gwapa</li>
-            <li>Shan8 Timbal gwapa gwapa.</li>
-            <li>Kesha Pit gwapa gwapa</li>
-          </ul>
         </aside>
       </section>
     </main>
