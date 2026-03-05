@@ -15,8 +15,10 @@ from datetime import date
 
 from django.contrib.auth import get_user_model
 
-from accounts.forms import AppointmentBookingForm, AppointmentStaffForm, PetForm
-from accounts.models import Appointment, Pet, Profile
+from accounts.forms import PetForm
+from accounts.models import Pet, Profile
+from appointments.forms import AppointmentBookingForm, AppointmentStaffForm
+from appointments.models import Appointment
 
 User = get_user_model()
 
