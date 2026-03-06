@@ -328,8 +328,13 @@
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       })
-      .then(function () {
-        // Immediately refresh queue
+      .then(function (data) {
+        // Redirect to post-completion page if URL provided
+        if (data.redirect_url) {
+          window.location.href = data.redirect_url;
+          return;
+        }
+        // Otherwise refresh queue
         fetchQueue();
       })
       .catch(function (err) {

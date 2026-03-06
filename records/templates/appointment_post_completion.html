@@ -1,0 +1,402 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finalize Visit — {{ pet.name }} — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="medical-page">
+      <!-- Header -->
+      <div class="record-detail-header">
+        <div>
+          <h1>
+            <i class="fa-solid fa-clipboard-check"></i> Finalize Visit
+          </h1>
+          <p class="record-detail-header__date">
+            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            {{ pet.name }}
+            · {{ appointment.appointment_date|date:"F j, Y" }} at {{ appointment.start_time|time:"g:i A" }}
+            · {{ appointment.owner.get_full_name|default:appointment.owner.username }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      {% if messages %}
+      <div class="medical-messages">
+        {% for msg in messages %}
+        <div class="medical-msg medical-msg--{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ═══ Step 1: Medical Record ═══ -->
+      <section class="doc-section" style="background:#fff; border-radius:16px; padding:1.75rem 2rem; box-shadow:0 2px 12px rgba(15,23,42,0.06); margin-bottom:1.5rem;">
+        <h2 class="doc-section__title" style="font-size:1rem;">
+          <i class="fa-solid fa-notes-medical"></i>
+          {% if medical_record %}Medical Record{% else %}Record Consultation Details{% endif %}
+        </h2>
+
+        {% if medical_record %}
+        <!-- Show saved record summary -->
+        <div class="record-detail-grid">
+          {% if medical_record.chief_complaint %}
+          <div class="detail-card">
+            <h3><i class="fa-solid fa-comment-medical"></i> Chief Complaint</h3>
+            <p>{{ medical_record.chief_complaint }}</p>
+          </div>
+          {% endif %}
+          {% if medical_record.consultation_notes %}
+          <div class="detail-card">
+            <h3><i class="fa-solid fa-clipboard"></i> Consultation Notes</h3>
+            <p>{{ medical_record.consultation_notes|linebreaksbr }}</p>
+          </div>
+          {% endif %}
+          {% if medical_record.diagnosis %}
+          <div class="detail-card">
+            <h3><i class="fa-solid fa-stethoscope"></i> Diagnosis</h3>
+            <p>{{ medical_record.diagnosis|linebreaksbr }}</p>
+          </div>
+          {% endif %}
+          {% if medical_record.treatment %}
+          <div class="detail-card">
+            <h3><i class="fa-solid fa-pills"></i> Treatment</h3>
+            <p>{{ medical_record.treatment|linebreaksbr }}</p>
+          </div>
+          {% endif %}
+          {% if medical_record.prescription %}
+          <div class="detail-card">
+            <h3><i class="fa-solid fa-prescription"></i> Prescription</h3>
+            <p>{{ medical_record.prescription|linebreaksbr }}</p>
+          </div>
+          {% endif %}
+          {% if medical_record.follow_up_date %}
+          <div class="detail-card detail-card--highlight">
+            <h3><i class="fa-solid fa-calendar-check"></i> Follow-up Date</h3>
+            <p>{{ medical_record.follow_up_date|date:"F j, Y" }}</p>
+          </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn-secondary" id="openEditRecordModal" style="margin-top:0.75rem;">
+          <i class="fa-solid fa-pen"></i> Edit Medical Record
+        </button>
+        {% else %}
+        <!-- Show form to create record -->
+        <form method="POST" action="{% url 'appointment_post_completion' appointment.pk %}" class="medical-form">
+          {% csrf_token %}
+          {% if form.errors %}
+          <div class="medical-form-errors">
+            {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+          <div class="field-group">
+            <label for="id_visit_date"><i class="fa-solid fa-calendar"></i> Visit Date</label>
+            {{ form.visit_date }}
+          </div>
+          <div class="field-group">
+            <label for="id_chief_complaint"><i class="fa-solid fa-comment-medical"></i> Chief Complaint</label>
+            {{ form.chief_complaint }}
+          </div>
+          <div class="field-group">
+            <label for="id_consultation_notes"><i class="fa-solid fa-clipboard"></i> Consultation Notes</label>
+            {{ form.consultation_notes }}
+          </div>
+          <div class="field-group">
+            <label for="id_diagnosis"><i class="fa-solid fa-stethoscope"></i> Diagnosis</label>
+            {{ form.diagnosis }}
+          </div>
+          <div class="field-group">
+            <label for="id_treatment"><i class="fa-solid fa-pills"></i> Treatment</label>
+            {{ form.treatment }}
+          </div>
+          <div class="field-group">
+            <label for="id_prescription"><i class="fa-solid fa-prescription"></i> Prescription</label>
+            {{ form.prescription }}
+          </div>
+          <div class="field-group">
+            <label for="id_follow_up_date"><i class="fa-solid fa-calendar-check"></i> Follow-up Date</label>
+            {{ form.follow_up_date }}
+          </div>
+          <div class="medical-form-actions">
+            <button type="submit" class="btn-primary">
+              <i class="fa-solid fa-check"></i> Save Medical Record
+            </button>
+          </div>
+        </form>
+        {% endif %}
+      </section>
+
+      <!-- ═══ Step 2: Vaccinations ═══ -->
+      <section class="doc-section" style="background:#fff; border-radius:16px; padding:1.75rem 2rem; box-shadow:0 2px 12px rgba(15,23,42,0.06); margin-bottom:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <h2 class="doc-section__title" style="margin-bottom:0;">
+            <i class="fa-solid fa-syringe"></i> Vaccinations
+          </h2>
+          {% if medical_record %}
+          <button type="button" class="btn-secondary" id="openVaxModal">
+            <i class="fa-solid fa-plus"></i> Add Vaccination
+          </button>
+          {% endif %}
+        </div>
+
+        {% if vaccinations %}
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Vaccine</th>
+              <th>Date</th>
+              <th>Next Due</th>
+              <th>Batch #</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in vaccinations %}
+            <tr>
+              <td style="font-weight:600;">{{ v.vaccine_name }}</td>
+              <td>{{ v.date_administered|date:"M j, Y" }}</td>
+              <td>{% if v.next_due_date %}{{ v.next_due_date|date:"M j, Y" }}{% else %}—{% endif %}</td>
+              <td>{{ v.batch_number|default:"—" }}</td>
+              <td>{{ v.notes|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="doc-empty">
+          {% if medical_record %}No vaccinations added yet. Click "Add Vaccination" to record one.{% else %}Save the medical record first, then you can add vaccinations.{% endif %}
+        </p>
+        {% endif %}
+      </section>
+
+      <!-- ═══ Step 3: Billing Summary ═══ -->
+      {% if billing_record %}
+      <section class="doc-section" style="background:#fff; border-radius:16px; padding:1.75rem 2rem; box-shadow:0 2px 12px rgba(15,23,42,0.06); margin-bottom:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <h2 class="doc-section__title" style="margin-bottom:0;">
+            <i class="fa-solid fa-file-invoice"></i> Billing Summary
+          </h2>
+          <span class="billing-pill billing-pill--{{ billing_record.payment_status }}">
+            {{ billing_record.get_payment_status_display }}
+          </span>
+        </div>
+
+        <div class="doc-info-grid" style="margin-bottom:1rem;">
+          <div class="doc-info-card">
+            <h4>Invoice #</h4>
+            <p>{{ billing_record.invoice_number }}</p>
+          </div>
+          <div class="doc-info-card">
+            <h4>Total</h4>
+            <p>₱{{ billing_record.total_amount|floatformat:2 }}</p>
+          </div>
+          <div class="doc-info-card">
+            <h4>Balance Due</h4>
+            <p>₱{{ billing_record.balance_due|floatformat:2 }}</p>
+          </div>
+        </div>
+
+        {% if billing_record.line_items.count %}
+        <table class="doc-table" style="margin-bottom:1rem;">
+          <thead>
+            <tr>
+              <th style="width:60%">Description</th>
+              <th class="text-center">Qty</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in billing_record.line_items.all %}
+            <tr>
+              <td>{{ item.description }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-right">₱{{ item.unit_price|floatformat:2 }}</td>
+              <td class="text-right">₱{{ item.line_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="doc-table__total">
+              <td colspan="3" class="text-right"><strong>Total</strong></td>
+              <td class="text-right"><strong>₱{{ billing_record.total_amount|floatformat:2 }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        {% endif %}
+
+        <a href="{% url 'billing_detail' billing_record.pk %}" class="btn-primary">
+          <i class="fa-solid fa-eye"></i> View / Manage Billing
+        </a>
+      </section>
+      {% endif %}
+
+      <!-- Footer navigation -->
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:1rem;">
+        <a href="{% url 'appointment_queue' %}" class="btn-secondary">
+          <i class="fa-solid fa-arrow-left"></i> Back to Queue
+        </a>
+        <a href="{% url 'appointment_manage' %}" class="btn-secondary">
+          <i class="fa-solid fa-list-check"></i> Manage Appointments
+        </a>
+        {% if pet %}
+        <a href="{% url 'medical_records_list' pet.pk %}" class="btn-secondary">
+          <i class="fa-solid fa-folder-open"></i> {{ pet.name }}'s Full Records
+        </a>
+        {% endif %}
+      </div>
+    </main>
+  </div>
+
+  {# ─── Edit Medical Record Modal ─── #}
+  {% if medical_record %}
+  <div class="modal-backdrop" id="editRecordModal" role="dialog" aria-modal="true" aria-labelledby="editRecordModalTitle"
+    data-has-errors="false">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="editRecordModalTitle">Edit Medical Record</div>
+          <div class="modal__subtitle">
+            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            {{ pet.name }} · {{ appointment.appointment_date|date:"M j, Y" }}
+          </div>
+        </div>
+        <button class="modal__close" id="closeEditRecordModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        <form method="POST" action="{% url 'appointment_post_completion' appointment.pk %}" class="modal-form">
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="id_visit_date"><i class="fa-solid fa-calendar"></i> Visit Date</label>
+            {{ form.visit_date }}
+          </div>
+          <div class="field-group">
+            <label for="id_chief_complaint"><i class="fa-solid fa-comment-medical"></i> Chief Complaint</label>
+            {{ form.chief_complaint }}
+          </div>
+          <div class="field-group">
+            <label for="id_consultation_notes"><i class="fa-solid fa-clipboard"></i> Consultation Notes</label>
+            {{ form.consultation_notes }}
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_diagnosis"><i class="fa-solid fa-stethoscope"></i> Diagnosis</label>
+              {{ form.diagnosis }}
+            </div>
+            <div class="field-group">
+              <label for="id_treatment"><i class="fa-solid fa-pills"></i> Treatment</label>
+              {{ form.treatment }}
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="id_prescription"><i class="fa-solid fa-prescription"></i> Prescription</label>
+            {{ form.prescription }}
+          </div>
+          <div class="field-group">
+            <label for="id_follow_up_date"><i class="fa-solid fa-calendar-check"></i> Follow-up Date</label>
+            {{ form.follow_up_date }}
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-check"></i> Update Record
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ─── Add Vaccination Modal ─── #}
+  {% if medical_record %}
+  <div class="modal-backdrop" id="vaxModal" role="dialog" aria-modal="true" aria-labelledby="vaxModalTitle"
+    data-has-errors="{% if vaccination_form and vaccination_form.errors %}true{% else %}false{% endif %}">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="vaxModalTitle">Add Vaccination</div>
+          <div class="modal__subtitle">
+            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            {{ pet.name }} · Fee will be added to billing automatically
+          </div>
+        </div>
+        <button class="modal__close" id="closeVaxModal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        {% if vaccination_form and vaccination_form.errors %}
+        <div class="modal-form__errors">
+          {% for field in vaccination_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+          {% for error in vaccination_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'vaccination_add' pet.pk %}" class="modal-form">
+          {% csrf_token %}
+          <input type="hidden" name="medical_record" value="{{ medical_record.pk }}" />
+          <input type="hidden" name="appointment_id" value="{{ appointment.pk }}" />
+          <div class="field-group">
+            <label for="id_vaccine_name"><i class="fa-solid fa-syringe"></i> Vaccine Name</label>
+            {{ vaccination_form.vaccine_name }}
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="id_date_administered"><i class="fa-solid fa-calendar"></i> Date Administered</label>
+              {{ vaccination_form.date_administered }}
+            </div>
+            <div class="field-group">
+              <label for="id_next_due_date"><i class="fa-solid fa-calendar-check"></i> Next Due Date</label>
+              {{ vaccination_form.next_due_date }}
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="id_batch_number"><i class="fa-solid fa-barcode"></i> Batch Number</label>
+            {{ vaccination_form.batch_number }}
+          </div>
+          <div class="field-group">
+            <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+            {{ vaccination_form.notes }}
+          </div>
+          <div class="field-group">
+            <label for="id_vaccination_fee"><i class="fa-solid fa-peso-sign"></i> Vaccination Fee (₱)</label>
+            {{ vaccination_form.vaccination_fee }}
+            <span style="font-size:0.75rem; color:#6b7280;">Automatically added to the billing record. Enter 0 for no charge.</span>
+          </div>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-check"></i> Save Vaccination
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script src="{% static 'js/modal_utils.js' %}"></script>
+  <script>
+  (function () {
+    'use strict';
+    {% if medical_record %}
+    initModal('editRecordModal', ['openEditRecordModal'], 'closeEditRecordModal');
+    initModal('vaxModal', ['openVaxModal'], 'closeVaxModal');
+    {% endif %}
+  })();
+  </script>
+</body>
+</html>

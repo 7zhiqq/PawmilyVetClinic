@@ -140,7 +140,13 @@
               </button>
             </form>
             {% else %}
+            {% if apt.status == 'completed' %}
+            <a href="{% url 'finalize_step1' apt.id %}" class="action-btn action-btn--view">
+              <i class="fa-solid fa-clipboard-check" style="font-size:0.65rem;"></i> Finalize
+            </a>
+            {% else %}
             <span style="font-size:0.75rem;color:#d1d5db;">—</span>
+            {% endif %}
             {% endif %}
           </div>
         </div>

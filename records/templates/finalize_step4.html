@@ -1,0 +1,96 @@
+{% extends "finalize_base.html" %}
+
+{% block step_content %}
+{% if billing_record %}
+<section class="step-card">
+  <div class="step-card__header">
+    <div class="step-card__icon">
+      <i class="fa-solid fa-file-invoice"></i>
+    </div>
+    <div>
+      <h2 class="step-card__title">Billing Summary</h2>
+      <p class="step-card__subtitle">Review the billing details for this visit. You can manage payments and line items from the full billing page.</p>
+    </div>
+    <span class="billing-pill billing-pill--{{ billing_record.payment_status }}" style="margin-left:auto;">
+      {{ billing_record.get_payment_status_display }}
+    </span>
+  </div>
+
+  <div class="step-detail-grid">
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-hashtag"></i> Invoice #</span>
+      <span class="step-detail-value">{{ billing_record.invoice_number }}</span>
+    </div>
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-peso-sign"></i> Total</span>
+      <span class="step-detail-value" style="font-weight:800; font-size:1.1rem;">₱{{ billing_record.total_amount|floatformat:2 }}</span>
+    </div>
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-coins"></i> Amount Paid</span>
+      <span class="step-detail-value">₱{{ billing_record.amount_paid|floatformat:2 }}</span>
+    </div>
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-scale-balanced"></i> Balance Due</span>
+      <span class="step-detail-value {% if billing_record.balance_due > 0 %}balance-due{% else %}balance-paid{% endif %}">₱{{ billing_record.balance_due|floatformat:2 }}</span>
+    </div>
+  </div>
+
+  {% if billing_record.line_items.count %}
+  <h3 class="step-section-label"><i class="fa-solid fa-list"></i> Line Items</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th style="width:55%">Description</th>
+        <th class="text-center">Qty</th>
+        <th class="text-right">Unit Price</th>
+        <th class="text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in billing_record.line_items.all %}
+      <tr>
+        <td>{{ item.description }}</td>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td class="text-right">₱{{ item.unit_price|floatformat:2 }}</td>
+        <td class="text-right">₱{{ item.line_total|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="doc-table__total">
+        <td colspan="3" class="text-right"><strong>Total</strong></td>
+        <td class="text-right"><strong>₱{{ billing_record.total_amount|floatformat:2 }}</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+  {% endif %}
+
+  <div class="step-inline-actions" style="margin-top:1.25rem;">
+    <a href="{% url 'billing_detail' billing_record.pk %}" class="btn-secondary">
+      <i class="fa-solid fa-eye"></i> View / Manage Billing
+    </a>
+  </div>
+</section>
+{% else %}
+<section class="step-card">
+  <div class="step-empty">
+    <i class="fa-solid fa-file-invoice"></i>
+    <p>No billing record found for this appointment.</p>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block step_footer %}
+<a href="{% url 'finalize_step3' appointment.pk %}" class="btn-secondary">
+  <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+<div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+  <a href="{% url 'appointment_queue' %}" class="btn-secondary">
+    <i class="fa-solid fa-list"></i> Back to Queue
+  </a>
+  <a href="{% url 'appointment_manage' %}" class="btn-primary btn-primary--lg">
+    <i class="fa-solid fa-check-double"></i> Finish
+  </a>
+</div>
+{% endblock %}

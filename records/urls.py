@@ -10,4 +10,9 @@ urlpatterns = [
     path("pets/<int:pet_id>/records/<int:record_id>/edit/", views.medical_record_edit, name="medical_record_edit"),
     path("pets/<int:pet_id>/vaccinations/add/", views.vaccination_add, name="vaccination_add"),
     path("pets/<int:pet_id>/records/<int:record_id>/attachments/add/", views.attachment_add, name="attachment_add"),
+    path("appointments/<int:appointment_id>/finalize/", views.finalize_step1, name="finalize_step1"),
+    path("appointments/<int:appointment_id>/finalize/1/", views.finalize_step1, name="finalize_step1_explicit"),
+    path("appointments/<int:appointment_id>/finalize/2/", views.finalize_step2, name="finalize_step2"),
+    path("appointments/<int:appointment_id>/finalize/3/", views.finalize_step3, name="finalize_step3"),
+    path("appointments/<int:appointment_id>/finalize/4/", views.finalize_step4, name="finalize_step4"),
 ]

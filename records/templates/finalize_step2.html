@@ -1,0 +1,67 @@
+{% extends "finalize_base.html" %}
+
+{% block step_content %}
+<section class="step-card">
+  <div class="step-card__header">
+    <div class="step-card__icon">
+      <i class="fa-solid fa-notes-medical"></i>
+    </div>
+    <div>
+      <h2 class="step-card__title">{% if medical_record %}Edit Medical Record{% else %}Record Consultation Details{% endif %}</h2>
+      <p class="step-card__subtitle">Fill in the consultation details, diagnosis, treatment, and prescription for this visit.</p>
+    </div>
+  </div>
+
+  <form method="POST" action="{% url 'finalize_step2' appointment.pk %}" class="medical-form">
+    {% csrf_token %}
+    {% if form.errors %}
+    <div class="medical-form-errors">
+      {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    <div class="field-group">
+      <label for="id_visit_date"><i class="fa-solid fa-calendar"></i> Visit Date</label>
+      {{ form.visit_date }}
+    </div>
+    <div class="field-group">
+      <label for="id_chief_complaint"><i class="fa-solid fa-comment-medical"></i> Chief Complaint</label>
+      {{ form.chief_complaint }}
+    </div>
+    <div class="field-group">
+      <label for="id_consultation_notes"><i class="fa-solid fa-clipboard"></i> Consultation Notes</label>
+      {{ form.consultation_notes }}
+    </div>
+    <div class="step-form-row">
+      <div class="field-group">
+        <label for="id_diagnosis"><i class="fa-solid fa-stethoscope"></i> Diagnosis</label>
+        {{ form.diagnosis }}
+      </div>
+      <div class="field-group">
+        <label for="id_treatment"><i class="fa-solid fa-pills"></i> Treatment</label>
+        {{ form.treatment }}
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="id_prescription"><i class="fa-solid fa-prescription"></i> Prescription</label>
+      {{ form.prescription }}
+    </div>
+    <div class="field-group">
+      <label for="id_follow_up_date"><i class="fa-solid fa-calendar-check"></i> Follow-up Date</label>
+      {{ form.follow_up_date }}
+    </div>
+    <div class="step-form-actions">
+      <button type="submit" class="btn-primary btn-primary--lg">
+        <i class="fa-solid fa-check"></i> Save &amp; Continue
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block step_footer %}
+<a href="{% url 'finalize_step1' appointment.pk %}" class="btn-secondary">
+  <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+<div></div>
+{% endblock %}

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 
 from .models import MedicalAttachment, MedicalRecord, VaccinationRecord
@@ -22,6 +24,12 @@ class MedicalRecordForm(forms.ModelForm):
 
 
 class VaccinationRecordForm(forms.ModelForm):
+    vaccination_fee = forms.DecimalField(
+        max_digits=10, decimal_places=2, required=False, initial=Decimal("0.00"),
+        widget=forms.NumberInput(attrs={"min": "0", "step": "0.01", "placeholder": "0.00"}),
+        help_text="Fee to add to the billing record (₱). Leave 0 for no charge.",
+    )
+
     class Meta:
         model = VaccinationRecord
         fields = [

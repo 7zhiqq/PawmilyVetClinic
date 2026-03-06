@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="billing-page">
+      <div class="billing-header">
+        <div>
+          <h1>Billing</h1>
+          <p>{% if is_staff %}All billing records{% else %}Your billing history{% endif %}</p>
+        </div>
+      </div>
+
+      {% if messages %}
+      <div class="billing-messages">
+        {% for msg in messages %}
+        <div class="billing-msg billing-msg--{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Filters -->
+      <div class="billing-filters">
+        <form method="get" class="billing-filter-form">
+          <div class="billing-filter-group">
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search invoice #, owner, pet…" class="billing-search-input" />
+            <select name="status" class="billing-status-select">
+              <option value="">All statuses</option>
+              <option value="unpaid" {% if current_status == 'unpaid' %}selected{% endif %}>Unpaid</option>
+              <option value="partial" {% if current_status == 'partial' %}selected{% endif %}>Partial</option>
+              <option value="paid" {% if current_status == 'paid' %}selected{% endif %}>Paid</option>
+            </select>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+          </div>
+        </form>
+      </div>
+
+      {% if records %}
+      <div class="billing-table-wrap">
+        <table class="billing-table">
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Date</th>
+              <th>Owner</th>
+              <th>Pet</th>
+              <th>Total</th>
+              <th>Paid</th>
+              <th>Balance</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in records %}
+            <tr>
+              <td class="invoice-num">{{ rec.invoice_number }}</td>
+              <td>{{ rec.created_at|date:"M j, Y" }}</td>
+              <td>{{ rec.owner.get_full_name|default:rec.owner.username }}</td>
+              <td>{{ rec.pet.name|default:"—" }}</td>
+              <td class="money">₱{{ rec.total_amount|floatformat:2 }}</td>
+              <td class="money">₱{{ rec.amount_paid|floatformat:2 }}</td>
+              <td class="money">₱{{ rec.balance_due|floatformat:2 }}</td>
+              <td>
+                <span class="billing-pill billing-pill--{{ rec.payment_status }}">
+                  {{ rec.get_payment_status_display }}
+                </span>
+              </td>
+              <td>
+                <a href="{% url 'billing_detail' rec.pk %}" class="action-btn action-btn--view">
+                  <i class="fa-solid fa-eye" style="font-size:0.65rem;"></i> View
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="billing-empty">
+        <span class="billing-empty__icon">🧾</span>
+        <h3>No billing records found</h3>
+        <p>Billing records are created automatically when appointments are completed.</p>
+      </div>
+      {% endif %}
+    </main>
+  </div>
+</body>
+</html>

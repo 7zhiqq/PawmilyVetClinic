@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -7,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import Pet
 from accounts.views import _is_staff_or_manager
+from appointments.models import Appointment
+from billing.views import add_vaccination_to_billing
 
 from .forms import MedicalAttachmentForm, MedicalRecordForm, VaccinationRecordForm
 from .models import MedicalRecord
@@ -147,6 +151,7 @@ def vaccination_add(request, pet_id):
 
     pet = get_object_or_404(Pet, pk=pet_id)
     medical_record_id = request.GET.get("record") or request.POST.get("medical_record")
+    appointment_id = request.POST.get("appointment_id") or request.GET.get("appointment_id")
 
     if request.method == "POST":
         form = VaccinationRecordForm(request.POST)
@@ -157,11 +162,25 @@ def vaccination_add(request, pet_id):
             if medical_record_id:
                 vax.medical_record_id = int(medical_record_id)
             vax.save()
+
+            # Auto-add vaccination fee to billing if linked to an appointment
+            vax_fee = form.cleaned_data.get("vaccination_fee") or Decimal("0.00")
+            if vax_fee > 0 and appointment_id:
+                apt = Appointment.objects.filter(pk=int(appointment_id)).first()
+                if apt:
+                    add_vaccination_to_billing(apt, vax.vaccine_name, vax_fee)
+
             messages.success(request, "Vaccination record added.")
+
+            # If coming from the finalize flow, redirect back to step 3
+            if appointment_id:
+                return redirect("finalize_step3", appointment_id=int(appointment_id))
             if vax.medical_record_id:
                 return redirect("medical_record_detail", pet_id=pet.pk, record_id=vax.medical_record_id)
             return redirect("medical_records_list", pet_id=pet.pk)
         # Re-render the appropriate page with the invalid form so modal auto-opens
+        if appointment_id:
+            return redirect("finalize_step3", appointment_id=int(appointment_id))
         if medical_record_id:
             record = get_object_or_404(MedicalRecord, pk=int(medical_record_id), pet=pet)
             return render(request, "medical_record_detail.html", {
@@ -236,4 +255,145 @@ def pet_records_search(request):
     return render(request, "pet_records_search.html", {
         "pets": pets,
         "query": query,
+    })
+
+
+# ─── Post-Completion Stepper Flow ─────────────────────────────────────────────
+
+STEPS = [
+    {"num": 1, "label": "Appointment", "icon": "fa-calendar-check"},
+    {"num": 2, "label": "Medical Record", "icon": "fa-notes-medical"},
+    {"num": 3, "label": "Vaccination", "icon": "fa-syringe"},
+    {"num": 4, "label": "Billing", "icon": "fa-file-invoice"},
+]
+
+
+def _get_completed_appointment(request, appointment_id):
+    """Helper: validate staff access and return completed appointment + pet."""
+    if not _is_staff_or_manager(request.user):
+        return None, None, HttpResponseForbidden("Only staff can access this page.")
+    apt = get_object_or_404(
+        Appointment.objects.select_related("owner", "pet", "staff"),
+        pk=appointment_id,
+        status=Appointment.STATUS_COMPLETED,
+    )
+    return apt, apt.pet, None
+
+
+def _max_allowed_step(apt):
+    """Return the highest step the user may visit based on saved data."""
+    has_record = MedicalRecord.objects.filter(appointment=apt).exists()
+    return 4 if has_record else 2  # steps 3 & 4 require a saved medical record
+
+
+def _stepper_context(current_step, apt):
+    """Build the stepper info list for templates."""
+    max_step = _max_allowed_step(apt)
+    steps = []
+    for s in STEPS:
+        state = "completed" if s["num"] < current_step else (
+            "active" if s["num"] == current_step else "upcoming"
+        )
+        clickable = s["num"] <= max(max_step, current_step)
+        steps.append({**s, "state": state, "clickable": clickable})
+    return steps
+
+
+@login_required
+def finalize_step1(request, appointment_id):
+    """Step 1 — Appointment completed summary."""
+    apt, pet, err = _get_completed_appointment(request, appointment_id)
+    if err:
+        return err
+
+    return render(request, "finalize_step1.html", {
+        "appointment": apt,
+        "pet": pet,
+        "steps": _stepper_context(1, apt),
+        "current_step": 1,
+    })
+
+
+@login_required
+@transaction.atomic
+def finalize_step2(request, appointment_id):
+    """Step 2 — Create / edit the medical record."""
+    apt, pet, err = _get_completed_appointment(request, appointment_id)
+    if err:
+        return err
+
+    medical_record = MedicalRecord.objects.filter(appointment=apt).first()
+
+    if request.method == "POST":
+        form = MedicalRecordForm(request.POST, instance=medical_record)
+        if form.is_valid():
+            record = form.save(commit=False)
+            if not medical_record:
+                record.pet = pet
+                record.appointment = apt
+                record.created_by = request.user
+            record.save()
+            messages.success(request, "Medical record saved.")
+            return redirect("finalize_step3", appointment_id=apt.pk)
+    else:
+        if medical_record:
+            form = MedicalRecordForm(instance=medical_record)
+        else:
+            form = MedicalRecordForm(initial={
+                "visit_date": apt.appointment_date,
+                "chief_complaint": apt.reason,
+            })
+
+    return render(request, "finalize_step2.html", {
+        "appointment": apt,
+        "pet": pet,
+        "form": form,
+        "medical_record": medical_record,
+        "steps": _stepper_context(2, apt),
+        "current_step": 2,
+    })
+
+
+@login_required
+def finalize_step3(request, appointment_id):
+    """Step 3 — Vaccinations (optional)."""
+    apt, pet, err = _get_completed_appointment(request, appointment_id)
+    if err:
+        return err
+
+    if _max_allowed_step(apt) < 3:
+        return redirect("finalize_step2", appointment_id=apt.pk)
+
+    medical_record = MedicalRecord.objects.filter(appointment=apt).first()
+    vaccinations = medical_record.vaccinations.all() if medical_record else []
+
+    return render(request, "finalize_step3.html", {
+        "appointment": apt,
+        "pet": pet,
+        "medical_record": medical_record,
+        "vaccination_form": VaccinationRecordForm(),
+        "vaccinations": vaccinations,
+        "steps": _stepper_context(3, apt),
+        "current_step": 3,
+    })
+
+
+@login_required
+def finalize_step4(request, appointment_id):
+    """Step 4 — Billing summary."""
+    apt, pet, err = _get_completed_appointment(request, appointment_id)
+    if err:
+        return err
+
+    if _max_allowed_step(apt) < 3:
+        return redirect("finalize_step2", appointment_id=apt.pk)
+
+    billing_record = getattr(apt, "billing_record", None)
+
+    return render(request, "finalize_step4.html", {
+        "appointment": apt,
+        "pet": pet,
+        "billing_record": billing_record,
+        "steps": _stepper_context(4, apt),
+        "current_step": 4,
     })

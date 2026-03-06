@@ -1,0 +1,270 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ record.invoice_number }} — Pawmily Billing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="billing-page">
+      <!-- Back link -->
+      <div class="billing-back-link">
+        <a href="{% url 'billing_list' %}"><i class="fa-solid fa-arrow-left"></i> All Billing Records</a>
+      </div>
+
+      <!-- Messages -->
+      {% if messages %}
+      <div class="billing-messages">
+        {% for msg in messages %}
+        <div class="billing-msg billing-msg--{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Document view tabs -->
+      <div class="billing-tabs">
+        <a href="?view=statement" class="billing-tab {% if doc_view == 'statement' %}billing-tab--active{% endif %}">
+          <i class="fa-solid fa-file-lines"></i> Statement
+        </a>
+        <a href="?view=invoice" class="billing-tab {% if doc_view == 'invoice' %}billing-tab--active{% endif %}">
+          <i class="fa-solid fa-file-invoice"></i> Invoice
+        </a>
+        <a href="?view=receipt" class="billing-tab {% if doc_view == 'receipt' %}billing-tab--active{% endif %}">
+          <i class="fa-solid fa-receipt"></i> Receipt
+        </a>
+      </div>
+
+      <!-- ═══════ DOCUMENT CARD ═══════ -->
+      <div class="billing-document" id="billingDocument">
+
+        <!-- Document header -->
+        <div class="doc-header">
+          <div class="doc-header__brand">
+            <i class="fa-solid fa-paw doc-header__icon"></i>
+            <div>
+              <h2>PAWMILY Veterinary Clinic</h2>
+              <p class="doc-header__subtitle">
+                {% if doc_view == 'statement' %}Billing Statement
+                {% elif doc_view == 'invoice' %}Invoice
+                {% elif doc_view == 'receipt' %}Receipt
+                {% endif %}
+              </p>
+            </div>
+          </div>
+          <div class="doc-header__meta">
+            <p><strong>{{ record.invoice_number }}</strong></p>
+            <p>Date: {{ record.created_at|date:"F j, Y" }}</p>
+            <p>
+              Status:
+              <span class="billing-pill billing-pill--{{ record.payment_status }}">
+                {{ record.get_payment_status_display }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Client / appointment info -->
+        <div class="doc-info-grid">
+          <div class="doc-info-card">
+            <h4><i class="fa-solid fa-user"></i> Client</h4>
+            <p>{{ record.owner.get_full_name|default:record.owner.username }}</p>
+            <p class="doc-info-card__sub">{{ record.owner.email }}</p>
+          </div>
+          <div class="doc-info-card">
+            <h4><i class="fa-solid fa-paw"></i> Pet</h4>
+            <p>{{ record.pet.name|default:"—" }}</p>
+            {% if record.pet %}
+            <p class="doc-info-card__sub">{{ record.pet.species|default:"" }} · {{ record.pet.breed|default:"" }}</p>
+            {% endif %}
+          </div>
+          <div class="doc-info-card">
+            <h4><i class="fa-solid fa-calendar"></i> Appointment</h4>
+            <p>{{ record.appointment.appointment_date|date:"F j, Y" }}</p>
+            <p class="doc-info-card__sub">{{ record.appointment.start_time|time:"g:i A" }} · {{ record.appointment.get_appointment_type_display }}</p>
+          </div>
+        </div>
+
+        <!-- Line items -->
+        <section class="doc-section">
+          <h3 class="doc-section__title">
+            {% if doc_view == 'statement' %}Charges
+            {% elif doc_view == 'invoice' %}Items
+            {% elif doc_view == 'receipt' %}Items Paid
+            {% endif %}
+          </h3>
+
+          {% if line_items %}
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th style="width:50%">Description</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Amount</th>
+                {% if is_staff and doc_view != 'receipt' %}<th class="text-center">Action</th>{% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in line_items %}
+              <tr>
+                <td>{{ item.description }}</td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-right">₱{{ item.unit_price|floatformat:2 }}</td>
+                <td class="text-right">₱{{ item.line_total|floatformat:2 }}</td>
+                {% if is_staff and doc_view != 'receipt' %}
+                <td class="text-center">
+                  <form method="post" action="{% url 'billing_remove_line_item' record.pk item.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn action-btn--remove" title="Remove">
+                      <i class="fa-solid fa-trash-can" style="font-size:0.6rem;"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="doc-table__total">
+                <td colspan="3" class="text-right"><strong>Total</strong></td>
+                <td class="text-right"><strong>₱{{ record.total_amount|floatformat:2 }}</strong></td>
+                {% if is_staff and doc_view != 'receipt' %}<td></td>{% endif %}
+              </tr>
+              {% if record.amount_paid > 0 %}
+              <tr>
+                <td colspan="3" class="text-right">Amount Paid</td>
+                <td class="text-right">₱{{ record.amount_paid|floatformat:2 }}</td>
+                {% if is_staff and doc_view != 'receipt' %}<td></td>{% endif %}
+              </tr>
+              <tr class="doc-table__balance">
+                <td colspan="3" class="text-right"><strong>Balance Due</strong></td>
+                <td class="text-right"><strong>₱{{ record.balance_due|floatformat:2 }}</strong></td>
+                {% if is_staff and doc_view != 'receipt' %}<td></td>{% endif %}
+              </tr>
+              {% endif %}
+            </tfoot>
+          </table>
+          {% else %}
+          <p class="doc-empty">No items added yet.</p>
+          {% endif %}
+        </section>
+
+        <!-- Staff: add line item (not on receipt view) -->
+        {% if is_staff and doc_view != 'receipt' %}
+        <section class="doc-section doc-section--form">
+          <h3 class="doc-section__title">Add Line Item</h3>
+          <form method="post" action="{% url 'billing_add_line_item' record.pk %}" class="inline-form">
+            {% csrf_token %}
+            <div class="inline-form__fields">
+              <div class="field">
+                <label for="id_description">Description</label>
+                {{ line_form.description }}
+              </div>
+              <div class="field field--sm">
+                <label for="id_quantity">Qty</label>
+                {{ line_form.quantity }}
+              </div>
+              <div class="field field--sm">
+                <label for="id_unit_price">Unit Price (₱)</label>
+                {{ line_form.unit_price }}
+              </div>
+              <button type="submit" class="btn-primary" style="align-self:flex-end;">
+                <i class="fa-solid fa-plus"></i> Add
+              </button>
+            </div>
+          </form>
+        </section>
+        {% endif %}
+
+        <!-- Payments section (shown on statement and receipt) -->
+        {% if doc_view == 'statement' or doc_view == 'receipt' %}
+        <section class="doc-section">
+          <h3 class="doc-section__title">
+            {% if doc_view == 'receipt' %}Payment Details{% else %}Payments{% endif %}
+          </h3>
+          {% if payments %}
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th class="text-right">Amount</th>
+                <th>Recorded By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in payments %}
+              <tr>
+                <td>{{ p.recorded_at|date:"M j, Y g:i A" }}</td>
+                <td>
+                  {% if p.method == 'cash' %}
+                  <span class="method-badge method-badge--cash"><i class="fa-solid fa-money-bill-wave"></i> Cash</span>
+                  {% else %}
+                  <span class="method-badge method-badge--ewallet"><i class="fa-solid fa-wallet"></i> E-wallet</span>
+                  {% endif %}
+                </td>
+                <td>{{ p.reference|default:"—" }}</td>
+                <td class="text-right">₱{{ p.amount|floatformat:2 }}</td>
+                <td>{{ p.recorded_by.get_full_name|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="doc-empty">No payments recorded yet.</p>
+          {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- Staff: record payment (not on receipt view) -->
+        {% if is_staff and doc_view != 'receipt' %}
+        <section class="doc-section doc-section--form">
+          <h3 class="doc-section__title">Record Payment</h3>
+          <form method="post" action="{% url 'billing_add_payment' record.pk %}" class="inline-form">
+            {% csrf_token %}
+            <div class="inline-form__fields">
+              <div class="field field--sm">
+                <label for="id_amount">Amount (₱)</label>
+                {{ payment_form.amount }}
+              </div>
+              <div class="field field--sm">
+                <label for="id_method">Method</label>
+                {{ payment_form.method }}
+              </div>
+              <div class="field">
+                <label for="id_reference">Reference #</label>
+                {{ payment_form.reference }}
+              </div>
+              <button type="submit" class="btn-primary" style="align-self:flex-end;">
+                <i class="fa-solid fa-coins"></i> Record Payment
+              </button>
+            </div>
+          </form>
+        </section>
+        {% endif %}
+
+        <!-- Print button -->
+        <div class="doc-print-bar no-print">
+          <button type="button" class="btn-secondary" onclick="window.print();">
+            <i class="fa-solid fa-print"></i> Print {{ doc_view|title }}
+          </button>
+        </div>
+
+      </div><!-- /billing-document -->
+    </main>
+  </div>
+</body>
+</html>

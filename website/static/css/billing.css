@@ -1,0 +1,474 @@
+/* ─── Billing Page Layout ────────────────────────────────────────────────── */
+
+.billing-page {
+  max-width: 1120px;
+  padding: 2.5rem 1.5rem 3rem;
+  margin: 0 150px 10px 150px;
+}
+
+.billing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.billing-header h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.15rem;
+}
+
+.billing-header p { font-size: 0.9rem; color: #6b7280; }
+
+.billing-back-link {
+  margin-bottom: 1.25rem;
+}
+
+.billing-back-link a {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.billing-back-link a:hover { color: #111827; }
+
+/* ─── Messages ───────────────────────────────────────────────────────────── */
+
+.billing-messages { margin-bottom: 1.25rem; }
+
+.billing-msg {
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.billing-msg--success { background: #d1fae5; color: #065f46; }
+.billing-msg--error   { background: #fee2e2; color: #991b1b; }
+
+/* ─── Filters ────────────────────────────────────────────────────────────── */
+
+.billing-filters { margin-bottom: 1.5rem; }
+
+.billing-filter-form { display: flex; }
+
+.billing-filter-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.billing-search-input,
+.billing-status-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.billing-search-input { width: 240px; }
+.billing-status-select { width: 140px; }
+
+.billing-search-input:focus,
+.billing-status-select:focus {
+  outline: none;
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17,24,39,0.08);
+}
+
+/* ─── Table ──────────────────────────────────────────────────────────────── */
+
+.billing-table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.05);
+}
+
+.billing-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 0.85rem;
+}
+
+.billing-table thead th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.72rem;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.billing-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.billing-table tbody tr:hover { background: #f9fafb; }
+
+.invoice-num { font-weight: 700; color: #111827; }
+
+.money { font-variant-numeric: tabular-nums; }
+
+/* ─── Status Pill ────────────────────────────────────────────────────────── */
+
+.billing-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.billing-pill--paid    { background: #d1fae5; color: #065f46; }
+.billing-pill--partial { background: #fef3c7; color: #92400e; }
+.billing-pill--unpaid  { background: #fee2e2; color: #991b1b; }
+
+/* ─── Empty State ────────────────────────────────────────────────────────── */
+
+.billing-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #9ca3af;
+}
+
+.billing-empty__icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+.billing-empty h3 { color: #374151; font-weight: 700; margin-bottom: 0.3rem; }
+.billing-empty p { font-size: 0.9rem; }
+
+/* ─── Action Buttons ─────────────────────────────────────────────────────── */
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  font-family: inherit;
+}
+
+.action-btn:hover { opacity: 0.8; }
+
+.action-btn--view { background: #111827; color: #fff; }
+.action-btn--remove { background: #fee2e2; color: #991b1b; }
+
+/* ─── Tabs ───────────────────────────────────────────────────────────────── */
+
+.billing-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.billing-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #6b7280;
+  background: #f3f4f6;
+  transition: all 0.2s;
+}
+
+.billing-tab:hover { background: #e5e7eb; color: #111827; }
+
+.billing-tab--active {
+  background: #111827;
+  color: #fff;
+}
+
+.billing-tab--active:hover { background: #1f2937; color: #fff; }
+
+/* ─── Document Card ──────────────────────────────────────────────────────── */
+
+.billing-document {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 1.5rem;
+}
+
+.doc-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doc-header__icon {
+  font-size: 1.8rem;
+  color: #111827;
+}
+
+.doc-header__brand h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.doc-header__subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.1rem;
+}
+
+.doc-header__meta {
+  text-align: right;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.doc-header__meta p { margin: 0.15rem 0; }
+.doc-header__meta strong { color: #111827; }
+
+/* ─── Info Grid ──────────────────────────────────────────────────────────── */
+
+.doc-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.doc-info-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+}
+
+.doc-info-card h4 {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.4rem;
+}
+
+.doc-info-card p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.doc-info-card__sub {
+  font-size: 0.78rem !important;
+  font-weight: 400 !important;
+  color: #6b7280 !important;
+  margin-top: 0.15rem !important;
+}
+
+/* ─── Document Sections ──────────────────────────────────────────────────── */
+
+.doc-section {
+  margin-bottom: 1.75rem;
+}
+
+.doc-section__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.doc-section--form {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.doc-empty {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ─── Document Table ─────────────────────────────────────────────────────── */
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.doc-table thead th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.doc-table tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.doc-table tfoot td {
+  padding: 0.6rem 0.75rem;
+  color: #374151;
+}
+
+.doc-table__total td {
+  border-top: 2px solid #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.doc-table__balance td {
+  font-size: 0.9rem;
+  color: #991b1b;
+}
+
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+/* ─── Method Badge ───────────────────────────────────────────────────────── */
+
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.method-badge--cash    { background: #d1fae5; color: #065f46; }
+.method-badge--ewallet { background: #dbeafe; color: #1e40af; }
+
+/* ─── Inline Form ────────────────────────────────────────────────────────── */
+
+.inline-form__fields {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.inline-form__fields .field { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+.inline-form__fields .field--sm { flex: 0 0 120px; min-width: 100px; }
+
+.inline-form__fields label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+
+.inline-form__fields input,
+.inline-form__fields select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.inline-form__fields input:focus,
+.inline-form__fields select:focus {
+  outline: none;
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17,24,39,0.08);
+}
+
+/* ─── Print Bar ──────────────────────────────────────────────────────────── */
+
+.doc-print-bar {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+  text-align: right;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-secondary:hover { background: #e5e7eb; }
+
+/* ─── Print Styles ───────────────────────────────────────────────────────── */
+
+@media print {
+  .dashboard-layout { display: block; }
+  .navbar, .billing-back-link, .billing-tabs, .doc-section--form, .no-print {
+    display: none !important;
+  }
+  .billing-page { margin: 0; padding: 0; max-width: 100%; }
+  .billing-document { box-shadow: none; padding: 0; }
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .billing-page { margin: 0; padding: 1.5rem 1rem; }
+  .doc-info-grid { grid-template-columns: 1fr; }
+  .doc-header { flex-direction: column; }
+  .doc-header__meta { text-align: left; }
+  .inline-form__fields { flex-direction: column; }
+  .inline-form__fields .field--sm { flex: 1 1 100%; }
+}

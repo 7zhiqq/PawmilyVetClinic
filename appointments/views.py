@@ -8,10 +8,12 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import Count, Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from accounts.models import Pet, Profile
 from accounts.views import _is_pet_owner, _is_staff_or_manager
+from billing.views import create_billing_for_appointment
 
 from .forms import AppointmentBookingForm, AppointmentStaffForm
 from .models import MAX_SLOTS, Appointment
@@ -495,6 +497,11 @@ def queue_action(request):
     apt.staff = request.user
     apt.save(update_fields=["status", "staff", "updated_at"])
 
+    if action == "completed":
+        create_billing_for_appointment(apt, created_by=request.user)
+        redirect_url = reverse("finalize_step1", args=[apt.pk])
+        return JsonResponse({"success": True, "new_status": apt.status, "redirect_url": redirect_url})
+
     return JsonResponse({"success": True, "new_status": apt.status})
 
 
@@ -551,6 +558,8 @@ def appointment_manage(request):
                 apt.status = Appointment.STATUS_COMPLETED
                 apt.staff = request.user
                 apt.save(update_fields=["status", "staff", "updated_at"])
+                create_billing_for_appointment(apt, created_by=request.user)
+                return redirect("finalize_step1", appointment_id=apt.pk)
             elif action == "no_show":
                 apt.status = Appointment.STATUS_NO_SHOW
                 apt.staff = request.user

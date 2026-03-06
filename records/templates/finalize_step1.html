@@ -1,0 +1,59 @@
+{% extends "finalize_base.html" %}
+
+{% block step_content %}
+<section class="step-card">
+  <div class="step-card__header">
+    <div class="step-card__icon step-card__icon--success">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div>
+      <h2 class="step-card__title">Appointment Completed</h2>
+      <p class="step-card__subtitle">This appointment has been marked as completed. Review the details below, then proceed to record the medical consultation.</p>
+    </div>
+  </div>
+
+  <div class="step-detail-grid">
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-calendar"></i> Date</span>
+      <span class="step-detail-value">{{ appointment.appointment_date|date:"F j, Y" }}</span>
+    </div>
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-clock"></i> Time</span>
+      <span class="step-detail-value">{{ appointment.start_time|time:"g:i A" }}</span>
+    </div>
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-paw"></i> Pet</span>
+      <span class="step-detail-value">{{ pet.name }} ({{ pet.species|capfirst }}{% if pet.breed %} · {{ pet.breed }}{% endif %})</span>
+    </div>
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-user"></i> Owner</span>
+      <span class="step-detail-value">{{ appointment.owner.get_full_name|default:appointment.owner.username }}</span>
+    </div>
+    {% if appointment.reason %}
+    <div class="step-detail-item step-detail-item--full">
+      <span class="step-detail-label"><i class="fa-solid fa-comment-medical"></i> Reason for Visit</span>
+      <span class="step-detail-value">{{ appointment.reason }}</span>
+    </div>
+    {% endif %}
+    {% if appointment.staff %}
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-user-doctor"></i> Attended By</span>
+      <span class="step-detail-value">{{ appointment.staff.get_full_name|default:appointment.staff.username }}</span>
+    </div>
+    {% endif %}
+    <div class="step-detail-item">
+      <span class="step-detail-label"><i class="fa-solid fa-tag"></i> Type</span>
+      <span class="step-detail-value">{{ appointment.get_appointment_type_display }}</span>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block step_footer %}
+<a href="{% url 'appointment_queue' %}" class="btn-secondary">
+  <i class="fa-solid fa-arrow-left"></i> Back to Queue
+</a>
+<a href="{% url 'finalize_step2' appointment.pk %}" class="btn-primary btn-primary--lg">
+  Continue to Medical Record <i class="fa-solid fa-arrow-right"></i>
+</a>
+{% endblock %}
