@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Walk-in Client — Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/walkin.css' %}">
+  <link rel="stylesheet" href="{% static 'css/stepper.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="walkin-page">
+      <div class="walkin-header">
+        <div class="walkin-header__text">
+          <h1><i class="fa-solid fa-user-plus"></i> Register Walk-in Client</h1>
+          <p>Create a client profile and pet record for a walk-in visitor. They can activate their online account later.</p>
+        </div>
+      </div>
+
+      <div class="walkin-body">
+        <div class="walkin-body__left">
+          <!-- Stepper -->
+          <div class="stepper">
+            {% for s in steps %}
+            <div class="stepper__item stepper__item--{{ s.state }}">
+              {% if s.state == 'completed' %}
+              <a href="{% url 'walkin_step1' %}" class="stepper__circle">
+                <i class="fa-solid fa-check"></i>
+              </a>
+              {% elif s.state == 'active' %}
+              <div class="stepper__circle">
+                <i class="fa-solid {{ s.icon }}"></i>
+              </div>
+              {% else %}
+              <div class="stepper__circle">
+                <span>{{ s.num }}</span>
+              </div>
+              {% endif %}
+              <span class="stepper__label">{{ s.label }}</span>
+            </div>
+            {% if not forloop.last %}
+            <div class="stepper__connector stepper__connector--{% if s.state == 'completed' %}done{% else %}pending{% endif %}"></div>
+            {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="walkin-card">
+          <div class="walkin-card__header">
+            <div class="walkin-card__title"><i class="fa-solid fa-user"></i> Furparent Information</div>
+            <div class="walkin-card__sub">Enter the client's details below. You'll add their pet in the next step.</div>
+          </div>
+
+          {% if client_form.errors %}
+          <div class="walkin-errors">
+            {% for field in client_form %}{% for error in field.errors %}<p><strong>{{ field.label }}:</strong> {{ error }}</p>{% endfor %}{% endfor %}
+            {% for error in client_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+
+          <form method="POST" class="walkin-form">
+            {% csrf_token %}
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_first_name"><i class="fa-solid fa-user"></i> First name *</label>
+                {{ client_form.first_name }}
+              </div>
+              <div class="field-group">
+                <label for="id_last_name"><i class="fa-solid fa-user"></i> Last name *</label>
+                {{ client_form.last_name }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row">
+              <div class="field-group">
+                <label for="id_email"><i class="fa-solid fa-envelope"></i> Email</label>
+                {{ client_form.email }}
+              </div>
+              <div class="field-group">
+                <label for="id_phone"><i class="fa-solid fa-phone"></i> Phone</label>
+                {{ client_form.phone }}
+              </div>
+            </div>
+
+            <div class="walkin-form__row walkin-form__row--full">
+              <div class="field-group">
+                <label for="id_address"><i class="fa-solid fa-location-dot"></i> Address</label>
+                {{ client_form.address }}
+              </div>
+            </div>
+
+            <div class="walkin-form__actions">
+              <button type="submit" class="btn-primary btn-primary--lg">
+                Continue to Pet Info <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        </div>
+
+        <!-- Recent registrations sidebar -->
+        <div class="walkin-card walkin-recent">
+          <div class="walkin-card__header">
+            <div class="walkin-card__title"><i class="fa-solid fa-clock-rotate-left"></i> Recent registrations</div>
+          </div>
+
+          {% if recent_registrations %}
+          <div class="walkin-recent__list">
+            {% for reg in recent_registrations %}
+            <div class="walkin-recent__item">
+              <div class="walkin-recent__name">
+                <i class="fa-solid fa-user"></i>
+                {{ reg.user.get_full_name|default:reg.user.username }}
+              </div>
+              <div class="walkin-recent__meta">
+                <span>{{ reg.created_at|date:"M j, Y g:i A" }}</span>
+                <span class="walkin-recent__pill {% if reg.is_activated %}walkin-recent__pill--active{% else %}walkin-recent__pill--pending{% endif %}">
+                  {% if reg.is_activated %}Activated{% else %}Pending{% endif %}
+                </span>
+              </div>
+              {% if reg.user.email %}
+              <div class="walkin-recent__email"><i class="fa-solid fa-envelope"></i> {{ reg.user.email }}</div>
+              {% endif %}
+              {% if not reg.is_activated %}
+              <a href="{% url 'walkin_print_card' reg.token %}" target="_blank" class="walkin-recent__print-link">
+                <i class="fa-solid fa-qrcode"></i> Print QR card
+              </a>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="walkin-empty">
+            <i class="fa-solid fa-inbox"></i>
+            <p>No walk-in registrations yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

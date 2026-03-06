@@ -275,27 +275,81 @@ def pet_edit(request, pk):
 
 # ─── Walk-in client registration (staff) ──────────────────────────────────────
 
+WALKIN_SESSION_KEY = "_walkin_client_data"
+
+WALKIN_STEPS = [
+    {"num": 1, "label": "Furparent Info", "icon": "fa-user"},
+    {"num": 2, "label": "Pet Info", "icon": "fa-paw"},
+]
+
+
+def _walkin_stepper(current_step, max_done=0):
+    """Build stepper context list for walk-in registration."""
+    steps = []
+    for s in WALKIN_STEPS:
+        if s["num"] <= max_done:
+            state = "completed"
+        elif s["num"] == current_step:
+            state = "active"
+        else:
+            state = "upcoming"
+        clickable = s["num"] <= max(max_done + 1, current_step)
+        steps.append({**s, "state": state, "clickable": clickable})
+    return steps
+
+
+def _recent_walkins():
+    return (
+        WalkInRegistration.objects.select_related("user", "user__profile", "created_by")
+        .order_by("-created_at")[:20]
+    )
+
+
+@login_required
+def walkin_step1(request):
+    """Step 1 — Furparent (client) information."""
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can register walk-in clients.")
+
+    saved = request.session.get(WALKIN_SESSION_KEY)
+
+    if request.method == "POST":
+        client_form = WalkInClientForm(request.POST)
+        if client_form.is_valid():
+            request.session[WALKIN_SESSION_KEY] = client_form.cleaned_data
+            return redirect("walkin_step2")
+    else:
+        client_form = WalkInClientForm(initial=saved) if saved else WalkInClientForm()
+
+    return render(request, "walkin_step1.html", {
+        "client_form": client_form,
+        "steps": _walkin_stepper(1, max_done=0),
+        "current_step": 1,
+        "recent_registrations": _recent_walkins(),
+    })
+
 
 @login_required
 @transaction.atomic
-def walkin_register(request):
-    """Staff registers a new walk-in client and their pet."""
+def walkin_step2(request):
+    """Step 2 — Pet information & final submission."""
     if not _is_staff_or_manager(request.user):
         return HttpResponseForbidden("Only staff can register walk-in clients.")
+
+    client_data = request.session.get(WALKIN_SESSION_KEY)
+    if not client_data:
+        return redirect("walkin_step1")
 
     success_info = None
 
     if request.method == "POST":
-        client_form = WalkInClientForm(request.POST)
         pet_form = WalkInPetForm(request.POST)
+        if pet_form.is_valid():
+            # Create user
+            email = client_data.get("email") or ""
+            first = client_data["first_name"]
+            last = client_data["last_name"]
 
-        if client_form.is_valid() and pet_form.is_valid():
-            # Create user with unusable password (can't log in until activated)
-            email = client_form.cleaned_data.get("email") or ""
-            first = client_form.cleaned_data["first_name"]
-            last = client_form.cleaned_data["last_name"]
-
-            # Generate a unique username from first+last name
             base_username = f"{first.lower()}.{last.lower()}"[:30]
             base_username = "".join(c for c in base_username if c.isalnum() or c == ".")
             username = base_username
@@ -313,21 +367,18 @@ def walkin_register(request):
             user.set_unusable_password()
             user.save()
 
-            # Create profile
             Profile.objects.create(
                 user=user,
                 role=Profile.ROLE_PET_OWNER,
-                phone=client_form.cleaned_data.get("phone", ""),
-                address=client_form.cleaned_data.get("address", ""),
+                phone=client_data.get("phone", ""),
+                address=client_data.get("address", ""),
                 is_profile_completed=True,
             )
 
-            # Create pet
             pet = pet_form.save(commit=False)
             pet.owner = user
             pet.save()
 
-            # Create activation token
             registration = WalkInRegistration.objects.create(
                 user=user,
                 created_by=request.user,
@@ -335,7 +386,6 @@ def walkin_register(request):
 
             activate_path = reverse("walkin_activate", args=[registration.token])
             activate_url = request.build_absolute_uri(activate_path)
-
             qr_path = reverse("walkin_qr_image", args=[registration.token])
             qr_url = request.build_absolute_uri(qr_path)
             print_path = reverse("walkin_print_card", args=[registration.token])
@@ -349,24 +399,19 @@ def walkin_register(request):
                 "print_url": print_url,
             }
 
-            # Reset forms for next registration
-            client_form = WalkInClientForm()
+            # Clear session data
+            request.session.pop(WALKIN_SESSION_KEY, None)
             pet_form = WalkInPetForm()
     else:
-        client_form = WalkInClientForm()
         pet_form = WalkInPetForm()
 
-    # List recent walk-in registrations created by any staff
-    recent_registrations = (
-        WalkInRegistration.objects.select_related("user", "user__profile", "created_by")
-        .order_by("-created_at")[:20]
-    )
-
-    return render(request, "walkin_register.html", {
-        "client_form": client_form,
+    return render(request, "walkin_step2.html", {
         "pet_form": pet_form,
+        "client_data": client_data,
         "success_info": success_info,
-        "recent_registrations": recent_registrations,
+        "steps": _walkin_stepper(2, max_done=2 if success_info else 1),
+        "current_step": 2,
+        "recent_registrations": _recent_walkins(),
     })
 
 

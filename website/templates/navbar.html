@@ -14,9 +14,7 @@
         {% with role=user.profile.role|default:'' %}
           {% if user.is_superuser or role == 'manager' %}
             <li><a href="/accounts/invitations/">Manage users</a></li>
-            <li><a href="/accounts/pets/search/">Pet Records</a></li>
             <li><a href="/accounts/billing/">Billing</a></li>
-            <li><a href="/accounts/walkin/register/">Walk-in registration</a></li>
           {% elif role == 'staff' %}
             <li><a href="/accounts/appointments/calendar/">Calendar</a></li>
             <li><a href="/accounts/appointments/manage/">Appointments</a></li>

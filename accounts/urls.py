@@ -13,8 +13,10 @@ urlpatterns = [
     path("pets/", views.pet_list, name="pet_list"),
     path("pets/add/", views.pet_add, name="pet_add"),
     path("pets/<int:pk>/edit/", views.pet_edit, name="pet_edit"),
-    # Walk-in client registration
-    path("walkin/register/", views.walkin_register, name="walkin_register"),
+    # Walk-in client registration (2-step)
+    path("walkin/register/", views.walkin_step1, name="walkin_register"),
+    path("walkin/register/1/", views.walkin_step1, name="walkin_step1"),
+    path("walkin/register/2/", views.walkin_step2, name="walkin_step2"),
     path("walkin/activate/<str:token>/", views.walkin_activate, name="walkin_activate"),
     path("walkin/qr/<str:token>/", views.walkin_qr_image, name="walkin_qr_image"),
     path("walkin/print/<str:token>/", views.walkin_print_card, name="walkin_print_card"),
