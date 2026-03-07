@@ -5,4 +5,5 @@ from . import views
 urlpatterns = [
     path("", views.landing_page, name="home"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("reminders/", views.reminders_view, name="reminders"),
 ]

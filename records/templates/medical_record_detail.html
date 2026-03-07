@@ -253,6 +253,11 @@
             <label for="id_vaccine_name"><i class="fa-solid fa-syringe"></i> Vaccine Name</label>
             {{ vaccination_form.vaccine_name }}
           </div>
+          <div class="field-group">
+            <label for="id_vaccine_type"><i class="fa-solid fa-vial"></i> Vaccine Type</label>
+            {{ vaccination_form.vaccine_type }}
+            <span class="field-hint">{{ vaccination_form.vaccine_type.help_text }}</span>
+          </div>
           <div class="modal-form__row">
             <div class="field-group">
               <label for="id_date_administered"><i class="fa-solid fa-calendar"></i> Date Administered</label>

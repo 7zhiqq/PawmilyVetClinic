@@ -1,0 +1,92 @@
+<!-- Vaccination & Follow-up Reminders Section -->
+<div class="row mt-4">
+    {% if vaccination_schedules or followup_reminders %}
+        <div class="col-md-12">
+            <h4 class="mb-3">
+                <i class="fas fa-bell me-2"></i>Care Reminders
+            </h4>
+        </div>
+
+        <!-- Vaccination Schedules -->
+        {% if vaccination_schedules %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header {% if vaccination_schedules|length > 0 %}{% if vaccination_schedules.0.status == 'overdue' %}bg-danger text-white{% elif vaccination_schedules.0.status == 'due' %}bg-warning{% else %}bg-info text-white{% endif %}{% endif %}">
+                        <h5 class="mb-0">
+                            <i class="fas fa-syringe me-2"></i>Vaccination Schedule
+                            <span class="badge bg-light {% if vaccination_schedules.0.status == 'overdue' %}text-danger{% elif vaccination_schedules.0.status == 'due' %}text-dark{% else %}text-info{% endif %} float-end">{{ vaccination_schedules.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="list-group list-group-flush">
+                            {% for schedule in vaccination_schedules %}
+                                <div class="list-group-item small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>
+                                                {% if schedule.vaccine_type %}
+                                                    {{ schedule.vaccine_type.name }}
+                                                {% else %}
+                                                    Vaccine
+                                                {% endif %}
+                                            </strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                Due: {% if schedule.status == 'overdue' %}<span class="text-danger">{{ schedule.next_due_date }}</span>{% elif schedule.status == 'due' %}<span class="text-warning">{{ schedule.next_due_date }}</span>{% else %}<span class="text-info">{{ schedule.next_due_date }}</span>{% endif %}
+                                            </small>
+                                        </div>
+                                        {% if schedule.status == 'overdue' %}
+                                            <span class="badge bg-danger">OVERDUE</span>
+                                        {% elif schedule.status == 'due' %}
+                                            <span class="badge bg-warning text-dark">DUE</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Soon</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Follow-up Reminders -->
+        {% if followup_reminders %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header {% if followup_reminders|length > 0 %}{% if followup_reminders.0.status == 'overdue' %}bg-danger text-white{% elif followup_reminders.0.status == 'due' %}bg-warning{% else %}bg-info text-white{% endif %}{% endif %}">
+                        <h5 class="mb-0">
+                            <i class="fas fa-notes-medical me-2"></i>Follow-up Appointments
+                            <span class="badge bg-light {% if followup_reminders.0.status == 'overdue' %}text-danger{% elif followup_reminders.0.status == 'due' %}text-dark{% else %}text-info{% endif %} float-end">{{ followup_reminders.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="list-group list-group-flush">
+                            {% for reminder in followup_reminders %}
+                                <div class="list-group-item small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ reminder.reason }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                Due: {% if reminder.status == 'overdue' %}<span class="text-danger">{{ reminder.follow_up_date }}</span>{% elif reminder.status == 'due' %}<span class="text-warning">{{ reminder.follow_up_date }}</span>{% else %}<span class="text-info">{{ reminder.follow_up_date }}</span>{% endif %}
+                                            </small>
+                                        </div>
+                                        {% if reminder.status == 'overdue' %}
+                                            <span class="badge bg-danger">OVERDUE</span>
+                                        {% elif reminder.status == 'due' %}
+                                            <span class="badge bg-warning text-dark">DUE</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Planned</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

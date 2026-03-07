@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Medical Reminders - Pawmily{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">
+                <i class="fas fa-bell me-2"></i>Medical Reminders &amp; Upcoming Care
+            </h1>
+        </div>
+    </div>
+
+    {% if role == "pet_owner" %}
+        <!-- Pet Owner View -->
+        <div class="row">
+            <!-- Overdue Vaccinations -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-circle me-2"></i>Overdue Vaccinations
+                            <span class="badge bg-light text-danger float-end">{{ vaccinations_overdue.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if vaccinations_overdue %}
+                            <div class="list-group list-group-flush">
+                                {% for vax in vaccinations_overdue %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <strong>{{ vax.pet.name }}</strong>
+                                                    {% if vax.vaccine_type %}
+                                                        - {{ vax.vaccine_type.name }}
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Due: <span class="text-danger"><strong>{{ vax.next_due_date }}</strong></span>
+                                                    ({{ vax.days_until_due }} days overdue)
+                                                </small>
+                                            </div>
+                                            <a href="{% url 'medical_records_list' vax.pet.id %}" class="btn btn-sm btn-danger">
+                                                Schedule Now
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>All caught up!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Due Soon Vaccinations -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>Due Soon - Vaccinations
+                            <span class="badge bg-light text-dark float-end">{{ vaccinations_due.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if vaccinations_due %}
+                            <div class="list-group list-group-flush">
+                                {% for vax in vaccinations_due %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <strong>{{ vax.pet.name }}</strong>
+                                                    {% if vax.vaccine_type %}
+                                                        - {{ vax.vaccine_type.name }}
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Due: <strong>{{ vax.next_due_date }}</strong>
+                                                    (in {{ vax.days_until_due }} days)
+                                                </small>
+                                            </div>
+                                            <a href="{% url 'medical_records_list' vax.pet.id %}" class="btn btn-sm btn-warning">
+                                                View Records
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No vaccinations due in the next 2 weeks.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Overdue Follow-ups -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-notes-medical me-2"></i>Overdue Follow-ups
+                            <span class="badge bg-light text-danger float-end">{{ followups_overdue.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if followups_overdue %}
+                            <div class="list-group list-group-flush">
+                                {% for followup in followups_overdue %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <strong>{{ followup.pet.name }}</strong> - {{ followup.reason }}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Due: <span class="text-danger"><strong>{{ followup.follow_up_date }}</strong></span>
+                                                    ({{ followup.days_until_due }} days overdue)
+                                                </small>
+                                            </div>
+                                            <a href="{% url 'medical_record_detail' followup.pet.id followup.medical_record.id %}" class="btn btn-sm btn-danger">
+                                                View Record
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>All caught up!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Due Soon Follow-ups -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>Due Soon - Follow-ups
+                            <span class="badge bg-light text-dark float-end">{{ followups_due.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if followups_due %}
+                            <div class="list-group list-group-flush">
+                                {% for followup in followups_due %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <strong>{{ followup.pet.name }}</strong> - {{ followup.reason }}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Due: <strong>{{ followup.follow_up_date }}</strong>
+                                                    (in {{ followup.days_until_due }} days)
+                                                </small>
+                                            </div>
+                                            <a href="{% url 'medical_record_detail' followup.pet.id followup.medical_record.id %}" class="btn btn-sm btn-warning">
+                                                View Record
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No follow-ups due in the next week.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Vaccinations (Informational) -->
+        {% if vaccinations_pending %}
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar me-2"></i>Upcoming Vaccinations
+                                <span class="badge bg-light text-info float-end">{{ vaccinations_pending.count }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for vax in vaccinations_pending %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <strong>{{ vax.pet.name }}</strong>
+                                                    {% if vax.vaccine_type %}
+                                                        - {{ vax.vaccine_type.name }}
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Due: <strong>{{ vax.next_due_date }}</strong>
+                                                    (in {{ vax.days_until_due }} days)
+                                                </small>
+                                            </div>
+                                            <a href="{% url 'medical_records_list' vax.pet.id %}" class="btn btn-sm btn-info">
+                                                View Records
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Pending Follow-ups (Informational) -->
+        {% if followups_pending %}
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="card border-secondary">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list-check me-2"></i>Scheduled Follow-ups
+                                <span class="badge bg-light text-secondary float-end">{{ followups_pending.count }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for followup in followups_pending %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <strong>{{ followup.pet.name }}</strong> - {{ followup.reason }}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Scheduled: <strong>{{ followup.follow_up_date }}</strong>
+                                                    (in {{ followup.days_until_due }} days)
+                                                </small>
+                                            </div>
+                                            <a href="{% url 'medical_record_detail' followup.pet.id followup.medical_record.id %}" class="btn btn-sm btn-secondary">
+                                                View Record
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    {% elif role in ("staff", "manager") %}
+        <!-- Staff/Manager View - Priority-based -->
+        <div class="row">
+            <!-- Critical: Overdue Vaccinations -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Critical: Overdue Vaccinations
+                            <span class="badge bg-light text-danger float-end">{{ vaccinations_overdue.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if vaccinations_overdue %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Pet</th>
+                                            <th>Owner</th>
+                                            <th>Vaccine</th>
+                                            <th>Due Date</th>
+                                            <th>Days Overdue</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for vax in vaccinations_overdue %}
+                                            <tr>
+                                                <td><strong>{{ vax.pet.name }}</strong></td>
+                                                <td>{{ vax.pet.owner.get_full_name|default:vax.pet.owner.username }}</td>
+                                                <td>{% if vax.vaccine_type %}{{ vax.vaccine_type.name }}{% endif %}</td>
+                                                <td><span class="badge bg-danger">{{ vax.next_due_date }}</span></td>
+                                                <td><span class="badge bg-danger">{{ vax.days_until_due|abs }}</span></td>
+                                                <td>
+                                                    <a href="{% url 'medical_records_list' vax.pet.id %}" class="btn btn-xs btn-danger">Contact Owner</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>No overdue vaccinations!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority: Due Soon Vaccinations -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>Priority: Due Soon - Vaccinations
+                            <span class="badge bg-light text-dark float-end">{{ vaccinations_due.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if vaccinations_due %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Pet</th>
+                                            <th>Owner</th>
+                                            <th>Vaccine</th>
+                                            <th>Due Date</th>
+                                            <th>Days Until Due</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for vax in vaccinations_due %}
+                                            <tr>
+                                                <td><strong>{{ vax.pet.name }}</strong></td>
+                                                <td>{{ vax.pet.owner.get_full_name|default:vax.pet.owner.username }}</td>
+                                                <td>{% if vax.vaccine_type %}{{ vax.vaccine_type.name }}{% endif %}</td>
+                                                <td><span class="badge bg-warning text-dark">{{ vax.next_due_date }}</span></td>
+                                                <td><span class="badge bg-warning text-dark">{{ vax.days_until_due }}</span></td>
+                                                <td>
+                                                    <a href="{% url 'medical_records_list' vax.pet.id %}" class="btn btn-xs btn-warning">Send Reminder</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No vaccinations due soon.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical: Overdue Follow-ups -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Critical: Overdue Follow-ups
+                            <span class="badge bg-light text-danger float-end">{{ followups_overdue.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if followups_overdue %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Pet</th>
+                                            <th>Owner</th>
+                                            <th>Reason</th>
+                                            <th>Due Date</th>
+                                            <th>Days Overdue</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for followup in followups_overdue %}
+                                            <tr>
+                                                <td><strong>{{ followup.pet.name }}</strong></td>
+                                                <td>{{ followup.pet.owner.get_full_name|default:followup.pet.owner.username }}</td>
+                                                <td>{{ followup.reason }}</td>
+                                                <td><span class="badge bg-danger">{{ followup.follow_up_date }}</span></td>
+                                                <td><span class="badge bg-danger">{{ followup.days_until_due|abs }}</span></td>
+                                                <td>
+                                                    <a href="{% url 'medical_record_detail' followup.pet.id followup.medical_record.id %}" class="btn btn-xs btn-danger">Contact Owner</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>No overdue follow-ups!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority: Due Soon Follow-ups -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>Priority: Due Soon - Follow-ups
+                            <span class="badge bg-light text-dark float-end">{{ followups_due.count }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if followups_due %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Pet</th>
+                                            <th>Owner</th>
+                                            <th>Reason</th>
+                                            <th>Due Date</th>
+                                            <th>Days Until Due</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for followup in followups_due %}
+                                            <tr>
+                                                <td><strong>{{ followup.pet.name }}</strong></td>
+                                                <td>{{ followup.pet.owner.get_full_name|default:followup.pet.owner.username }}</td>
+                                                <td>{{ followup.reason }}</td>
+                                                <td><span class="badge bg-warning text-dark">{{ followup.follow_up_date }}</span></td>
+                                                <td><span class="badge bg-warning text-dark">{{ followup.days_until_due }}</span></td>
+                                                <td>
+                                                    <a href="{% url 'medical_record_detail' followup.pet.id followup.medical_record.id %}" class="btn btn-xs btn-warning">Send Reminder</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No follow-ups due soon.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>Please log in to view medical reminders.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

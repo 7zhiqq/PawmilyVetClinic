@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,7 +14,8 @@ from appointments.models import Appointment
 from billing.views import add_vaccination_to_billing
 
 from .forms import MedicalAttachmentForm, MedicalRecordForm, VaccinationRecordForm
-from .models import MedicalRecord
+from .models import MedicalRecord, VaccinationSchedule, FollowUpReminder
+
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -24,6 +26,31 @@ def _can_view_medical_records(user, pet):
     if _is_staff_or_manager(user):
         return True
     return pet.owner_id == user.id
+
+
+def _get_pet_reminders(pet):
+    """Get all vaccination and follow-up reminders for a pet, grouped by status."""
+    vaccin_schedules = pet.vaccination_schedules.filter(
+        status__in=[
+            VaccinationSchedule.STATUS_PENDING,
+            VaccinationSchedule.STATUS_DUE,
+            VaccinationSchedule.STATUS_OVERDUE,
+        ]
+    ).select_related("vaccine_type").order_by("next_due_date")
+    
+    followup_reminders = pet.followup_reminders.filter(
+        status__in=[
+            FollowUpReminder.STATUS_PENDING,
+            FollowUpReminder.STATUS_DUE,
+            FollowUpReminder.STATUS_OVERDUE,
+        ]
+    ).select_related("medical_record").order_by("follow_up_date")
+    
+    return {
+        "vaccinations": vaccin_schedules,
+        "followups": followup_reminders,
+    }
+
 
 
 # ─── Medical Records ─────────────────────────────────────────────────────────
@@ -38,18 +65,21 @@ def medical_records_list(request, pet_id):
 
     records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
     vaccinations = pet.vaccinations.all()
+    reminders = _get_pet_reminders(pet)
 
     ctx = {
         "pet": pet,
         "records": records,
         "vaccinations": vaccinations,
+        "vaccination_schedules": reminders["vaccinations"],
+        "followup_reminders": reminders["followups"],
         "is_staff": _is_staff_or_manager(request.user),
     }
 
     # Provide blank forms for modals (staff only)
     if _is_staff_or_manager(request.user):
         ctx["record_form"] = MedicalRecordForm()
-        ctx["vaccination_form"] = VaccinationRecordForm()
+        ctx["vaccination_form"] = VaccinationRecordForm(pet=pet)
 
     return render(request, "medical_records_list.html", ctx)
 
@@ -76,7 +106,7 @@ def medical_record_detail(request, pet_id, record_id):
     # Provide blank forms for modals (staff only)
     if _is_staff_or_manager(request.user):
         ctx["edit_form"] = MedicalRecordForm(instance=record)
-        ctx["vaccination_form"] = VaccinationRecordForm()
+        ctx["vaccination_form"] = VaccinationRecordForm(pet=pet)
         ctx["attachment_form"] = MedicalAttachmentForm()
 
     return render(request, "medical_record_detail.html", ctx)
@@ -103,13 +133,16 @@ def medical_record_add(request, pet_id):
         # Re-render records list with invalid form so modal auto-opens
         records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
         vaccinations = pet.vaccinations.all()
+        reminders = _get_pet_reminders(pet)
         return render(request, "medical_records_list.html", {
             "pet": pet,
             "records": records,
             "vaccinations": vaccinations,
+            "vaccination_schedules": reminders["vaccinations"],
+            "followup_reminders": reminders["followups"],
             "is_staff": True,
             "record_form": form,
-            "vaccination_form": VaccinationRecordForm(),
+            "vaccination_form": VaccinationRecordForm(pet=pet),
         })
     return redirect("medical_records_list", pet_id=pet_id)
 
@@ -136,7 +169,7 @@ def medical_record_edit(request, pet_id, record_id):
             "record": record,
             "is_staff": True,
             "edit_form": form,
-            "vaccination_form": VaccinationRecordForm(),
+            "vaccination_form": VaccinationRecordForm(pet=pet),
             "attachment_form": MedicalAttachmentForm(),
         })
     return redirect("medical_record_detail", pet_id=pet_id, record_id=record_id)
@@ -154,7 +187,7 @@ def vaccination_add(request, pet_id):
     appointment_id = request.POST.get("appointment_id") or request.GET.get("appointment_id")
 
     if request.method == "POST":
-        form = VaccinationRecordForm(request.POST)
+        form = VaccinationRecordForm(request.POST, pet=pet)
         if form.is_valid():
             vax = form.save(commit=False)
             vax.pet = pet
@@ -194,10 +227,13 @@ def vaccination_add(request, pet_id):
         else:
             records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
             vaccinations = pet.vaccinations.all()
+            reminders = _get_pet_reminders(pet)
             return render(request, "medical_records_list.html", {
                 "pet": pet,
                 "records": records,
                 "vaccinations": vaccinations,
+                "vaccination_schedules": reminders["vaccinations"],
+                "followup_reminders": reminders["followups"],
                 "is_staff": True,
                 "record_form": MedicalRecordForm(),
                 "vaccination_form": form,
@@ -230,7 +266,7 @@ def attachment_add(request, pet_id, record_id):
             "record": record,
             "is_staff": True,
             "edit_form": MedicalRecordForm(instance=record),
-            "vaccination_form": VaccinationRecordForm(),
+            "vaccination_form": VaccinationRecordForm(pet=pet),
             "attachment_form": form,
         })
     return redirect("medical_record_detail", pet_id=pet_id, record_id=record_id)
@@ -371,7 +407,7 @@ def finalize_step3(request, appointment_id):
         "appointment": apt,
         "pet": pet,
         "medical_record": medical_record,
-        "vaccination_form": VaccinationRecordForm(),
+        "vaccination_form": VaccinationRecordForm(pet=pet),
         "vaccinations": vaccinations,
         "steps": _stepper_context(3, apt),
         "current_step": 3,
