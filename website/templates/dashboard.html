@@ -193,7 +193,94 @@
 
       <section class="dashboard-grid">
 
-        <!-- ── Quick Actions ── -->
+        <!-- ── Left Column (Pet Owner) ── -->
+        {% if role == 'pet_owner' %}
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- ── Quick Actions ── -->
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Quick actions</h2>
+            <p class="dashboard-card__sub">Jump straight into the most common.</p>
+            <div class="dashboard-actions">
+              <button type="button" class="dashboard-action-btn dashboard-action-btn--primary" id="openBookModal">
+                <i class="fa-solid fa-calendar-plus"></i> Book appointment
+              </button>
+              <button type="button" class="dashboard-action-btn" id="openAddPetModal">
+                <i class="fa-solid fa-paw"></i> Add pet
+              </button>
+              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
+                <i class="fa-solid fa-calendar-days"></i> Calendar
+              </a>
+              <a href="/accounts/pets/" class="dashboard-action-btn">
+                <i class="fa-solid fa-paw"></i> My pets
+              </a>
+              <a href="/accounts/billing/" class="dashboard-action-btn">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Billing
+              </a>
+              <button type="button" class="dashboard-action-btn" id="openProfileModal">
+                <i class="fa-solid fa-user"></i> My profile
+              </button>
+            </div>
+          </section>
+
+          <!-- ── Billing & Payment Section ── -->
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Billing & Payment</h2>
+            <p class="dashboard-card__sub">Your recent billing records and payment history.</p>
+            
+            {% if recent_billing %}
+            <div class="billing-table-wrap" style="max-height: 400px; overflow-y: auto; margin-top: 1rem;">
+              <table class="billing-table" style="width:100%; border-collapse: collapse;">
+                <thead style="position: sticky; top: 0; background: #fafafa; z-index: 1;">
+                  <tr style="border-bottom: 2px solid #e5e7eb;">
+                    <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Invoice #</th>
+                    <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Date</th>
+                    <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Pet</th>
+                    <th style="padding: 0.75rem 0.5rem; text-align: right; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Total</th>
+                    <th style="padding: 0.75rem 0.5rem; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+                    <th style="padding: 0.75rem 0.5rem; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bill in recent_billing %}
+                  <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.15s;">
+                    <td style="padding: 0.75rem 0.5rem; font-size: 0.85rem; font-weight: 600; color: #111827;">{{ bill.invoice_number }}</td>
+                    <td style="padding: 0.75rem 0.5rem; font-size: 0.85rem; color: #374151;">{{ bill.created_at|date:"M j, Y" }}</td>
+                    <td style="padding: 0.75rem 0.5rem; font-size: 0.85rem; color: #374151;">{{ bill.pet.name|default:"—" }}</td>
+                    <td style="padding: 0.75rem 0.5rem; font-size: 0.85rem; font-weight: 600; color: #111827; text-align: right;">₱{{ bill.total_amount|floatformat:2 }}</td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <span class="apt-pill {% if bill.payment_status == 'paid' %}confirmed{% elif bill.payment_status == 'partial' %}pending{% else %}pending{% endif %}" style="font-size: 0.68rem;">
+                        {{ bill.get_payment_status_display }}
+                      </span>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <a href="{% url 'billing_detail' bill.pk %}" class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; text-decoration: none;">
+                        <i class="fa-solid fa-eye" style="font-size: 0.65rem;"></i> View
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+              <a href="{% url 'billing_list' %}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.1rem; font-size: 0.875rem; text-decoration: none;">
+                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i> View All Billing
+              </a>
+            </div>
+            
+            {% else %}
+            <div style="text-align: center; padding: 2rem 1rem; color: #9ca3af;">
+              <span style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;">💳</span>
+              <h3 style="font-size: 1rem; font-weight: 600; color: #6b7280; margin-bottom: 0.35rem;">No billing records yet</h3>
+              <p style="font-size: 0.85rem;">Billing records are created when appointments are completed.</p>
+            </div>
+            {% endif %}
+          </section>
+        </div>
+
+        <!-- ── Left Column (Staff/Manager) ── -->
+        {% else %}
         <section class="dashboard-card">
           <h2 class="dashboard-card__title">Quick actions</h2>
           <p class="dashboard-card__sub">Jump straight into the most common.</p>
@@ -218,25 +305,10 @@
               <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
                 <i class="fa-solid fa-calendar-days"></i> Calendar
               </a>
-            {% else %}
-              <button type="button" class="dashboard-action-btn dashboard-action-btn--primary" id="openBookModal">
-                <i class="fa-solid fa-calendar-plus"></i> Book appointment
-              </button>
-              <button type="button" class="dashboard-action-btn" id="openAddPetModal">
-                <i class="fa-solid fa-paw"></i> Add pet
-              </button>
-              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
-                <i class="fa-solid fa-calendar-days"></i> Calendar
-              </a>
-              <a href="/accounts/pets/" class="dashboard-action-btn">
-                <i class="fa-solid fa-paw"></i> My pets
-              </a>
-              <button type="button" class="dashboard-action-btn" id="openProfileModal">
-                <i class="fa-solid fa-user"></i> My profile
-              </button>
             {% endif %}
           </div>
         </section>
+        {% endif %}
 
         <!-- ── Aside: role-specific panel ── -->
         <aside class="aside-card">

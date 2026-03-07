@@ -21,6 +21,7 @@ from accounts.models import Pet, Profile
 from appointments.forms import AppointmentBookingForm, AppointmentStaffForm
 from appointments.models import Appointment
 from records.models import VaccinationSchedule, FollowUpReminder
+from billing.models import BillingRecord
 
 User = get_user_model()
 
@@ -78,6 +79,13 @@ def dashboard(request):
                 FollowUpReminder.STATUS_OVERDUE,
             ]
         ).select_related("pet", "medical_record").order_by("follow_up_date")[:5]
+
+        # Recent billing records for the owner
+        context["recent_billing"] = BillingRecord.objects.select_related(
+            "appointment", "pet"
+        ).filter(
+            owner=request.user
+        ).order_by("-created_at")[:5]
 
         # Queue View: owner's position in today's queue
         today = date.today()
