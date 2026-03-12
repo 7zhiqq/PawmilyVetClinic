@@ -51,6 +51,10 @@
           <div class="stat-card__num">{{ stats.cancelled }}</div>
           <div class="stat-card__label">Cancelled</div>
         </div>
+        <div class="stat-card stat-card--reject">
+          <div class="stat-card__num">{{ stats.rejected }}</div>
+          <div class="stat-card__label">Rejected</div>
+        </div>
         <div class="stat-card stat-card--noshow">
           <div class="stat-card__num">{{ stats.no_show }}</div>
           <div class="stat-card__label">No Show</div>
@@ -152,6 +156,7 @@
         </div>
         {% endfor %}
       </div>
+      {% include "includes/pagination.html" with page_obj=appointments_page_obj page_param="appointments_page" pagination_query=appointments_pagination_query %}
       {% else %}
       <div class="manage-empty">
         <span class="manage-empty__icon">📅</span>

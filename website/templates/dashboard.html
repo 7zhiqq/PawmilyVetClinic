@@ -77,6 +77,8 @@
     .stat-item--green  { border-top-color: #34d399; }
     .stat-item--yellow { border-top-color: #fbbf24; }
     .stat-item--blue   { border-top-color: #60a5fa; }
+    .stat-item--orange { border-top-color: #fb923c; }
+    .stat-item--gray   { border-top-color: #9ca3af; }
     .stat-item__num   { font-size: 1.5rem; font-weight: 800; color: #111827; letter-spacing: -0.04em; line-height: 1; }
     .stat-item__label { font-size: 0.71rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.2rem; }
 
@@ -113,6 +115,222 @@
     .aside-card__link:hover { background: #f3f4f6; border-color: #d1d5db; }
     .aside-card__link--primary { background: #111827; color: #fff; border-color: #111827; }
     .aside-card__link--primary:hover { background: #1f2937; border-color: #1f2937; }
+
+    /* ── Staff/Manager operational dashboard ── */
+    .ops-stack { display: flex; flex-direction: column; gap: 1.1rem; }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 0.95rem;
+    }
+    .summary-card {
+      background: linear-gradient(145deg, #f8fafc, #eef2f7);
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 0.85rem 0.95rem;
+    }
+    .summary-card__label {
+      color: #6b7280;
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .summary-card__value {
+      color: #0f172a;
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .ops-queue-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.9rem;
+    }
+    .ops-queue-box {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 0.75rem 0.85rem;
+    }
+    .ops-queue-box__label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #6b7280;
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+    .ops-queue-box__value { font-size: 1.05rem; font-weight: 800; color: #111827; }
+    .ops-queue-box__sub { font-size: 0.79rem; color: #6b7280; margin-top: 0.2rem; }
+
+    .ops-table-wrap { overflow-x: auto; margin-top: 0.9rem; }
+    .ops-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 670px;
+    }
+    .ops-table th {
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.65rem 0.55rem;
+    }
+    .ops-table td {
+      font-size: 0.84rem;
+      color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+      padding: 0.7rem 0.55rem;
+      vertical-align: middle;
+    }
+    .ops-table td strong { color: #111827; }
+
+    .ops-two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .vacc-alert-list {
+      list-style: none;
+      margin: 0.85rem 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .vacc-alert-item {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 0.62rem 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      align-items: center;
+    }
+    .vacc-alert-item__pet { font-size: 0.83rem; font-weight: 700; color: #111827; }
+    .vacc-alert-item__meta { font-size: 0.75rem; color: #6b7280; margin-top: 0.1rem; }
+
+    .billing-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+    }
+    .billing-kpi {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 0.6rem 0.65rem;
+    }
+    .billing-kpi__label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .billing-kpi__value {
+      margin-top: 0.3rem;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #111827;
+      line-height: 1;
+    }
+
+    .revenue-chart-wrap {
+      margin-top: 0.9rem;
+      height: 180px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 0.5rem;
+    }
+
+    .revenue-chart-wrap canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    .activity-list {
+      margin: 0.9rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .activity-item {
+      border: 1px solid #edf2f7;
+      background: #fbfcfe;
+      border-radius: 12px;
+      padding: 0.62rem 0.75rem;
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-start;
+    }
+    .activity-item__icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: #eef2ff;
+      color: #4f46e5;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.82rem;
+    }
+    .activity-item__title { font-size: 0.82rem; font-weight: 700; color: #111827; }
+    .activity-item__meta { font-size: 0.76rem; color: #6b7280; margin-top: 0.1rem; }
+
+    .aside-divider { height:1px; background:#f3f4f6; margin:0.2rem 0; }
+    .compact-apt-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .compact-apt-item {
+      border: 1px solid #edf2f7;
+      background: #fbfcfe;
+      border-radius: 12px;
+      padding: 0.6rem 0.72rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.55rem;
+      align-items: flex-start;
+    }
+    .compact-apt-item__title { font-size: 0.81rem; font-weight: 700; color: #111827; }
+    .compact-apt-item__meta { font-size: 0.74rem; color: #6b7280; margin-top: 0.1rem; }
+
+    @media (max-width: 1080px) {
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ops-two-col { grid-template-columns: minmax(0, 1fr); }
+      .billing-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 740px) {
+      .ops-queue-grid { grid-template-columns: minmax(0, 1fr); }
+      .summary-grid { grid-template-columns: minmax(0, 1fr); }
+      .billing-overview-grid { grid-template-columns: minmax(0, 1fr); }
+    }
 
     /* ── Modal styles ── */
     .modal-backdrop {
@@ -279,35 +497,214 @@
           </section>
         </div>
 
-        <!-- ── Left Column (Staff/Manager) ── -->
-        {% else %}
-        <section class="dashboard-card">
-          <h2 class="dashboard-card__title">Quick actions</h2>
-          <p class="dashboard-card__sub">Jump straight into the most common.</p>
-          <div class="dashboard-actions">
-            {% if role == 'manager' %}
-              <a href="/accounts/invitations/" class="dashboard-action-btn dashboard-action-btn--primary">
-                <i class="fa-solid fa-users-gear"></i> Manage users
+        <!-- ── Left Column (Manager) ── -->
+        {% elif role == 'manager' %}
+        <div class="ops-stack">
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Quick actions</h2>
+            <p class="dashboard-card__sub">Management and oversight tools.</p>
+            <div class="dashboard-actions">
+              <a href="/accounts/appointments/manage/" class="dashboard-action-btn dashboard-action-btn--primary">
+                <i class="fa-solid fa-clipboard-list"></i> Manage Appointments
               </a>
-              <button type="button" class="dashboard-action-btn" id="openScheduleModal">
-                <i class="fa-solid fa-plus"></i> Schedule / Walk-in
+              <a href="/accounts/billing/" class="dashboard-action-btn">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Billing Dashboard
+              </a>
+              <a href="/accounts/invitations/" class="dashboard-action-btn">
+                <i class="fa-solid fa-users-gear"></i> Manage Users
+              </a>
+              <a href="/accounts/pets/search/" class="dashboard-action-btn">
+                <i class="fa-solid fa-search"></i> Search Records
+              </a>
+            </div>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Today's Performance</h2>
+            <p class="dashboard-card__sub">Real-time operational snapshot and key performance indicators.</p>
+            <div class="summary-grid">
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-regular fa-calendar"></i> Today's appointments</div>
+                <div class="summary-card__value">{{ today_appointments_count|default:"0" }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-stethoscope"></i> Patients served</div>
+                <div class="summary-card__value">{{ patients_served_today|default:"0" }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-wallet"></i> Today's revenue</div>
+                <div class="summary-card__value">PHP {{ today_revenue|floatformat:2 }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-syringe"></i> Vaccinations administered</div>
+                <div class="summary-card__value">{{ vaccinations_administered_today|default:"0" }}</div>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Revenue & Financial Overview</h2>
+            <p class="dashboard-card__sub">Income trends and payment collection status.</p>
+            <div class="billing-overview-grid">
+              <article class="billing-kpi">
+                <div class="billing-kpi__label">Today's revenue</div>
+                <div class="billing-kpi__value">PHP {{ today_revenue|floatformat:2 }}</div>
+              </article>
+              <article class="billing-kpi">
+                <div class="billing-kpi__label">Last 7 days</div>
+                <div class="billing-kpi__value">PHP {{ weekly_revenue|floatformat:2 }}</div>
+              </article>
+              <article class="billing-kpi">
+                <div class="billing-kpi__label">Last 30 days</div>
+                <div class="billing-kpi__value">PHP {{ monthly_revenue|floatformat:2 }}</div>
+              </article>
+            </div>
+
+            <div class="revenue-chart-wrap" aria-label="Last 7 days revenue trend">
+              <canvas id="incomeTrendChart"></canvas>
+            </div>
+            {{ revenue_chart_data|json_script:"revenueChartData" }}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1rem;">
+              <article class="billing-kpi">
+                <div class="billing-kpi__label">Pending payments</div>
+                <div class="billing-kpi__value">{{ pending_payments|default:"0" }}</div>
+              </article>
+              <article class="billing-kpi">
+                <div class="billing-kpi__label">Paid today</div>
+                <div class="billing-kpi__value">{{ paid_invoices_today|default:"0" }}</div>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Clinic Throughput & Statistics</h2>
+            <p class="dashboard-card__sub">Appointment patterns and operational efficiency metrics.</p>
+            <div class="summary-grid">
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-chart-line"></i> Avg daily appointments</div>
+                <div class="summary-card__value">{{ avg_appointments_per_day|floatformat:1 }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-check-circle"></i> Completion rate</div>
+                <div class="summary-card__value">{{ completion_rate }}%</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-users"></i> Total patients served</div>
+                <div class="summary-card__value">{{ total_patients_served|default:"0" }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-syringe"></i> Total vaccinations</div>
+                <div class="summary-card__value">{{ total_vaccinations|default:"0" }}</div>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Appointment Type Distribution</h2>
+            <p class="dashboard-card__sub">Walk-in vs scheduled appointment breakdown (all-time).</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-person-walking"></i> Walk-in appointments</div>
+                <div class="summary-card__value">{{ walk_in_count|default:"0" }}</div>
+                <div class="summary-card__label" style="margin-top: 0.3rem; color: #7c3aed;">{{ walk_in_percentage }}% of total</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-calendar-check"></i> Scheduled appointments</div>
+                <div class="summary-card__value">{{ scheduled_count|default:"0" }}</div>
+                <div class="summary-card__label" style="margin-top: 0.3rem; color: #7c3aed;">{{ scheduled_percentage }}% of total</div>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <!-- ── Left Column (Staff) ── -->
+        {% elif role == 'staff' %}
+        <div class="ops-stack">
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Quick actions</h2>
+            <p class="dashboard-card__sub">Run core clinic operations from one place.</p>
+            <div class="dashboard-actions">
+              <button type="button" class="dashboard-action-btn dashboard-action-btn--primary" id="openScheduleModal">
+                <i class="fa-solid fa-calendar-plus"></i> Book Appointment
               </button>
-              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
-                <i class="fa-solid fa-calendar-days"></i> Calendar
+              <a href="/accounts/walkin/register/" class="dashboard-action-btn">
+                <i class="fa-solid fa-user-plus"></i> Register Walk-in
               </a>
-            {% elif role == 'staff' %}
-              <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="dashboard-action-btn dashboard-action-btn--primary">
-                <i class="fa-solid fa-stethoscope"></i> Today's queue
+              <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="dashboard-action-btn">
+                <i class="fa-solid fa-list-check"></i> View Queue
               </a>
-              <button type="button" class="dashboard-action-btn" id="openScheduleModal">
-                <i class="fa-solid fa-plus"></i> Schedule / Walk-in
-              </button>
-              <a href="/accounts/appointments/calendar/" class="dashboard-action-btn">
-                <i class="fa-solid fa-calendar-days"></i> Calendar
+              <a href="/accounts/billing/" class="dashboard-action-btn">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Create Billing
               </a>
-            {% endif %}
-          </div>
-        </section>
+              <a href="/accounts/appointments/manage/" class="dashboard-action-btn">
+                <i class="fa-solid fa-clipboard-list"></i> Manage Appointments
+              </a>
+              <a href="/accounts/pets/search/" class="dashboard-action-btn">
+                <i class="fa-solid fa-notes-medical"></i> Medical Records
+              </a>
+            </div>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Today's Clinic Summary</h2>
+            <p class="dashboard-card__sub">Real-time operational snapshot for appointments and services.</p>
+            <div class="summary-grid">
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-regular fa-calendar"></i> Today's appointments</div>
+                <div class="summary-card__value">{{ today_appointments_count|default:"0" }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-stethoscope"></i> Patients served</div>
+                <div class="summary-card__value">{{ patients_served_today|default:"0" }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-clock"></i> In queue</div>
+                <div class="summary-card__value">{{ queue_waiting_count|default:"0" }}</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-card__label"><i class="fa-solid fa-syringe"></i> Vaccinations today</div>
+                <div class="summary-card__value">{{ vaccinations_administered_today|default:"0" }}</div>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Vaccination Alerts</h2>
+            <p class="dashboard-card__sub">Pets with upcoming boosters and overdue vaccinations.</p>
+            <ul class="vacc-alert-list">
+              {% for alert in vaccination_alerts %}
+              <li class="vacc-alert-item">
+                <div>
+                  <div class="vacc-alert-item__pet">{{ alert.pet.name }}{% if alert.vaccine_type %} · {{ alert.vaccine_type.name }}{% endif %}</div>
+                  <div class="vacc-alert-item__meta">Due {{ alert.next_due_date|date:"M d, Y" }}</div>
+                </div>
+                <span class="apt-pill {% if alert.status == 'overdue' %}pending{% else %}confirmed{% endif %}">{{ alert.get_status_display }}</span>
+              </li>
+              {% empty %}
+              <li class="vacc-alert-item">
+                <div>
+                  <div class="vacc-alert-item__pet">No active alerts</div>
+                  <div class="vacc-alert-item__meta">All booster schedules are currently on track.</div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </section>
+
+          <section class="dashboard-card">
+            <h2 class="dashboard-card__title">Walk-in Registrations</h2>
+            <p class="dashboard-card__sub">Quickly access walk-in patient registration for unscheduled visits.</p>
+            <div class="dashboard-actions" style="display: flex; gap: 0.6rem;">
+              <a href="/accounts/walkin/register/" class="dashboard-action-btn dashboard-action-btn--primary" style="flex: 1;">
+                <i class="fa-solid fa-user-plus"></i> Register New Walk-in
+              </a>
+              <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="dashboard-action-btn" style="flex: 1;">
+                <i class="fa-solid fa-list"></i> View Today's Queue
+              </a>
+            </div>
+          </section>
+        </div>
         {% endif %}
 
         <!-- ── Aside: role-specific panel ── -->
@@ -408,14 +805,46 @@
               </div>
             {% endif %}
 
-          {% elif role == 'staff' %}
+          {% elif role == 'staff' or role == 'manager' %}
 
             <div>
-              <div class="aside-card__section-label">Today's snapshot</div>
-              <div class="aside-card__title">Appointments</div>
-              <div class="aside-card__sub">A quick look at today's clinic activity.</div>
+              <div class="aside-card__section-label">Live Queue Monitoring</div>
+              <div class="aside-card__title">Queue flow</div>
+              <div class="aside-card__sub">Now serving, waiting patients, and next in line.</div>
             </div>
 
+            <div class="ops-queue-grid" style="margin-top:0; grid-template-columns:minmax(0, 1fr);">
+              <article class="ops-queue-box">
+                <div class="ops-queue-box__label">Now Serving</div>
+                <div class="ops-queue-box__value" id="queueNowServingValue">
+                  {% if queue_now_serving %}#{{ queue_now_serving.queue_number }}{% else %}None{% endif %}
+                </div>
+                <div class="ops-queue-box__sub" id="queueNowServingMeta">
+                  {% if queue_now_serving %}{{ queue_now_serving.pet_name }}{% if queue_now_serving.owner_name %} · {{ queue_now_serving.owner_name }}{% endif %}{% else %}No active patient in queue{% endif %}
+                </div>
+              </article>
+              <article class="ops-queue-box">
+                <div class="ops-queue-box__label">Waiting in Queue</div>
+                <div class="ops-queue-box__value" id="queueWaitingCount">{{ queue_waiting_count|default:"0" }}</div>
+                <div class="ops-queue-box__sub">Patients waiting after current slot</div>
+              </article>
+              <article class="ops-queue-box">
+                <div class="ops-queue-box__label">Next in Line</div>
+                <div class="ops-queue-box__value" id="queueNextLineValue">
+                  {% if queue_next_in_line %}#{{ queue_next_in_line.queue_number }}{% else %}None{% endif %}
+                </div>
+                <div class="ops-queue-box__sub" id="queueNextLineMeta">
+                  {% if queue_next_in_line %}{{ queue_next_in_line.pet_name }}{% if queue_next_in_line.owner_name %} · {{ queue_next_in_line.owner_name }}{% endif %}{% else %}Queue cleared{% endif %}
+                </div>
+              </article>
+            </div>
+
+            <div class="aside-divider"></div>
+            <div>
+              <div class="aside-card__section-label">Today's Snapshot</div>
+              <div class="aside-card__title">Clinic activity</div>
+              <div class="aside-card__sub">Quick totals for today's appointments and statuses.</div>
+            </div>
             <div class="stat-row">
               <div class="stat-item stat-item--purple">
                 <div class="stat-item__num">{{ today_stats.total|default:"0" }}</div>
@@ -433,7 +862,91 @@
                 <div class="stat-item__num">{{ today_stats.completed|default:"0" }}</div>
                 <div class="stat-item__label">Completed</div>
               </div>
+              <div class="stat-item stat-item--orange">
+                <div class="stat-item__num">{{ today_stats.no_show|default:"0" }}</div>
+                <div class="stat-item__label">No Show</div>
+              </div>
+              <div class="stat-item stat-item--gray">
+                <div class="stat-item__num">{{ today_stats.cancelled|default:"0" }}</div>
+                <div class="stat-item__label">Cancelled</div>
+              </div>
             </div>
+
+            <div class="aside-divider"></div>
+            <div>
+              <div class="aside-card__section-label">Appointments</div>
+              <div class="aside-card__title">Today's appointments</div>
+              <div class="aside-card__sub">Current-day schedule with patient and service details.</div>
+            </div>
+            <ul class="compact-apt-list">
+              {% for apt in today_appointments_list %}
+              <li class="compact-apt-item">
+                <div>
+                  <div class="compact-apt-item__title">{{ apt.start_time|time:"g:i A" }} · {{ apt.pet.name|default:"Walk-in" }}</div>
+                  <div class="compact-apt-item__meta">{{ apt.owner.get_full_name|default:apt.owner.username }}{% if apt.reason %} · {{ apt.reason }}{% endif %}</div>
+                </div>
+                <span class="apt-pill {{ apt.status }}">{{ apt.get_status_display }}</span>
+              </li>
+              {% empty %}
+              <li class="compact-apt-item">
+                <div>
+                  <div class="compact-apt-item__title">No appointments today</div>
+                  <div class="compact-apt-item__meta">New bookings will appear here.</div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+
+            <div class="aside-divider"></div>
+            <div>
+              <div class="aside-card__section-label">Upcoming Appointments</div>
+              <div class="aside-card__title">Next hours/day</div>
+              <div class="aside-card__sub">Scheduled visits for the remaining day and tomorrow.</div>
+            </div>
+            <ul class="compact-apt-list">
+              {% for apt in upcoming_next_appointments %}
+              <li class="compact-apt-item">
+                <div>
+                  <div class="compact-apt-item__title">{{ apt.appointment_date|date:"M d" }} · {{ apt.start_time|time:"g:i A" }}</div>
+                  <div class="compact-apt-item__meta">{{ apt.pet.name|default:"Walk-in" }} · {{ apt.owner.get_full_name|default:apt.owner.username }}</div>
+                </div>
+                <span class="apt-pill {{ apt.status }}">{{ apt.get_status_display }}</span>
+              </li>
+              {% empty %}
+              <li class="compact-apt-item">
+                <div>
+                  <div class="compact-apt-item__title">No upcoming visits</div>
+                  <div class="compact-apt-item__meta">Your near-term schedule is clear.</div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+
+            <div class="aside-divider"></div>
+            <div>
+              <div class="aside-card__section-label">Recent Activity</div>
+              <div class="aside-card__title">Latest actions</div>
+              <div class="aside-card__sub">Walk-ins, completed appointments, records, and payments.</div>
+            </div>
+            <ul class="activity-list" style="margin-top:0;">
+              {% for activity in recent_activity %}
+              <li class="activity-item">
+                <span class="activity-item__icon"><i class="fa-solid {{ activity.icon }}"></i></span>
+                <div>
+                  <div class="activity-item__title">{{ activity.title }}</div>
+                  <div class="activity-item__meta">{{ activity.description }} · {{ activity.timestamp|date:"M d, g:i A" }}</div>
+                </div>
+              </li>
+              {% empty %}
+              <li class="activity-item">
+                <span class="activity-item__icon"><i class="fa-solid fa-clock"></i></span>
+                <div>
+                  <div class="activity-item__title">No recent activity</div>
+                  <div class="activity-item__meta">Actions will appear here as staff use the system.</div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
 
             <div class="aside-card__footer">
               <a href="/accounts/appointments/queue/?date={% now 'Y-m-d' %}" class="aside-card__link aside-card__link--primary">
@@ -442,42 +955,11 @@
               <a href="/accounts/appointments/manage/" class="aside-card__link">
                 <i class="fa-solid fa-calendar-days" style="font-size:0.7rem;"></i> Manage all
               </a>
-            </div>
-
-          {% elif role == 'manager' %}
-
-            <div>
-              <div class="aside-card__section-label">Clinic overview</div>
-              <div class="aside-card__title">Performance</div>
-              <div class="aside-card__sub">High-level stats for your clinic.</div>
-            </div>
-
-            <div class="stat-row">
-              <div class="stat-item stat-item--purple">
-                <div class="stat-item__num">{{ clinic_stats.appointments|default:"0" }}</div>
-                <div class="stat-item__label">Appointments</div>
-              </div>
-              <div class="stat-item stat-item--green">
-                <div class="stat-item__num">{{ clinic_stats.completed|default:"0" }}</div>
-                <div class="stat-item__label">Completed</div>
-              </div>
-              <div class="stat-item stat-item--blue">
-                <div class="stat-item__num">{{ clinic_stats.pet_owners|default:"0" }}</div>
-                <div class="stat-item__label">Pet owners</div>
-              </div>
-              <div class="stat-item stat-item--yellow">
-                <div class="stat-item__num">{{ clinic_stats.staff_active|default:"0" }}</div>
-                <div class="stat-item__label">Staff active</div>
-              </div>
-            </div>
-
-            <div class="aside-card__footer">
-              <a href="/accounts/invitations/" class="aside-card__link aside-card__link--primary">
+              {% if role == 'manager' %}
+              <a href="/accounts/invitations/" class="aside-card__link">
                 <i class="fa-solid fa-users-gear" style="font-size:0.7rem;"></i> Manage users
               </a>
-              <a href="/accounts/appointments/manage/" class="aside-card__link">
-                <i class="fa-solid fa-calendar-days" style="font-size:0.7rem;"></i> Appointments
-              </a>
+              {% endif %}
             </div>
 
           {% endif %}
@@ -538,8 +1020,18 @@
           </div>
           <div class="field-group">
             <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
-            <input type="text" id="id_reason" name="reason" placeholder="e.g. Vaccination, check-up"
-              value="{% if book_form %}{{ book_form.reason.value|default:'' }}{% endif %}" />
+            <select id="id_reason" name="reason" required>
+              {% if book_form %}
+                {% for value, label in book_form.fields.reason.choices %}
+                <option value="{{ value }}" {% if book_form.reason.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+          <div class="field-group" id="reasonOtherGroupOwnerDash" style="display:none;">
+            <label for="id_reason_other"><i class="fa-solid fa-pen"></i> Specify reason</label>
+            <input type="text" id="id_reason_other" name="reason_other" placeholder="Enter specific reason"
+              value="{% if book_form %}{{ book_form.reason_other.value|default:'' }}{% endif %}" />
           </div>
           <div class="slot-section">
             <div class="slot-section__label"><i class="fa-solid fa-clock"></i> Availability</div>
@@ -741,9 +1233,19 @@
               value="{% if staff_form %}{{ staff_form.start_time.value|default:'' }}{% endif %}" />
           </div>
           <div class="field-group">
-            <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason</label>
-            <input type="text" id="id_reason" name="reason" placeholder="Reason for visit"
-              value="{% if staff_form %}{{ staff_form.reason.value|default:'' }}{% endif %}" />
+            <label for="id_reason_staff"><i class="fa-solid fa-stethoscope"></i> Reason</label>
+            <select id="id_reason_staff" name="reason" required>
+              {% if staff_form %}
+                {% for value, label in staff_form.fields.reason.choices %}
+                <option value="{{ value }}" {% if staff_form.reason.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+          <div class="field-group" id="reasonOtherGroupStaffDash" style="display:none;">
+            <label for="id_reason_other_staff"><i class="fa-solid fa-pen"></i> Specify reason</label>
+            <input type="text" id="id_reason_other_staff" name="reason_other" placeholder="Enter specific reason"
+              value="{% if staff_form %}{{ staff_form.reason_other.value|default:'' }}{% endif %}" />
           </div>
           <div class="slot-section">
             <div class="slot-section__label"><i class="fa-solid fa-clock"></i> Availability</div>
@@ -766,12 +1268,71 @@
   </div>
   {% endif %}
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script>
   'use strict';
 
   const CLINIC_START_H = 8, CLINIC_END_H = 17;
   const SLOTS_URL = "{% url 'get_available_slots' %}";
   const MAX_SLOTS = 2;
+
+  (function initIncomeTrendChart() {
+    const chartCanvas = document.getElementById('incomeTrendChart');
+    const dataNode = document.getElementById('revenueChartData');
+    if (!chartCanvas || !dataNode || typeof Chart === 'undefined') return;
+
+    let chartData;
+    try {
+      chartData = JSON.parse(dataNode.textContent || '{}');
+    } catch (err) {
+      return;
+    }
+
+    const labels = Array.isArray(chartData.labels) ? chartData.labels : [];
+    const values = Array.isArray(chartData.values)
+      ? chartData.values.map((value) => Number(value) || 0)
+      : [];
+
+    new Chart(chartCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Revenue (PHP)',
+          data: values,
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(34, 197, 94, 0.18)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+          pointHoverRadius: 4,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `PHP ${Number(ctx.parsed.y || 0).toFixed(2)}`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => `PHP ${Number(value).toFixed(0)}`,
+            },
+          },
+        },
+      },
+    });
+  })();
 
   function buildClinicTimes() {
     const times = [];
@@ -855,6 +1416,9 @@
     const picker     = document.getElementById('slotPickerOwner');
     const slotHidden = document.getElementById('slotNumberOwner');
     const submit     = document.getElementById('bookSubmitBtn');
+    const reasonSel  = document.getElementById('id_reason');
+    const reasonOtherGroup = document.getElementById('reasonOtherGroupOwnerDash');
+    const reasonOtherInput = document.getElementById('id_reason_other');
     const ctrl = {};
     if (!modal) return;
 
@@ -866,6 +1430,15 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
 
     const onTimeSelected = t => loadSlots(dateInput.value, t, picker, slotHidden, submit, ctrl);
+    const toggleOtherReasonInput = () => {
+      const showOtherInput = reasonSel && reasonSel.value === 'Other';
+      if (!reasonOtherGroup || !reasonOtherInput) return;
+
+      reasonOtherGroup.style.display = showOtherInput ? '' : 'none';
+      reasonOtherInput.required = showOtherInput;
+      if (!showOtherInput) reasonOtherInput.value = '';
+    };
+
     const refreshChips = () => {
       renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
       timeHidden.value && dateInput.value
@@ -873,7 +1446,9 @@
         : (showMessage(picker,'Pick a date and time above to see available slots.',''), submit.disabled = true, slotHidden.value = '');
     };
     dateInput && dateInput.addEventListener('change', refreshChips);
+    reasonSel && reasonSel.addEventListener('change', toggleOtherReasonInput);
     renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+    toggleOtherReasonInput();
     if (modal.dataset.hasErrors === 'true') { openModal(); refreshChips(); }
   })();
 
@@ -891,6 +1466,9 @@
     const picker     = document.getElementById('slotPickerStaff');
     const slotHidden = document.getElementById('slotNumberStaff');
     const submit     = document.getElementById('scheduleSubmitBtn');
+    const reasonSel  = document.getElementById('id_reason_staff');
+    const reasonOtherGroup = document.getElementById('reasonOtherGroupStaffDash');
+    const reasonOtherInput = document.getElementById('id_reason_other_staff');
     const ctrl = {};
     if (!modal) return;
 
@@ -912,6 +1490,15 @@
     };
     ownerSel && ownerSel.addEventListener('change', filterPets);
 
+    const toggleOtherReasonInput = () => {
+      const showOtherInput = reasonSel && reasonSel.value === 'Other';
+      if (!reasonOtherGroup || !reasonOtherInput) return;
+
+      reasonOtherGroup.style.display = showOtherInput ? '' : 'none';
+      reasonOtherInput.required = showOtherInput;
+      if (!showOtherInput) reasonOtherInput.value = '';
+    };
+
     const onTimeSelected = t => loadSlots(dateInput.value, t, picker, slotHidden, submit, ctrl, typeSelect.value);
     const refreshChips = () => {
       chipGrid && renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
@@ -920,6 +1507,7 @@
         : (picker && submit && (showMessage(picker,'Pick a date and time above to see available slots.',''), submit.disabled = true, slotHidden.value = ''));
     };
     dateInput && dateInput.addEventListener('change', refreshChips);
+    reasonSel && reasonSel.addEventListener('change', toggleOtherReasonInput);
 
     const applyWalkInDefaults = () => {
       if (typeSelect.value !== 'walk_in') return;
@@ -941,9 +1529,11 @@
     });
 
     chipGrid && renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
-    if (modal.dataset.hasErrors === 'true') { openModal(); filterPets(); refreshChips(); }
+    toggleOtherReasonInput();
+    if (modal.dataset.hasErrors === 'true') { openModal(); filterPets(); toggleOtherReasonInput(); refreshChips(); }
     openBtn && openBtn.addEventListener('click', () => {
       chipGrid && renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+      toggleOtherReasonInput();
       if (typeSelect.value === 'walk_in') applyWalkInDefaults();
     });
   })();
@@ -976,6 +1566,60 @@
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
     if (modal.dataset.hasErrors === 'true') openModal();
+  })();
+
+  /* ── LIVE QUEUE (STAFF/MANAGER) ── */
+  (function () {
+    const nowServingValue = document.getElementById('queueNowServingValue');
+    const nowServingMeta = document.getElementById('queueNowServingMeta');
+    const waitingCount = document.getElementById('queueWaitingCount');
+    const nextLineValue = document.getElementById('queueNextLineValue');
+    const nextLineMeta = document.getElementById('queueNextLineMeta');
+
+    if (!nowServingValue || !waitingCount || !nextLineValue) return;
+
+    const queueDataUrl = "{% url 'queue_data' %}";
+    const todayStr = "{% now 'Y-m-d' %}";
+
+    const applyQueueData = (payload) => {
+      const nowServing = payload.now_serving || null;
+      const waitingList = payload.waiting || [];
+      const next = waitingList.length > 0 ? waitingList[0] : null;
+
+      if (nowServing) {
+        nowServingValue.textContent = `#${nowServing.queue_number || '-'}`;
+        nowServingMeta.textContent = `${nowServing.pet_name || 'Walk-in'}${nowServing.owner_name ? ` - ${nowServing.owner_name}` : ''}`;
+      } else {
+        nowServingValue.textContent = 'None';
+        nowServingMeta.textContent = 'No active patient in queue';
+      }
+
+      waitingCount.textContent = String(payload.waiting_count || 0);
+
+      if (next) {
+        nextLineValue.textContent = `#${next.queue_number || '-'}`;
+        nextLineMeta.textContent = `${next.pet_name || 'Walk-in'}${next.owner_name ? ` - ${next.owner_name}` : ''}`;
+      } else {
+        nextLineValue.textContent = 'None';
+        nextLineMeta.textContent = 'Queue cleared';
+      }
+    };
+
+    const refreshQueue = async () => {
+      try {
+        const response = await fetch(`${queueDataUrl}?date=${encodeURIComponent(todayStr)}`, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        applyQueueData(data);
+      } catch (err) {
+        // Keep last rendered queue state on transient network errors.
+      }
+    };
+
+    refreshQueue();
+    setInterval(refreshQueue, 20000);
   })();
   </script>
 </body>

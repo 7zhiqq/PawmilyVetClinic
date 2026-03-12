@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Billing — Pawmily</title>
+  <title>Invoices — Pawmily</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
@@ -20,10 +20,29 @@
     <main class="billing-page">
       <div class="billing-header">
         <div>
-          <h1>Billing</h1>
-          <p>{% if is_staff %}All billing records{% else %}Your billing history{% endif %}</p>
+          <h1>Invoices</h1>
+          <p>{% if is_staff %}All clinic invoices{% else %}Your invoice history{% endif %}</p>
         </div>
       </div>
+
+      <section class="billing-summary-grid">
+        <article class="billing-summary-card">
+          <p class="billing-summary-card__label">Total Invoices</p>
+          <p class="billing-summary-card__value">{{ invoice_count }}</p>
+        </article>
+        <article class="billing-summary-card">
+          <p class="billing-summary-card__label">Total Invoiced</p>
+          <p class="billing-summary-card__value">&#8369;{{ total_invoiced|floatformat:2 }}</p>
+        </article>
+        <article class="billing-summary-card">
+          <p class="billing-summary-card__label">Total Paid</p>
+          <p class="billing-summary-card__value">&#8369;{{ total_paid|floatformat:2 }}</p>
+        </article>
+        <article class="billing-summary-card billing-summary-card--accent">
+          <p class="billing-summary-card__label">Outstanding</p>
+          <p class="billing-summary-card__value">&#8369;{{ outstanding_total|floatformat:2 }}</p>
+        </article>
+      </section>
 
       {% if messages %}
       <div class="billing-messages">
@@ -34,10 +53,10 @@
       {% endif %}
 
       <!-- Filters -->
-      <div class="billing-filters">
+      <div class="billing-filters card-surface">
         <form method="get" class="billing-filter-form">
           <div class="billing-filter-group">
-            <input type="text" name="q" value="{{ search_q }}" placeholder="Search invoice #, owner, pet…" class="billing-search-input" />
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search invoice #, owner, pet..." class="billing-search-input" />
             <select name="status" class="billing-status-select">
               <option value="">All statuses</option>
               <option value="unpaid" {% if current_status == 'unpaid' %}selected{% endif %}>Unpaid</option>
@@ -50,6 +69,11 @@
       </div>
 
       {% if records %}
+      <section class="card-surface">
+        <div class="card-surface__header">
+          <h2>Invoice List</h2>
+          <p>Includes charges, paid amounts, and outstanding balances.</p>
+        </div>
       <div class="billing-table-wrap">
         <table class="billing-table">
           <thead>
@@ -72,9 +96,9 @@
               <td>{{ rec.created_at|date:"M j, Y" }}</td>
               <td>{{ rec.owner.get_full_name|default:rec.owner.username }}</td>
               <td>{{ rec.pet.name|default:"—" }}</td>
-              <td class="money">₱{{ rec.total_amount|floatformat:2 }}</td>
-              <td class="money">₱{{ rec.amount_paid|floatformat:2 }}</td>
-              <td class="money">₱{{ rec.balance_due|floatformat:2 }}</td>
+              <td class="money">&#8369;{{ rec.total_amount|floatformat:2 }}</td>
+              <td class="money">&#8369;{{ rec.amount_paid|floatformat:2 }}</td>
+              <td class="money">&#8369;{{ rec.balance_due|floatformat:2 }}</td>
               <td>
                 <span class="billing-pill billing-pill--{{ rec.payment_status }}">
                   {{ rec.get_payment_status_display }}
@@ -90,11 +114,13 @@
           </tbody>
         </table>
       </div>
+      {% include "includes/pagination.html" with page_obj=records_page_obj page_param="billing_page" pagination_query=records_pagination_query %}
+      </section>
       {% else %}
       <div class="billing-empty">
         <span class="billing-empty__icon">🧾</span>
-        <h3>No billing records found</h3>
-        <p>Billing records are created automatically when appointments are completed.</p>
+        <h3>No invoices found</h3>
+        <p>Invoices are created automatically when appointments are completed.</p>
       </div>
       {% endif %}
     </main>

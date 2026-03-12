@@ -7,6 +7,9 @@
   var closeBtn    = document.getElementById('closeScheduleModal');
   var ownerSelect = document.getElementById('id_owner');
   var petSelect   = document.getElementById('id_pet');
+  var reasonSelect = document.getElementById('id_reason');
+  var reasonOtherGroup = document.getElementById('reasonOtherGroup');
+  var reasonOtherInput = document.getElementById('id_reason_other');
 
   if (!modal) return;
 
@@ -29,15 +32,28 @@
     }
   }
 
+  function toggleOtherReasonInput() {
+    var showOtherInput = reasonSelect && reasonSelect.value === 'Other';
+    if (!reasonOtherGroup || !reasonOtherInput) return;
+
+    reasonOtherGroup.style.display = showOtherInput ? '' : 'none';
+    reasonOtherInput.required = showOtherInput;
+    if (!showOtherInput) {
+      reasonOtherInput.value = '';
+    }
+  }
+
   openBtn  && openBtn.addEventListener('click', openModal);
   openBtn2 && openBtn2.addEventListener('click', openModal);
   closeBtn && closeBtn.addEventListener('click', closeModal);
   ownerSelect && ownerSelect.addEventListener('change', filterPetsByOwner);
+  reasonSelect && reasonSelect.addEventListener('change', toggleOtherReasonInput);
 
   modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
   });
 
-  if (modal.dataset.hasErrors === 'true') { openModal(); filterPetsByOwner(); }
+  toggleOtherReasonInput();
+  if (modal.dataset.hasErrors === 'true') { openModal(); filterPetsByOwner(); toggleOtherReasonInput(); }
 })();

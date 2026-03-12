@@ -22,7 +22,7 @@
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">
                             <i class="fas fa-exclamation-circle me-2"></i>Overdue Vaccinations
-                            <span class="badge bg-light text-danger float-end">{{ vaccinations_overdue.count }}</span>
+                            <span class="badge bg-light text-danger float-end">{{ vaccinations_overdue.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -50,6 +50,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% include "includes/pagination.html" with page_obj=vaccinations_overdue page_param="vax_overdue_page" pagination_query=vaccinations_overdue_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>All caught up!</p>
                         {% endif %}
@@ -63,7 +64,7 @@
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
                             <i class="fas fa-calendar-check me-2"></i>Due Soon - Vaccinations
-                            <span class="badge bg-light text-dark float-end">{{ vaccinations_due.count }}</span>
+                            <span class="badge bg-light text-dark float-end">{{ vaccinations_due.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -91,6 +92,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% include "includes/pagination.html" with page_obj=vaccinations_due page_param="vax_due_page" pagination_query=vaccinations_due_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0">No vaccinations due in the next 2 weeks.</p>
                         {% endif %}
@@ -106,7 +108,7 @@
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">
                             <i class="fas fa-notes-medical me-2"></i>Overdue Follow-ups
-                            <span class="badge bg-light text-danger float-end">{{ followups_overdue.count }}</span>
+                            <span class="badge bg-light text-danger float-end">{{ followups_overdue.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -131,6 +133,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% include "includes/pagination.html" with page_obj=followups_overdue page_param="followup_overdue_page" pagination_query=followups_overdue_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>All caught up!</p>
                         {% endif %}
@@ -144,7 +147,7 @@
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
                             <i class="fas fa-clipboard-list me-2"></i>Due Soon - Follow-ups
-                            <span class="badge bg-light text-dark float-end">{{ followups_due.count }}</span>
+                            <span class="badge bg-light text-dark float-end">{{ followups_due.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -169,6 +172,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% include "includes/pagination.html" with page_obj=followups_due page_param="followup_due_page" pagination_query=followups_due_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0">No follow-ups due in the next week.</p>
                         {% endif %}
@@ -185,7 +189,7 @@
                         <div class="card-header bg-info text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-calendar me-2"></i>Upcoming Vaccinations
-                                <span class="badge bg-light text-info float-end">{{ vaccinations_pending.count }}</span>
+                                <span class="badge bg-light text-info float-end">{{ vaccinations_pending.paginator.count }}</span>
                             </h5>
                         </div>
                         <div class="card-body">
@@ -212,6 +216,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% include "includes/pagination.html" with page_obj=vaccinations_pending page_param="vax_pending_page" pagination_query=vaccinations_pending_pagination_query %}
                         </div>
                     </div>
                 </div>
@@ -226,7 +231,7 @@
                         <div class="card-header bg-secondary text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-list-check me-2"></i>Scheduled Follow-ups
-                                <span class="badge bg-light text-secondary float-end">{{ followups_pending.count }}</span>
+                                <span class="badge bg-light text-secondary float-end">{{ followups_pending.paginator.count }}</span>
                             </h5>
                         </div>
                         <div class="card-body">
@@ -250,6 +255,7 @@
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% include "includes/pagination.html" with page_obj=followups_pending page_param="followup_pending_page" pagination_query=followups_pending_pagination_query %}
                         </div>
                     </div>
                 </div>
@@ -265,7 +271,7 @@
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">
                             <i class="fas fa-exclamation-triangle me-2"></i>Critical: Overdue Vaccinations
-                            <span class="badge bg-light text-danger float-end">{{ vaccinations_overdue.count }}</span>
+                            <span class="badge bg-light text-danger float-end">{{ vaccinations_overdue.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -298,6 +304,7 @@
                                     </tbody>
                                 </table>
                             </div>
+                            {% include "includes/pagination.html" with page_obj=vaccinations_overdue page_param="vax_overdue_page" pagination_query=vaccinations_overdue_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>No overdue vaccinations!</p>
                         {% endif %}
@@ -311,7 +318,7 @@
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
                             <i class="fas fa-calendar-check me-2"></i>Priority: Due Soon - Vaccinations
-                            <span class="badge bg-light text-dark float-end">{{ vaccinations_due.count }}</span>
+                            <span class="badge bg-light text-dark float-end">{{ vaccinations_due.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -344,6 +351,7 @@
                                     </tbody>
                                 </table>
                             </div>
+                            {% include "includes/pagination.html" with page_obj=vaccinations_due page_param="vax_due_page" pagination_query=vaccinations_due_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0">No vaccinations due soon.</p>
                         {% endif %}
@@ -357,7 +365,7 @@
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">
                             <i class="fas fa-exclamation-triangle me-2"></i>Critical: Overdue Follow-ups
-                            <span class="badge bg-light text-danger float-end">{{ followups_overdue.count }}</span>
+                            <span class="badge bg-light text-danger float-end">{{ followups_overdue.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -390,6 +398,7 @@
                                     </tbody>
                                 </table>
                             </div>
+                            {% include "includes/pagination.html" with page_obj=followups_overdue page_param="followup_overdue_page" pagination_query=followups_overdue_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>No overdue follow-ups!</p>
                         {% endif %}
@@ -403,7 +412,7 @@
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
                             <i class="fas fa-clipboard-list me-2"></i>Priority: Due Soon - Follow-ups
-                            <span class="badge bg-light text-dark float-end">{{ followups_due.count }}</span>
+                            <span class="badge bg-light text-dark float-end">{{ followups_due.paginator.count }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -436,6 +445,7 @@
                                     </tbody>
                                 </table>
                             </div>
+                            {% include "includes/pagination.html" with page_obj=followups_due page_param="followup_due_page" pagination_query=followups_due_pagination_query %}
                         {% else %}
                             <p class="text-muted mb-0">No follow-ups due soon.</p>
                         {% endif %}

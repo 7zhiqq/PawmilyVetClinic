@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from pawmily.pagination import paginate_queryset
 
 from accounts.models import Pet
 from accounts.views import _is_staff_or_manager
@@ -29,21 +30,20 @@ def _can_view_medical_records(user, pet):
 
 
 def _get_pet_reminders(pet):
-    """Get all vaccination and follow-up reminders for a pet, grouped by status."""
+    """Get all vaccination and follow-up reminders for a pet.
+    Uses date-based filtering to ensure accuracy regardless of stored status."""
+    today = date.today()
+
     vaccin_schedules = pet.vaccination_schedules.filter(
-        status__in=[
-            VaccinationSchedule.STATUS_PENDING,
-            VaccinationSchedule.STATUS_DUE,
-            VaccinationSchedule.STATUS_OVERDUE,
-        ]
+        next_due_date__lte=today + timedelta(days=14),
+    ).exclude(
+        status__in=[VaccinationSchedule.STATUS_COMPLETED, VaccinationSchedule.STATUS_SKIPPED]
     ).select_related("vaccine_type").order_by("next_due_date")
-    
+
     followup_reminders = pet.followup_reminders.filter(
-        status__in=[
-            FollowUpReminder.STATUS_PENDING,
-            FollowUpReminder.STATUS_DUE,
-            FollowUpReminder.STATUS_OVERDUE,
-        ]
+        follow_up_date__lte=today + timedelta(days=7),
+    ).exclude(
+        status__in=[FollowUpReminder.STATUS_COMPLETED, FollowUpReminder.STATUS_CANCELLED]
     ).select_related("medical_record").order_by("follow_up_date")
     
     return {
@@ -65,12 +65,28 @@ def medical_records_list(request, pet_id):
 
     records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
     vaccinations = pet.vaccinations.all()
+    records_page_obj, records_pagination_query = paginate_queryset(
+        request,
+        records,
+        per_page=10,
+        page_param="records_page",
+    )
+    vaccinations_page_obj, vaccinations_pagination_query = paginate_queryset(
+        request,
+        vaccinations,
+        per_page=10,
+        page_param="vaccinations_page",
+    )
     reminders = _get_pet_reminders(pet)
 
     ctx = {
         "pet": pet,
-        "records": records,
-        "vaccinations": vaccinations,
+        "records": records_page_obj,
+        "records_page_obj": records_page_obj,
+        "records_pagination_query": records_pagination_query,
+        "vaccinations": vaccinations_page_obj,
+        "vaccinations_page_obj": vaccinations_page_obj,
+        "vaccinations_pagination_query": vaccinations_pagination_query,
         "vaccination_schedules": reminders["vaccinations"],
         "followup_reminders": reminders["followups"],
         "is_staff": _is_staff_or_manager(request.user),
@@ -133,11 +149,27 @@ def medical_record_add(request, pet_id):
         # Re-render records list with invalid form so modal auto-opens
         records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
         vaccinations = pet.vaccinations.all()
+        records_page_obj, records_pagination_query = paginate_queryset(
+            request,
+            records,
+            per_page=10,
+            page_param="records_page",
+        )
+        vaccinations_page_obj, vaccinations_pagination_query = paginate_queryset(
+            request,
+            vaccinations,
+            per_page=10,
+            page_param="vaccinations_page",
+        )
         reminders = _get_pet_reminders(pet)
         return render(request, "medical_records_list.html", {
             "pet": pet,
-            "records": records,
-            "vaccinations": vaccinations,
+            "records": records_page_obj,
+            "records_page_obj": records_page_obj,
+            "records_pagination_query": records_pagination_query,
+            "vaccinations": vaccinations_page_obj,
+            "vaccinations_page_obj": vaccinations_page_obj,
+            "vaccinations_pagination_query": vaccinations_pagination_query,
             "vaccination_schedules": reminders["vaccinations"],
             "followup_reminders": reminders["followups"],
             "is_staff": True,
@@ -227,11 +259,27 @@ def vaccination_add(request, pet_id):
         else:
             records = pet.medical_records.prefetch_related("vaccinations", "attachments").all()
             vaccinations = pet.vaccinations.all()
+            records_page_obj, records_pagination_query = paginate_queryset(
+                request,
+                records,
+                per_page=10,
+                page_param="records_page",
+            )
+            vaccinations_page_obj, vaccinations_pagination_query = paginate_queryset(
+                request,
+                vaccinations,
+                per_page=10,
+                page_param="vaccinations_page",
+            )
             reminders = _get_pet_reminders(pet)
             return render(request, "medical_records_list.html", {
                 "pet": pet,
-                "records": records,
-                "vaccinations": vaccinations,
+                "records": records_page_obj,
+                "records_page_obj": records_page_obj,
+                "records_pagination_query": records_pagination_query,
+                "vaccinations": vaccinations_page_obj,
+                "vaccinations_page_obj": vaccinations_page_obj,
+                "vaccinations_pagination_query": vaccinations_pagination_query,
                 "vaccination_schedules": reminders["vaccinations"],
                 "followup_reminders": reminders["followups"],
                 "is_staff": True,
@@ -288,8 +336,17 @@ def pet_records_search(request):
             | Q(breed__icontains=query)
         )
 
+    pets_page_obj, pets_pagination_query = paginate_queryset(
+        request,
+        pets,
+        per_page=12,
+        page_param="pets_page",
+    )
+
     return render(request, "pet_records_search.html", {
-        "pets": pets,
+        "pets": pets_page_obj,
+        "pets_page_obj": pets_page_obj,
+        "pets_pagination_query": pets_pagination_query,
         "query": query,
     })
 

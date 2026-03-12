@@ -38,7 +38,7 @@
             <h1>{{ pet.name }}</h1>
             <p>{{ pet.get_species_display }}{% if pet.breed %} · {{ pet.breed }}{% endif %}
               {% if pet.birth_date %} · Born {{ pet.birth_date|date:"M j, Y" }}{% endif %}
-              · {{ records|length }} record{{ records|length|pluralize }}
+              · {{ records_page_obj.paginator.count }} record{{ records_page_obj.paginator.count|pluralize }}
             </p>
           </div>
         </div>
@@ -88,6 +88,7 @@
             </tbody>
           </table>
         </div>
+        {% include "includes/pagination.html" with page_obj=vaccinations_page_obj page_param="vaccinations_page" pagination_query=vaccinations_pagination_query %}
       </section>
       {% endif %}
 
@@ -126,6 +127,7 @@
           </a>
           {% endfor %}
         </div>
+        {% include "includes/pagination.html" with page_obj=records_page_obj page_param="records_page" pagination_query=records_pagination_query %}
         {% else %}
         <div class="medical-empty">
           <span class="medical-empty__icon">📋</span>

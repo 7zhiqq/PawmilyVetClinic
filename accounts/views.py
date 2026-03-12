@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET
+from pawmily.pagination import paginate_queryset
 
 from .forms import (
     InvitationForm,
@@ -187,7 +188,14 @@ def manage_invitations(request):
         form = InvitationForm()
 
     invitations = Invitation.objects.order_by("-created_at")
-    for invitation in invitations:
+    invitation_page_obj, invitation_pagination_query = paginate_queryset(
+        request,
+        invitations,
+        per_page=10,
+        page_param="invite_page",
+    )
+
+    for invitation in invitation_page_obj.object_list:
         invite_path = reverse("register_with_invite", args=[invitation.token])
         invitation.full_url = request.build_absolute_uri(invite_path)
 
@@ -196,14 +204,24 @@ def manage_invitations(request):
         .select_related("profile")
         .order_by("date_joined")
     )
+    staff_page_obj, staff_pagination_query = paginate_queryset(
+        request,
+        staff_manager_users,
+        per_page=10,
+        page_param="staff_page",
+    )
 
     return render(
         request,
         "manage_invitations.html",
         {
             "form": form,
-            "invitations": invitations,
-            "staff_manager_users": staff_manager_users,
+            "invitations": invitation_page_obj,
+            "invitations_page_obj": invitation_page_obj,
+            "invitations_pagination_query": invitation_pagination_query,
+            "staff_manager_users": staff_page_obj,
+            "staff_page_obj": staff_page_obj,
+            "staff_pagination_query": staff_pagination_query,
             "invite_message": invite_message,
             "user_message": user_message,
         },
@@ -233,8 +251,19 @@ def pet_list(request):
     if not _is_pet_owner(request.user):
         return HttpResponseForbidden("Only pet owners can view their pets.")
     pets = Pet.objects.filter(owner=request.user).order_by("name")
+    pets_page_obj, pets_pagination_query = paginate_queryset(
+        request,
+        pets,
+        per_page=12,
+        page_param="pets_page",
+    )
     form = PetForm()
-    return render(request, "pet_list.html", {"pets": pets, "form": form})
+    return render(request, "pet_list.html", {
+        "pets": pets_page_obj,
+        "pets_page_obj": pets_page_obj,
+        "pets_pagination_query": pets_pagination_query,
+        "form": form,
+    })
 
 
 @login_required
@@ -250,7 +279,18 @@ def pet_add(request):
             return redirect("pet_list")
         # Re-render pet_list with the invalid form so the add-pet modal auto-opens
         pets = Pet.objects.filter(owner=request.user).order_by("name")
-        return render(request, "pet_list.html", {"pets": pets, "form": form})
+        pets_page_obj, pets_pagination_query = paginate_queryset(
+            request,
+            pets,
+            per_page=12,
+            page_param="pets_page",
+        )
+        return render(request, "pet_list.html", {
+            "pets": pets_page_obj,
+            "pets_page_obj": pets_page_obj,
+            "pets_pagination_query": pets_pagination_query,
+            "form": form,
+        })
     return redirect("pet_list")
 
 
@@ -266,8 +306,18 @@ def pet_edit(request, pk):
             return redirect("pet_list")
         # Re-render pet_list with the invalid edit form so the edit modal auto-opens
         pets = Pet.objects.filter(owner=request.user).order_by("name")
+        pets_page_obj, pets_pagination_query = paginate_queryset(
+            request,
+            pets,
+            per_page=12,
+            page_param="pets_page",
+        )
         return render(request, "pet_list.html", {
-            "pets": pets, "form": PetForm(), "edit_pet_id": pk,
+            "pets": pets_page_obj,
+            "pets_page_obj": pets_page_obj,
+            "pets_pagination_query": pets_pagination_query,
+            "form": PetForm(),
+            "edit_pet_id": pk,
             "edit_error_form": form,
         })
     return redirect("pet_list")

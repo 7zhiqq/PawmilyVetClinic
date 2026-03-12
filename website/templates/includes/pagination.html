@@ -1,0 +1,42 @@
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+{% with param=page_param|default:'page' %}
+<nav aria-label="Pagination" style="margin-top:1rem;display:flex;justify-content:center;">
+  <div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;">
+    {% if page_obj.has_previous %}
+    <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}{{ param }}={{ page_obj.previous_page_number }}"
+      style="padding:0.42rem 0.7rem;border:1px solid #d1d5db;border-radius:0.5rem;background:#fff;color:#111827;text-decoration:none;font-size:0.82rem;">
+      Previous
+    </a>
+    {% else %}
+    <span style="padding:0.42rem 0.7rem;border:1px solid #e5e7eb;border-radius:0.5rem;background:#f9fafb;color:#9ca3af;font-size:0.82rem;">
+      Previous
+    </span>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if num == page_obj.number %}
+      <span style="padding:0.42rem 0.7rem;border:1px solid #111827;border-radius:0.5rem;background:#111827;color:#fff;font-size:0.82rem;font-weight:600;">
+        {{ num }}
+      </span>
+      {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+      <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}{{ param }}={{ num }}"
+        style="padding:0.42rem 0.7rem;border:1px solid #d1d5db;border-radius:0.5rem;background:#fff;color:#111827;text-decoration:none;font-size:0.82rem;">
+        {{ num }}
+      </a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}{{ param }}={{ page_obj.next_page_number }}"
+      style="padding:0.42rem 0.7rem;border:1px solid #d1d5db;border-radius:0.5rem;background:#fff;color:#111827;text-decoration:none;font-size:0.82rem;">
+      Next
+    </a>
+    {% else %}
+    <span style="padding:0.42rem 0.7rem;border:1px solid #e5e7eb;border-radius:0.5rem;background:#f9fafb;color:#9ca3af;font-size:0.82rem;">
+      Next
+    </span>
+    {% endif %}
+  </div>
+</nav>
+{% endwith %}
+{% endif %}

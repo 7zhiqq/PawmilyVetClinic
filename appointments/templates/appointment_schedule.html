@@ -123,9 +123,17 @@
             </div>
             <div class="field-group">
               <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason</label>
-              <input type="text" id="id_reason" name="reason"
-                placeholder="Reason for visit"
-                value="{{ form.reason.value|default:'' }}" />
+              <select id="id_reason" name="reason" required>
+                {% for value, label in form.fields.reason.choices %}
+                <option value="{{ value }}" {% if form.reason.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group" id="reasonOtherGroup" style="display:none;">
+              <label for="id_reason_other"><i class="fa-solid fa-pen"></i> Specify reason</label>
+              <input type="text" id="id_reason_other" name="reason_other"
+                placeholder="Enter specific reason"
+                value="{{ form.reason_other.value|default:'' }}" />
             </div>
           </div>
 

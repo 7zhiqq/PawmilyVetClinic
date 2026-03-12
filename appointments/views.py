@@ -10,9 +10,11 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from pawmily.pagination import paginate_queryset
 
 from accounts.models import Pet, Profile
 from accounts.views import _is_pet_owner, _is_staff_or_manager
+from billing.models import BillingRecord
 from billing.views import create_billing_for_appointment
 
 from .forms import AppointmentBookingForm, AppointmentStaffForm
@@ -298,6 +300,8 @@ def _calendar_context(request):
     appointments = _appointment_queryset(request.user).filter(
         appointment_date__gte=start,
         appointment_date__lte=end,
+    ).exclude(
+        billing_record__payment_status=BillingRecord.PAYMENT_STATUS_PAID,
     ).order_by("appointment_date", "start_time")
 
     by_date = {}
@@ -568,6 +572,12 @@ def appointment_manage(request):
     appointments = Appointment.objects.select_related("owner", "pet", "staff").order_by(
         "-appointment_date", "-start_time", "slot_number"
     )
+    appointments_page_obj, appointments_pagination_query = paginate_queryset(
+        request,
+        appointments,
+        per_page=12,
+        page_param="appointments_page",
+    )
 
     stats = Appointment.objects.aggregate(
         total=Count("id"),
@@ -580,7 +590,9 @@ def appointment_manage(request):
     )
 
     return render(request, "appointment_manage.html", {
-        "appointments": appointments,
+        "appointments": appointments_page_obj,
+        "appointments_page_obj": appointments_page_obj,
+        "appointments_pagination_query": appointments_pagination_query,
         "form": AppointmentStaffForm(),
         "stats": stats,
     })

@@ -27,7 +27,6 @@ March 7, 2026
 The implementation builds on existing billing functionality:
 - **Billing List Page** (`/accounts/billing/`): Already supports filtering by owner
 - **Billing Detail Page** (`/accounts/billing/<id>/`): Shows:
-  - Billing statements
   - Invoices
   - Receipts
   - Line items with descriptions (Check-up fees, vaccinations, other services)
@@ -76,7 +75,7 @@ The implementation builds on existing billing functionality:
    - All line items (services provided)
    - Payment history
    - Balance due
-3. Owner can toggle between Statement/Invoice/Receipt views
+3. Owner can toggle between Invoice/Receipt views
 4. Owner can view and download billing documents
 
 ## Security & Permissions
@@ -136,7 +135,7 @@ The billing system automatically tracks:
 
 ## Future Enhancements (Optional)
 - Add payment gateway integration for online payments
-- Email billing statements/invoices to owners
+- Email invoices to owners
 - Generate PDF receipts for download
 - Add billing notifications/reminders for unpaid invoices
 - Display payment history timeline

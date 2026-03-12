@@ -407,9 +407,18 @@
 
         <div class="field-group">
           <label for="id_reason"><i class="fa-solid fa-stethoscope"></i> Reason for visit</label>
-          <input type="text" id="id_reason" name="reason"
-            placeholder="e.g. Vaccination, check-up"
-            value="{{ form.reason.value|default:'' }}" />
+          <select id="id_reason" name="reason" required>
+            {% for value, label in form.fields.reason.choices %}
+            <option value="{{ value }}" {% if form.reason.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group" id="reasonOtherGroupOwner" style="display:none;">
+          <label for="id_reason_other"><i class="fa-solid fa-pen"></i> Specify reason</label>
+          <input type="text" id="id_reason_other" name="reason_other"
+            placeholder="Enter specific reason"
+            value="{{ form.reason_other.value|default:'' }}" />
         </div>
 
         <div class="slot-section">
@@ -529,9 +538,18 @@
 
         <div class="field-group">
           <label for="id_reason_staff"><i class="fa-solid fa-stethoscope"></i> Reason</label>
-          <input type="text" id="id_reason_staff" name="reason"
-            placeholder="Reason for visit"
-            value="{{ staff_form.reason.value|default:'' }}" />
+          <select id="id_reason_staff" name="reason" required>
+            {% for value, label in staff_form.fields.reason.choices %}
+            <option value="{{ value }}" {% if staff_form.reason.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group" id="reasonOtherGroupStaff" style="display:none;">
+          <label for="id_reason_other_staff"><i class="fa-solid fa-pen"></i> Specify reason</label>
+          <input type="text" id="id_reason_other_staff" name="reason_other"
+            placeholder="Enter specific reason"
+            value="{{ staff_form.reason_other.value|default:'' }}" />
         </div>
 
         <div class="slot-section">
@@ -755,6 +773,9 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   const picker     = document.getElementById('slotPickerOwner');
   const slotHidden = document.getElementById('slotNumberOwner');
   const submit     = document.getElementById('bookSubmitBtn');
+  const reasonSel  = document.getElementById('id_reason');
+  const reasonOtherGroup = document.getElementById('reasonOtherGroupOwner');
+  const reasonOtherInput = document.getElementById('id_reason_other');
   const ctrl       = {};
 
   function openModal()  { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
@@ -771,6 +792,17 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
     loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl);
   }
 
+  function toggleOtherReasonInput() {
+    const showOtherInput = reasonSel && reasonSel.value === 'Other';
+    if (!reasonOtherGroup || !reasonOtherInput) return;
+
+    reasonOtherGroup.style.display = showOtherInput ? '' : 'none';
+    reasonOtherInput.required = showOtherInput;
+    if (!showOtherInput) {
+      reasonOtherInput.value = '';
+    }
+  }
+
   function refreshChips() {
     renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
     // If a time was already selected, reload slots
@@ -784,9 +816,11 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   }
 
   dateInput.addEventListener('change', refreshChips);
+  reasonSel && reasonSel.addEventListener('change', toggleOtherReasonInput);
 
   // Initial render on page load (chips start visible so user can scroll)
   renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+  toggleOtherReasonInput();
 
   if (modal.dataset.hasErrors === 'true') {
     openModal();
@@ -810,6 +844,9 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   const picker     = document.getElementById('slotPickerStaff');
   const slotHidden = document.getElementById('slotNumberStaff');
   const submit     = document.getElementById('scheduleSubmitBtn');
+  const reasonSel  = document.getElementById('id_reason_staff');
+  const reasonOtherGroup = document.getElementById('reasonOtherGroupStaff');
+  const reasonOtherInput = document.getElementById('id_reason_other_staff');
   const ctrl       = {};
 
   function openModal()  { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
@@ -834,6 +871,17 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   }
   ownerSel && ownerSel.addEventListener('change', filterPets);
 
+  function toggleOtherReasonInput() {
+    const showOtherInput = reasonSel && reasonSel.value === 'Other';
+    if (!reasonOtherGroup || !reasonOtherInput) return;
+
+    reasonOtherGroup.style.display = showOtherInput ? '' : 'none';
+    reasonOtherInput.required = showOtherInput;
+    if (!showOtherInput) {
+      reasonOtherInput.value = '';
+    }
+  }
+
   function onTimeSelected(timeVal) {
     const appointmentType = typeSelect.value;
     loadSlots(dateInput.value, timeVal, picker, slotHidden, submit, ctrl, appointmentType);
@@ -852,6 +900,7 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
   }
 
   dateInput.addEventListener('change', refreshChips);
+  reasonSel && reasonSel.addEventListener('change', toggleOtherReasonInput);
 
   /* Walk-in: auto-select today's date and nearest upcoming time chip */
   function applyWalkInDefaults() {
@@ -886,15 +935,18 @@ async function loadSlots(dateVal, timeVal, pickerEl, slotHidden, submitBtn, abor
 
   // Initial chip render
   renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+  toggleOtherReasonInput();
 
   if (modal.dataset.hasErrors === 'true') {
     openModal();
     filterPets();
+    toggleOtherReasonInput();
     refreshChips();
   }
 
   openBtn && openBtn.addEventListener('click', () => {
     renderTimeChips(chipGrid, timeHidden, timeHidden.value, onTimeSelected);
+    toggleOtherReasonInput();
     if (typeSelect.value === 'walk_in') applyWalkInDefaults();
   });
 })();

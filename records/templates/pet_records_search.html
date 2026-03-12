@@ -58,6 +58,7 @@
         </a>
         {% endfor %}
       </div>
+      {% include "includes/pagination.html" with page_obj=pets_page_obj page_param="pets_page" pagination_query=pets_pagination_query %}
       {% elif query %}
       <div class="medical-empty">
         <span class="medical-empty__icon">🔍</span>

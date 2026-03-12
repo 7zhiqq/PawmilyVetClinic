@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{ record.invoice_number }} — Pawmily Billing</title>
+  <title>{{ record.invoice_number }} — Invoice — Pawmily</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
@@ -19,9 +19,8 @@
     {% include 'navbar.html' %}
 
     <main class="billing-page">
-      <!-- Back link -->
       <div class="billing-back-link">
-        <a href="{% url 'billing_list' %}"><i class="fa-solid fa-arrow-left"></i> All Billing Records</a>
+        <a href="{% url 'billing_list' %}"><i class="fa-solid fa-arrow-left"></i> All Invoices</a>
       </div>
 
       <!-- Messages -->
@@ -33,11 +32,7 @@
       </div>
       {% endif %}
 
-      <!-- Document view tabs -->
       <div class="billing-tabs">
-        <a href="?view=statement" class="billing-tab {% if doc_view == 'statement' %}billing-tab--active{% endif %}">
-          <i class="fa-solid fa-file-lines"></i> Statement
-        </a>
         <a href="?view=invoice" class="billing-tab {% if doc_view == 'invoice' %}billing-tab--active{% endif %}">
           <i class="fa-solid fa-file-invoice"></i> Invoice
         </a>
@@ -46,7 +41,6 @@
         </a>
       </div>
 
-      <!-- ═══════ DOCUMENT CARD ═══════ -->
       <div class="billing-document" id="billingDocument">
 
         <!-- Document header -->
@@ -55,12 +49,7 @@
             <i class="fa-solid fa-paw doc-header__icon"></i>
             <div>
               <h2>PAWMILY Veterinary Clinic</h2>
-              <p class="doc-header__subtitle">
-                {% if doc_view == 'statement' %}Billing Statement
-                {% elif doc_view == 'invoice' %}Invoice
-                {% elif doc_view == 'receipt' %}Receipt
-                {% endif %}
-              </p>
+              <p class="doc-header__subtitle">{% if doc_view == 'receipt' %}Payment Receipt{% else %}Invoice{% endif %}</p>
             </div>
           </div>
           <div class="doc-header__meta">
@@ -96,14 +85,23 @@
           </div>
         </div>
 
-        <!-- Line items -->
+        <section class="doc-totals-grid">
+          <article class="doc-total-card">
+            <p>Total Charges</p>
+            <h4>&#8369;{{ record.total_amount|floatformat:2 }}</h4>
+          </article>
+          <article class="doc-total-card">
+            <p>Total Paid</p>
+            <h4>&#8369;{{ record.amount_paid|floatformat:2 }}</h4>
+          </article>
+          <article class="doc-total-card doc-total-card--balance">
+            <p>Outstanding Balance</p>
+            <h4>&#8369;{{ record.balance_due|floatformat:2 }}</h4>
+          </article>
+        </section>
+
         <section class="doc-section">
-          <h3 class="doc-section__title">
-            {% if doc_view == 'statement' %}Charges
-            {% elif doc_view == 'invoice' %}Items
-            {% elif doc_view == 'receipt' %}Items Paid
-            {% endif %}
-          </h3>
+          <h3 class="doc-section__title">{% if doc_view == 'receipt' %}Items Paid{% else %}Invoice Charges{% endif %}</h3>
 
           {% if line_items %}
           <table class="doc-table">
@@ -121,8 +119,8 @@
               <tr>
                 <td>{{ item.description }}</td>
                 <td class="text-center">{{ item.quantity }}</td>
-                <td class="text-right">₱{{ item.unit_price|floatformat:2 }}</td>
-                <td class="text-right">₱{{ item.line_total|floatformat:2 }}</td>
+                <td class="text-right">&#8369;{{ item.unit_price|floatformat:2 }}</td>
+                <td class="text-right">&#8369;{{ item.line_total|floatformat:2 }}</td>
                 {% if is_staff and doc_view != 'receipt' %}
                 <td class="text-center">
                   <form method="post" action="{% url 'billing_remove_line_item' record.pk item.pk %}" style="display:inline;">
@@ -139,29 +137,29 @@
             <tfoot>
               <tr class="doc-table__total">
                 <td colspan="3" class="text-right"><strong>Total</strong></td>
-                <td class="text-right"><strong>₱{{ record.total_amount|floatformat:2 }}</strong></td>
+                <td class="text-right"><strong>&#8369;{{ record.total_amount|floatformat:2 }}</strong></td>
                 {% if is_staff and doc_view != 'receipt' %}<td></td>{% endif %}
               </tr>
               {% if record.amount_paid > 0 %}
               <tr>
                 <td colspan="3" class="text-right">Amount Paid</td>
-                <td class="text-right">₱{{ record.amount_paid|floatformat:2 }}</td>
+                <td class="text-right">&#8369;{{ record.amount_paid|floatformat:2 }}</td>
                 {% if is_staff and doc_view != 'receipt' %}<td></td>{% endif %}
               </tr>
               <tr class="doc-table__balance">
                 <td colspan="3" class="text-right"><strong>Balance Due</strong></td>
-                <td class="text-right"><strong>₱{{ record.balance_due|floatformat:2 }}</strong></td>
+                <td class="text-right"><strong>&#8369;{{ record.balance_due|floatformat:2 }}</strong></td>
                 {% if is_staff and doc_view != 'receipt' %}<td></td>{% endif %}
               </tr>
               {% endif %}
             </tfoot>
           </table>
+          {% include "includes/pagination.html" with page_obj=line_items_page_obj page_param="items_page" pagination_query=line_items_pagination_query %}
           {% else %}
           <p class="doc-empty">No items added yet.</p>
           {% endif %}
         </section>
 
-        <!-- Staff: add line item (not on receipt view) -->
         {% if is_staff and doc_view != 'receipt' %}
         <section class="doc-section doc-section--form">
           <h3 class="doc-section__title">Add Line Item</h3>
@@ -188,11 +186,9 @@
         </section>
         {% endif %}
 
-        <!-- Payments section (shown on statement and receipt) -->
-        {% if doc_view == 'statement' or doc_view == 'receipt' %}
         <section class="doc-section">
           <h3 class="doc-section__title">
-            {% if doc_view == 'receipt' %}Payment Details{% else %}Payments{% endif %}
+            {% if doc_view == 'receipt' %}Payment Details{% else %}Payment History{% endif %}
           </h3>
           {% if payments %}
           <table class="doc-table">
@@ -217,19 +213,18 @@
                   {% endif %}
                 </td>
                 <td>{{ p.reference|default:"—" }}</td>
-                <td class="text-right">₱{{ p.amount|floatformat:2 }}</td>
+                <td class="text-right">&#8369;{{ p.amount|floatformat:2 }}</td>
                 <td>{{ p.recorded_by.get_full_name|default:"—" }}</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
+          {% include "includes/pagination.html" with page_obj=payments_page_obj page_param="payments_page" pagination_query=payments_pagination_query %}
           {% else %}
           <p class="doc-empty">No payments recorded yet.</p>
           {% endif %}
         </section>
-        {% endif %}
 
-        <!-- Staff: record payment (not on receipt view) -->
         {% if is_staff and doc_view != 'receipt' %}
         <section class="doc-section doc-section--form">
           <h3 class="doc-section__title">Record Payment</h3>
@@ -256,10 +251,9 @@
         </section>
         {% endif %}
 
-        <!-- Print button -->
         <div class="doc-print-bar no-print">
           <button type="button" class="btn-secondary" onclick="window.print();">
-            <i class="fa-solid fa-print"></i> Print {{ doc_view|title }}
+            <i class="fa-solid fa-print"></i> Print {% if doc_view == 'receipt' %}Receipt{% else %}Invoice{% endif %}
           </button>
         </div>
 

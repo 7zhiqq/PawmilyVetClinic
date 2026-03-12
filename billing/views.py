@@ -2,9 +2,11 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import DecimalField, Q, Sum, Value
+from django.db.models.functions import Coalesce
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from pawmily.pagination import paginate_queryset
 
 from accounts.views import _is_staff_or_manager
 
@@ -63,7 +65,7 @@ def add_vaccination_to_billing(appointment, vaccine_name, fee):
 
 @login_required
 def billing_list(request):
-    """Staff: list all billing records. Owners: see only their own."""
+    """Staff: list all invoices. Owners: see only their own invoices."""
     is_staff = _is_staff_or_manager(request.user)
     if is_staff:
         qs = BillingRecord.objects.select_related("appointment", "owner", "pet").all()
@@ -85,17 +87,45 @@ def billing_list(request):
             | Q(pet__name__icontains=search_q)
         )
 
+    summary = qs.aggregate(
+        total_invoiced=Coalesce(
+            Sum("total_amount"),
+            Value(0),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        ),
+        total_paid=Coalesce(
+            Sum("amount_paid"),
+            Value(0),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        ),
+    )
+    invoice_count = qs.count()
+    outstanding_total = summary["total_invoiced"] - summary["total_paid"]
+
+    records_page_obj, records_pagination_query = paginate_queryset(
+        request,
+        qs,
+        per_page=12,
+        page_param="billing_page",
+    )
+
     return render(request, "billing_list.html", {
-        "records": qs,
+        "records": records_page_obj,
+        "records_page_obj": records_page_obj,
+        "records_pagination_query": records_pagination_query,
         "is_staff": is_staff,
         "current_status": status_filter,
         "search_q": search_q,
+        "invoice_count": invoice_count,
+        "total_invoiced": summary["total_invoiced"],
+        "total_paid": summary["total_paid"],
+        "outstanding_total": outstanding_total,
     })
 
 
 @login_required
 def billing_detail(request, pk):
-    """View a single billing record (statement / invoice / receipt)."""
+    """View a single invoice (invoice or receipt mode)."""
     record = get_object_or_404(
         BillingRecord.objects.select_related("appointment", "owner", "pet"),
         pk=pk,
@@ -106,16 +136,34 @@ def billing_detail(request, pk):
 
     line_items = record.line_items.all()
     payments = record.payments.all()
+
+    line_items_page_obj, line_items_pagination_query = paginate_queryset(
+        request,
+        line_items,
+        per_page=10,
+        page_param="items_page",
+    )
+    payments_page_obj, payments_pagination_query = paginate_queryset(
+        request,
+        payments,
+        per_page=10,
+        page_param="payments_page",
+    )
     line_form = LineItemForm() if is_staff else None
     payment_form = PaymentForm() if is_staff else None
 
-    # Determine which document view to render (default: invoice)
     doc_view = request.GET.get("view", "invoice")
+    if doc_view not in ("invoice", "receipt"):
+        doc_view = "invoice"
 
     return render(request, "billing_detail.html", {
         "record": record,
-        "line_items": line_items,
-        "payments": payments,
+        "line_items": line_items_page_obj,
+        "line_items_page_obj": line_items_page_obj,
+        "line_items_pagination_query": line_items_pagination_query,
+        "payments": payments_page_obj,
+        "payments_page_obj": payments_page_obj,
+        "payments_pagination_query": payments_pagination_query,
         "line_form": line_form,
         "payment_form": payment_form,
         "is_staff": is_staff,
