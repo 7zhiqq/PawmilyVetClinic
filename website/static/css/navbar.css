@@ -1,21 +1,22 @@
 :root {
-  --clr-primary: #7c3aed;        
-  --clr-primary-light: #ede9fe;  
-  --clr-dark: #111827;           
-  --clr-muted: #6b7280;          
-  --clr-white: #ffffff;
-  --clr-bg: #f9fafb;             
-  --clr-nav-bg: #ffffff;         
-  --clr-border: #e5e7eb;         
-  --clr-paw: #f472b6;            
-  --clr-btn-bg: #111827;         
-  --clr-btn-text: #ffffff;       
+  /* Aliases used by navbar + legacy references */
+  --clr-primary:       var(--c-primary,       #7c3aed);
+  --clr-primary-light: var(--c-primary-light,  #ede9fe);
+  --clr-dark:          var(--c-dark,           #111827);
+  --clr-muted:         var(--c-muted,          #6b7280);
+  --clr-white:         var(--c-white,          #ffffff);
+  --clr-bg:            var(--c-bg,             #f3f4f6);
+  --clr-nav-bg:        var(--c-surface,        #ffffff);
+  --clr-border:        var(--c-border,         #e5e7eb);
+  --clr-paw:           #f472b6;
+  --clr-btn-bg:        var(--c-dark,           #111827);
+  --clr-btn-text:      var(--c-white,          #ffffff);
 
-  --radius-pill: 999px;
-  --radius-md: 12px;
-  --shadow-nav: 0 2px 16px 0 rgba(0,0,0,0.07);
-  --font-main: 'Inter', sans-serif;
-  --transition: 0.2s ease;
+  --radius-pill: var(--r-pill, 999px);
+  --radius-md:   12px;
+  --shadow-nav:  var(--shadow-nav, 0 2px 16px 0 rgba(0,0,0,0.07));
+  --font-main:   'Inter', sans-serif;
+  --transition:  0.2s ease;
 }
 
 *, *::before, *::after {
@@ -82,6 +83,10 @@ body {
   letter-spacing: -0.01em;
 }
 
+.navbar__brand-icon i {
+  color: var(--clr-white);
+}
+
 .navbar__links {
   display: flex;
   align-items: center;
@@ -106,6 +111,12 @@ body {
 .navbar__links a.active {
   background: var(--clr-primary-light);
   color: var(--clr-primary);
+}
+
+.navbar__user-greeting {
+  font-size: 0.85rem;
+  color: #e5e7eb;
+  margin-right: 0.75rem;
 }
 
 .navbar__dropdown {

@@ -22,94 +22,13 @@
 }
 
 .petform-card {
-  background: #fff;
-  border-radius: 22px;
+  background: var(--c-surface, #fff);
+  border-radius: var(--r-xl, 22px);
   padding: 2rem;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-card, 0 4px 24px rgba(15, 23, 42, 0.08));
 }
 
-.section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #9ca3af;
-  margin-bottom: 0.9rem;
-  margin-top: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-label:first-child {
-  margin-top: 0;
-}
-
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #f3f4f6;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.field-group.full {
-  grid-column: 1 / -1;
-}
-
-.field-group label {
-  font-size: 0.83rem;
-  font-weight: 600;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.field-group label i {
-  font-size: 0.72rem;
-  color: #9ca3af;
-}
-
-.field-group input,
-.field-group select,
-.field-group textarea {
-  width: 100%;
-  padding: 0.72rem 0.9rem;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  color: #111827;
-  background: #fafafa;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  box-sizing: border-box;
-}
-
-.field-group input:focus,
-.field-group select:focus,
-.field-group textarea:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px #ede9fe;
-  background: #fff;
-}
-
-.field-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
+/* section-label, form-row, field-group are defined in system.css */
 
 .species-picker {
   display: flex;
@@ -129,13 +48,13 @@
   gap: 0.25rem;
   width: 80px;
   height: 72px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 14px;
-  background: #fafafa;
+  border: 1.5px solid var(--c-border, #e5e7eb);
+  border-radius: var(--r-md, 14px);
+  background: var(--c-surface-alt, #fafafa);
   cursor: pointer;
   font-size: 0.72rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--c-muted, #6b7280);
   transition: border-color 0.15s, background 0.15s, color 0.15s;
   user-select: none;
 }
@@ -146,15 +65,15 @@
 }
 
 .species-option:checked + .species-label {
-  border-color: #7c3aed;
-  background: #ede9fe;
-  color: #6d28d9;
+  border-color: var(--c-primary, #7c3aed);
+  background: var(--c-primary-light, #ede9fe);
+  color: var(--c-primary-hover, #6d28d9);
 }
 
 .form-errors {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 12px;
+  border-radius: var(--r-md, 12px);
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
 }
@@ -173,17 +92,18 @@
   flex-wrap: wrap;
 }
 
+/* btn-save extends .btn-primary style */
 .btn-save {
   flex: 1;
   min-width: 140px;
   padding: 0.9rem;
-  background: #111827;
-  color: #fff;
+  background: var(--c-dark, #111827);
+  color: var(--c-white, #fff);
   font-size: 0.95rem;
   font-weight: 700;
   font-family: inherit;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--r-pill, 999px);
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
 }
@@ -193,20 +113,7 @@
   transform: translateY(-1px);
 }
 
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #6b7280;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s;
-}
-
-.back-link:hover {
-  color: #111827;
-}
+/* back-link defined in system.css */
 
 @media (max-width: 480px) {
   .form-row {

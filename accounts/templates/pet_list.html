@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/pet_list.css' %}">
@@ -60,7 +61,7 @@
                 </div>
                 {% endif %}
                 {% if not pet.birth_date and not pet.weight_kg %}
-                <div class="pet-card__detail" style="color:#d1d5db;">
+                <div class="pet-card__detail u-text-muted-light">
                   <i class="fa-solid fa-circle-info"></i>
                   <span>No details added yet</span>
                 </div>
@@ -73,10 +74,10 @@
 
               <div class="pet-card__footer">
                 <a href="{% url 'medical_records_list' pet.pk %}" class="pet-card__records">
-                  <i class="fa-solid fa-file-medical" style="font-size:0.75rem;"></i> Medical records
+                  <i class="fa-solid fa-file-medical"></i> Medical records
                 </a>
                 <button type="button" class="pet-card__edit" data-edit-pet="{{ pet.pk }}">
-                  <i class="fa-solid fa-pen-to-square" style="font-size:0.75rem;"></i> Edit profile
+                  <i class="fa-solid fa-pen-to-square"></i> Edit profile
                 </button>
               </div>
             </div>

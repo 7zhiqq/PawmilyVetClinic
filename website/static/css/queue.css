@@ -1,7 +1,7 @@
 .queue-page {
   max-width: 860px;
   margin: 0 auto;
-  padding: 0 1.5rem 4rem;
+  padding: 0 var(--page-padding-h, 1.5rem) 4rem;
 }
 
 .queue-header {
@@ -237,10 +237,10 @@
 }
 
 .apt-card {
-  background: #fff;
-  border-radius: 16px;
+  background: var(--c-surface, #fff);
+  border-radius: var(--r-lg, 16px);
   padding: 1.1rem 1.25rem;
-  box-shadow: 0 2px 12px rgba(15,23,42,0.05);
+  box-shadow: var(--shadow-card, 0 2px 12px rgba(15,23,42,0.05));
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -251,7 +251,7 @@
 }
 
 .apt-card:hover {
-  box-shadow: 0 6px 24px rgba(15,23,42,0.10);
+  box-shadow: var(--shadow-lifted, 0 6px 24px rgba(15,23,42,0.10));
   transform: translateX(2px);
 }
 
@@ -369,12 +369,7 @@
 }
 
 .apt-pill.pending   { background: #fef3c7; color: #92400e; }
-.apt-pill.confirmed { background: #d1fae5; color: #065f46; }
-.apt-pill.rejected  { background: #fee2e2; color: #991b1b; }
-.apt-pill.cancelled { background: #f3f4f6; color: #4b5563; }
-.apt-pill.completed { background: #e0e7ff; color: #3730a3; }
-.apt-pill.no_show   { background: #ffedd5; color: #9a3412; }
-.apt-pill.walk_in   { background: #ede9fe; color: #6d28d9; }
+/* apt-pill status colours are in system.css */
 
 .apt-pill__dot {
   width: 6px;
@@ -457,11 +452,11 @@
 
 /* ─── Empty state ────────────────────────────────────────────────── */
 .queue-empty {
-  background: #fff;
-  border-radius: 20px;
+  background: var(--c-surface, #fff);
+  border-radius: var(--r-xl, 20px);
   padding: 3rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 12px rgba(15,23,42,0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .queue-empty__icon {
@@ -470,8 +465,8 @@
   margin-bottom: 0.75rem;
 }
 
-.queue-empty h3 { font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 0.25rem; }
-.queue-empty p  { font-size: 0.875rem; color: #6b7280; }
+.queue-empty h3 { font-size: 1rem; font-weight: 700; color: var(--c-dark, #111827); margin-bottom: 0.25rem; }
+.queue-empty p  { font-size: 0.875rem; color: var(--c-muted, #6b7280); }
 
 /* ─── Footer ─────────────────────────────────────────────────────── */
 .queue-footer {

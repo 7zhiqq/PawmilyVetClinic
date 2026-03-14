@@ -2,7 +2,7 @@
   <div class="navbar__inner">
     <a href="/" class="navbar__brand">
       <span class="navbar__brand-icon">
-        <i class="fa-solid fa-paw" style="color:#fff;"></i>
+        <i class="fa-solid fa-paw"></i>
       </span>
       <span class="navbar__brand-name">PAWMILY</span>
     </a>
@@ -33,7 +33,7 @@
 
     <div>
       {% if user.is_authenticated %}
-        <span style="font-size:0.85rem;color:#e5e7eb;margin-right:0.75rem;">
+        <span class="navbar__user-greeting">
           Hi, {{ user.first_name|default:user.username }}
         </span>
         <a href="/accounts/logout/" class="navbar__cta">Logout</a>

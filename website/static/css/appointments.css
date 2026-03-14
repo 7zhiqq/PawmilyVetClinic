@@ -1,7 +1,7 @@
 .manage-page {
-  max-width: 1120px;
-  padding: 2.5rem 1.5rem 3rem;
-  margin: 0 150px 10px 150px;
+  max-width: var(--page-max-width, 1120px);
+  padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
+  margin: 0 auto;
 }
 
 .manage-header {
@@ -16,28 +16,14 @@
 .manage-header h1 {
   font-size: 1.7rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--c-dark, #111827);
   letter-spacing: -0.03em;
   margin-bottom: 0.15rem;
 }
 
-.manage-header p { font-size: 0.9rem; color: #6b7280; }
+.manage-header p { font-size: 0.9rem; color: var(--c-muted, #6b7280); }
 
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.6rem 1.1rem;
-  background: #111827;
-  color: #fff;
-  border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+/* btn-primary is defined in system.css */
 
 
 .manage-stats {
@@ -206,66 +192,49 @@
 
 .apt-card__actions form { margin: 0; }
 
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  border: 1.5px solid #e5e7eb;
-  background: #f9fafb;
-  color: #374151;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.action-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
+/* action-btn base style is in system.css — hover states extend it below */
 
 .action-btn--confirm:hover {
-  background: #d1fae5;
+  background: var(--c-confirmed-bg, #d1fae5);
   border-color: #6ee7b7;
-  color: #065f46;
+  color: var(--c-confirmed-text, #065f46);
 }
 
 .action-btn--reject:hover {
-  background: #fee2e2;
+  background: var(--c-rejected-bg, #fee2e2);
   border-color: #fca5a5;
-  color: #991b1b;
+  color: var(--c-rejected-text, #991b1b);
 }
 
 .action-btn--complete:hover {
-  background: #e0e7ff;
+  background: var(--c-completed-bg, #e0e7ff);
   border-color: #a5b4fc;
-  color: #3730a3;
+  color: var(--c-completed-text, #3730a3);
 }
 
 .action-btn--cancel:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #374151;
+  background: var(--c-surface-alt, #f3f4f6);
+  border-color: var(--c-border, #d1d5db);
+  color: var(--c-muted, #374151);
 }
 
 .action-btn--noshow:hover {
-  background: #ffedd5;
+  background: var(--c-noshow-bg, #ffedd5);
   border-color: #fdba74;
-  color: #9a3412;
+  color: var(--c-noshow-text, #9a3412);
 }
 
 .manage-empty {
-  background: #fff;
-  border-radius: 20px;
+  background: var(--c-surface, #fff);
+  border-radius: var(--r-xl, 20px);
   padding: 3rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 12px rgba(15,23,42,0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .manage-empty__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
-.manage-empty h3 { font-weight: 700; color: #111827; margin-bottom: 0.3rem; }
-.manage-empty p  { font-size: 0.875rem; color: #6b7280; }
+.manage-empty h3 { font-weight: 700; color: var(--c-dark, #111827); margin-bottom: 0.3rem; }
+.manage-empty p  { font-size: 0.875rem; color: var(--c-muted, #6b7280); }
 
 @media (max-width: 700px) {
   .manage-stats { grid-template-columns: repeat(3, 1fr); }

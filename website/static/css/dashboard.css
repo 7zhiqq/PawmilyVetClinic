@@ -1,6 +1,6 @@
 body {
   font-family: var(--font-main, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
-  background: #f3f4f6;
+  background: var(--c-bg, #f3f4f6);
   margin: 0;
 }
 
@@ -12,9 +12,9 @@ body {
 
 .dashboard-main {
   flex: 1;
-  padding: 2.5rem 1.5rem 3rem;
-  max-width: 1120px;
-  margin: 0 150px 10px 150px;
+  padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
+  max-width: var(--page-max-width, 1120px);
+  margin: 0 auto;
 }
 
 .dashboard-header {
@@ -27,13 +27,13 @@ body {
 .dashboard-title {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--c-dark, #111827);
   letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
   font-size: 0.95rem;
-  color: #6b7280;
+  color: var(--c-muted, #6b7280);
   margin-top: 0.2rem;
 }
 
@@ -57,10 +57,10 @@ body {
 }
 
 .dashboard-card {
-  background: #ffffff;
-  border-radius: 18px;
+  background: var(--c-surface, #ffffff);
+  border-radius: var(--r-lg, 18px);
   padding: 1.4rem 1.5rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card, 0 4px 20px rgba(15, 23, 42, 0.07));
 }
 
 .dashboard-card__title {
@@ -87,20 +87,23 @@ body {
   align-items: center;
   gap: 0.4rem;
   padding: 0.6rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #111827;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid var(--c-border, #e5e7eb);
+  background: var(--c-surface-alt, #f9fafb);
+  color: var(--c-dark, #111827);
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
 }
+.dashboard-action-btn:hover { background: #e5e7eb; }
 
 .dashboard-action-btn--primary {
-  background: #111827;
-  color: #ffffff;
-  border-color: #111827;
+  background: var(--c-dark, #111827);
+  color: var(--c-white, #ffffff);
+  border-color: var(--c-dark, #111827);
 }
+.dashboard-action-btn--primary:hover { opacity: 0.88; }
 
 .dashboard-list {
   margin: 0;

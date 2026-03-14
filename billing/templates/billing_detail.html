@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/billing.css' %}">
@@ -107,7 +108,7 @@
           <table class="doc-table">
             <thead>
               <tr>
-                <th style="width:50%">Description</th>
+                <th class="doc-table__col-description">Description</th>
                 <th class="text-center">Qty</th>
                 <th class="text-right">Unit Price</th>
                 <th class="text-right">Amount</th>
@@ -123,10 +124,10 @@
                 <td class="text-right">&#8369;{{ item.line_total|floatformat:2 }}</td>
                 {% if is_staff and doc_view != 'receipt' %}
                 <td class="text-center">
-                  <form method="post" action="{% url 'billing_remove_line_item' record.pk item.pk %}" style="display:inline;">
+                  <form method="post" action="{% url 'billing_remove_line_item' record.pk item.pk %}" class="u-inline-form">
                     {% csrf_token %}
                     <button type="submit" class="action-btn action-btn--remove" title="Remove">
-                      <i class="fa-solid fa-trash-can" style="font-size:0.6rem;"></i>
+                      <i class="fa-solid fa-trash-can"></i>
                     </button>
                   </form>
                 </td>
@@ -178,7 +179,7 @@
                 <label for="id_unit_price">Unit Price (₱)</label>
                 {{ line_form.unit_price }}
               </div>
-              <button type="submit" class="btn-primary" style="align-self:flex-end;">
+              <button type="submit" class="btn-primary u-flex-end">
                 <i class="fa-solid fa-plus"></i> Add
               </button>
             </div>
@@ -243,7 +244,7 @@
                 <label for="id_reference">Reference #</label>
                 {{ payment_form.reference }}
               </div>
-              <button type="submit" class="btn-primary" style="align-self:flex-end;">
+              <button type="submit" class="btn-primary u-flex-end">
                 <i class="fa-solid fa-coins"></i> Record Payment
               </button>
             </div>

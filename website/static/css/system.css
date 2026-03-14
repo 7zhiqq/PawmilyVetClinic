@@ -1,0 +1,650 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAWMILY — Unified Design System
+   system.css  •  Single source of truth for design tokens + shared components
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Design Tokens ──────────────────────────────────────────────────── */
+:root {
+  /* Primary (purple) */
+  --c-primary:        #7c3aed;
+  --c-primary-hover:  #6d28d9;
+  --c-primary-light:  #ede9fe;
+  --c-primary-muted:  #f5f3ff;
+
+  /* Dark / neutral */
+  --c-dark:           #111827;
+  --c-dark-hover:     #1f2937;
+  --c-ink:            #374151;
+  --c-muted:          #6b7280;
+  --c-subtle:         #9ca3af;
+  --c-border:         #e5e7eb;
+  --c-border-soft:    #f1f5f9;
+  --c-white:          #ffffff;
+
+  /* Backgrounds */
+  --c-bg:             #f3f4f6;
+  --c-surface:        #ffffff;
+  --c-surface-alt:    #f9fafb;
+
+  /* Status palette */
+  --c-pending-bg:     #fef3c7;   --c-pending-text:   #92400e;
+  --c-confirmed-bg:   #d1fae5;   --c-confirmed-text: #065f46;
+  --c-completed-bg:   #e0e7ff;   --c-completed-text: #3730a3;
+  --c-cancelled-bg:   #f3f4f6;   --c-cancelled-text: #4b5563;
+  --c-rejected-bg:    #fee2e2;   --c-rejected-text:  #991b1b;
+  --c-noshow-bg:      #ffedd5;   --c-noshow-text:    #9a3412;
+  --c-walkin-bg:      #ede9fe;   --c-walkin-text:    #6d28d9;
+
+  /* Border radii */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-xl:   22px;
+  --r-pill: 999px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 20px rgba(15, 23, 42, 0.07);
+  --shadow-lifted:  0 8px 32px rgba(15, 23, 42, 0.10);
+  --shadow-modal:   0 24px 64px rgba(15, 23, 42, 0.22);
+  --shadow-nav:     0 2px 16px rgba(0, 0, 0, 0.07);
+
+  /* Typography */
+  --font-main: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Page layout */
+  --page-max-width:  1120px;
+  --page-padding-v:  2.5rem;
+  --page-padding-h:  1.5rem;
+}
+
+/* ── 2. Global reset / base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--c-bg);
+  color: var(--c-dark);
+  margin: 0;
+}
+
+/* ── 3. Page layout wrapper ───────────────────────────────────────────── */
+.page-wrap {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--page-padding-v) var(--page-padding-h) 3rem;
+}
+
+/* Narrower variants */
+.page-wrap--md { max-width: 860px; }
+.page-wrap--sm { max-width: 580px; }
+
+/* ── 4. Page header ───────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.page-header__left h1,
+.page-header > div > h1,
+.page-header > h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--c-dark);
+  letter-spacing: -0.03em;
+  margin: 0 0 0.15rem;
+}
+
+.page-header__left p,
+.page-header > div > p,
+.page-header > p {
+  font-size: 0.9rem;
+  color: var(--c-muted);
+  margin: 0;
+}
+
+/* ── 5. Back link ─────────────────────────────────────────────────────── */
+.back-link {
+  margin-bottom: 1rem;
+  display: block;
+}
+.back-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--c-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.back-link a:hover { color: var(--c-dark); }
+
+/* ── 6. Buttons ───────────────────────────────────────────────────────── */
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s, background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-primary i,
+.btn-secondary i,
+.btn-ghost i,
+.btn-danger i,
+.action-btn i,
+.dashboard-action-btn i,
+.pet-card__records i,
+.pet-card__edit i,
+.navbar__brand-icon i,
+.navbar__cta i {
+  font-size: 0.75rem;
+}
+
+.btn-primary {
+  background: var(--c-dark);
+  color: var(--c-white);
+  border-color: var(--c-dark);
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.btn-secondary {
+  background: var(--c-surface-alt);
+  color: var(--c-ink);
+  border-color: var(--c-border);
+}
+.btn-secondary:hover { background: #e5e7eb; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--c-muted);
+  border-color: transparent;
+}
+.btn-ghost:hover { color: var(--c-dark); background: var(--c-surface-alt); }
+
+.btn-danger {
+  background: #fee2e2;
+  color: var(--c-rejected-text);
+  border-color: #fecaca;
+}
+.btn-danger:hover { background: #fecaca; }
+
+/* ── 7. Action buttons (small, table row) ─────────────────────────────── */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  font-family: var(--font-main);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.12s;
+}
+.action-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+.action-btn--view     { background: var(--c-dark);       color: #fff;                     border-color: var(--c-dark); }
+.action-btn--confirm  { background: var(--c-confirmed-bg); color: var(--c-confirmed-text); }
+.action-btn--reject   { background: var(--c-rejected-bg);  color: var(--c-rejected-text);  }
+.action-btn--cancel   { background: var(--c-surface-alt);  color: var(--c-muted);          border-color: var(--c-border); }
+.action-btn--complete { background: var(--c-completed-bg); color: var(--c-completed-text); }
+.action-btn--noshow   { background: var(--c-noshow-bg);    color: var(--c-noshow-text);    }
+.action-btn--remove   { background: var(--c-rejected-bg);  color: var(--c-rejected-text);  border-radius: var(--r-sm); }
+
+/* ── 8. Status pills ──────────────────────────────────────────────────── */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22rem 0.65rem;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-pill.pending,   .apt-pill.pending   { background: var(--c-pending-bg);   color: var(--c-pending-text);   }
+.status-pill.confirmed, .apt-pill.confirmed { background: var(--c-confirmed-bg); color: var(--c-confirmed-text); }
+.status-pill.completed, .apt-pill.completed { background: var(--c-completed-bg); color: var(--c-completed-text); }
+.status-pill.cancelled, .apt-pill.cancelled { background: var(--c-cancelled-bg); color: var(--c-cancelled-text); }
+.status-pill.rejected,  .apt-pill.rejected  { background: var(--c-rejected-bg);  color: var(--c-rejected-text);  }
+.status-pill.no_show,   .apt-pill.no_show   { background: var(--c-noshow-bg);    color: var(--c-noshow-text);    }
+.status-pill.walk_in,   .apt-pill.walk_in   { background: var(--c-walkin-bg);    color: var(--c-walkin-text);    }
+
+/* ── 9. Cards ─────────────────────────────────────────────────────────── */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  padding: 1.4rem 1.5rem;
+}
+
+.card:hover { box-shadow: var(--shadow-lifted); }
+
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-dark);
+  margin: 0;
+}
+
+.card__subtitle {
+  font-size: 0.83rem;
+  color: var(--c-muted);
+  margin: 0;
+}
+
+/* ── 10. Stat cards ───────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--c-surface);
+  border-radius: var(--r-md);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-card);
+  border-top: 3px solid transparent;
+}
+
+.stat-card__num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--c-dark);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.stat-card__label {
+  font-size: 0.72rem;
+  color: var(--c-subtle);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-top: 0.2rem;
+}
+
+/* ── 11. Data tables ──────────────────────────────────────────────────── */
+.data-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border-soft);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  background: var(--c-surface);
+}
+
+.data-table thead {
+  background: var(--c-surface-alt);
+}
+
+.data-table thead th {
+  padding: 0.76rem 1rem;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-muted);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.data-table tbody td {
+  padding: 0.76rem 1rem;
+  border-bottom: 1px solid var(--c-border-soft);
+  color: var(--c-ink);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--c-surface-alt);
+}
+
+.data-table tfoot td {
+  padding: 0.76rem 1rem;
+  color: var(--c-ink);
+  border-top: 1px solid var(--c-border);
+}
+
+/* ── 12. Form fields ──────────────────────────────────────────────────── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-group label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--c-ink);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.field-group label i {
+  font-size: 0.72rem;
+  color: var(--c-subtle);
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea {
+  width: 100%;
+  padding: 0.72rem 0.9rem;
+  border: 1.5px solid var(--c-border);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-family: var(--font-main);
+  color: var(--c-dark);
+  background: var(--c-surface-alt);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-light);
+  background: var(--c-surface);
+}
+
+.field-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.form-row .field-group.full {
+  grid-column: 1 / -1;
+}
+
+/* Shared form-group alias (login page style — slightly larger inputs) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--c-border);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: var(--font-main);
+  color: var(--c-dark);
+  background: var(--c-surface-alt);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-light);
+  background: var(--c-surface);
+}
+
+/* ── 13. Section label divider ────────────────────────────────────────── */
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--c-subtle);
+  margin-bottom: 0.9rem;
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-label:first-child { margin-top: 0; }
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--c-border-soft);
+}
+
+/* ── 14. Alerts / messages ────────────────────────────────────────────── */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.72rem 1rem;
+  border-radius: var(--r-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.alert--success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.alert--error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.alert--warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.alert--info {
+  background: var(--c-primary-light);
+  color: var(--c-primary-hover);
+  border: 1px solid #c4b5fd;
+}
+
+/* ── 15. Empty states ─────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--c-subtle);
+}
+
+.empty-state__icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-dark);
+  margin: 0 0 0.4rem;
+}
+
+.empty-state p {
+  font-size: 0.875rem;
+  margin: 0 0 1.25rem;
+}
+
+/* ── 16. Utilities ───────────────────────────────────────────────────── */
+.u-hidden { display: none !important; }
+.u-mt-sm { margin-top: 0.75rem !important; }
+.u-mt-md { margin-top: 1rem !important; }
+.u-text-muted { color: var(--c-muted, #6b7280) !important; }
+.u-text-subtle { color: var(--c-subtle, #9ca3af) !important; }
+.u-text-muted-light { color: #d1d5db !important; }
+.u-text-center { text-align: center !important; }
+.u-inline-form { display: inline; }
+.u-flex-end { align-self: flex-end; }
+.card--narrow { max-width: 480px; }
+
+/* ── 17. Pagination passthrough ───────────────────────────────────────── */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.pagination a,
+.pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.5rem;
+  border-radius: var(--r-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--c-ink);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.pagination a:hover {
+  background: var(--c-primary-light);
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+.pagination .current,
+.pagination span.current {
+  background: var(--c-dark);
+  border-color: var(--c-dark);
+  color: var(--c-white);
+}
+
+/* ── 18. Filter / search bar utilities ───────────────────────────────── */
+.filter-bar {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 1.15rem;
+}
+
+.filter-input {
+  padding: 0.55rem 0.8rem;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-sm);
+  font-size: 0.86rem;
+  font-family: var(--font-main);
+  background: var(--c-surface);
+  color: var(--c-dark);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  min-width: 0;
+}
+
+.filter-input:focus {
+  border-color: var(--c-dark);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.09);
+}
+
+/* ── 19. Responsive breakpoints ───────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .page-wrap {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-wrap {
+    padding-inline: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-wrap {
+    padding-inline: 0.75rem;
+  }
+}

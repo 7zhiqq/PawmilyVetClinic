@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/appointments.css' %}">
@@ -99,7 +100,7 @@
               <input type="hidden" name="action" value="confirm" />
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--confirm">
-                <i class="fa-solid fa-check" style="font-size:0.65rem;"></i> Confirm
+                <i class="fa-solid fa-check"></i> Confirm
               </button>
             </form>
             <form method="post">
@@ -107,7 +108,7 @@
               <input type="hidden" name="action" value="reject" />
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--reject">
-                <i class="fa-solid fa-xmark" style="font-size:0.65rem;"></i> Reject
+                <i class="fa-solid fa-xmark"></i> Reject
               </button>
             </form>
             <form method="post">
@@ -115,7 +116,7 @@
               <input type="hidden" name="action" value="cancel" />
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--cancel">
-                <i class="fa-solid fa-ban" style="font-size:0.65rem;"></i> Cancel
+                <i class="fa-solid fa-ban"></i> Cancel
               </button>
             </form>
             {% elif apt.status == 'confirmed' %}
@@ -124,7 +125,7 @@
               <input type="hidden" name="action" value="complete" />
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--complete">
-                <i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i> Complete
+                <i class="fa-solid fa-circle-check"></i> Complete
               </button>
             </form>
             <form method="post">
@@ -132,7 +133,7 @@
               <input type="hidden" name="action" value="no_show" />
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--noshow">
-                <i class="fa-solid fa-user-xmark" style="font-size:0.65rem;"></i> No Show
+                <i class="fa-solid fa-user-xmark"></i> No Show
               </button>
             </form>
             <form method="post">
@@ -140,16 +141,16 @@
               <input type="hidden" name="action" value="cancel" />
               <input type="hidden" name="appointment_id" value="{{ apt.id }}" />
               <button type="submit" class="action-btn action-btn--cancel">
-                <i class="fa-solid fa-ban" style="font-size:0.65rem;"></i> Cancel
+                <i class="fa-solid fa-ban"></i> Cancel
               </button>
             </form>
             {% else %}
             {% if apt.status == 'completed' %}
             <a href="{% url 'finalize_step1' apt.id %}" class="action-btn action-btn--view">
-              <i class="fa-solid fa-clipboard-check" style="font-size:0.65rem;"></i> Finalize
+              <i class="fa-solid fa-clipboard-check"></i> Finalize
             </a>
             {% else %}
-            <span style="font-size:0.75rem;color:#d1d5db;">—</span>
+            <span class="u-text-muted-light">—</span>
             {% endif %}
             {% endif %}
           </div>
@@ -162,7 +163,7 @@
         <span class="manage-empty__icon">📅</span>
         <h3>No appointments yet</h3>
         <p>Use Schedule to add a walk-in or create a new appointment.</p>
-        <a href="{% url 'appointment_schedule' %}" class="btn-primary" style="margin-top:1rem;">
+        <a href="{% url 'appointment_schedule' %}" class="btn-primary u-mt-md">
           <i class="fa-solid fa-plus"></i> Schedule / Walk-in
         </a>
       </div>

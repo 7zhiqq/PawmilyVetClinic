@@ -3,8 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 2rem 1.5rem 3rem;
-  max-width: 1100px;
+  padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
+  max-width: var(--page-max-width, 1120px);
   margin: 0 auto;
 }
 
@@ -69,10 +69,10 @@
 }
 
 .mu-card {
-  background: #ffffff;
-  border-radius: 20px;
+  background: var(--c-surface, #ffffff);
+  border-radius: var(--r-lg, 18px);
   padding: 1.5rem;
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
 }
 
 .mu-card__header {
@@ -100,8 +100,8 @@
 .mu-table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
-  border: 1px solid #f0f0f0;
+  border-radius: var(--r-md, 14px);
+  border: 1px solid var(--c-border-soft, #f1f5f9);
 }
 
 .mu-table {
@@ -121,15 +121,15 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #9ca3af;
-  font-weight: 600;
-  border-bottom: 1px solid #f0f0f0;
+  color: var(--c-subtle, #9ca3af);
+  font-weight: 700;
+  border-bottom: 1px solid var(--c-border-soft, #f1f5f9);
 }
 
 .mu-table td {
   padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid #f7f7f7;
-  color: #374151;
+  border-bottom: 1px solid var(--c-border-soft, #f7f7f7);
+  color: var(--c-ink, #374151);
   vertical-align: middle;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .mu-table tbody tr:hover {
-  background: #fafafa;
+  background: var(--c-surface-alt, #fafafa);
 }
 
 .mu-pill {

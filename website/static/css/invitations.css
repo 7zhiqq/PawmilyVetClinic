@@ -3,20 +3,20 @@
   border-collapse: collapse;
   margin-top: 1.5rem;
   font-size: 0.85rem;
-  background: #ffffff;
-  border-radius: 14px;
+  background: var(--c-surface, #ffffff);
+  border-radius: var(--r-md, 14px);
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .invite-table thead {
-  background: #f9fafb;
+  background: var(--c-surface-alt, #f9fafb);
 }
 
 .invite-table th,
 .invite-table td {
   padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--c-border, #e5e7eb);
   text-align: left;
 }
 
@@ -24,11 +24,11 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #6b7280;
+  color: var(--c-muted, #6b7280);
 }
 
 .invite-table tbody tr:nth-child(even) {
-  background: #f9fafb;
+  background: var(--c-surface-alt, #f9fafb);
 }
 
 .invite-table tbody tr:last-child td {
@@ -79,9 +79,9 @@
 }
 
 .messages .message.success {
-  background: #ecfdf3;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 
 .messages .message.error,
@@ -106,8 +106,8 @@
 }
 
 .invite-modal {
-  background: #ffffff;
-  border-radius: 18px;
+  background: var(--c-surface, #ffffff);
+  border-radius: var(--r-lg, 18px);
   padding: 1.5rem 1.75rem;
   max-width: 480px;
   width: 100%;
@@ -124,20 +124,20 @@
 .invite-modal__title {
   font-size: 1rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--c-dark, #111827);
 }
 
 .invite-modal__close {
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--c-muted, #6b7280);
   font-size: 1.1rem;
 }
 
 .invite-modal__body {
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--c-ink, #374151);
 }
 
 .invite-modal__row {
@@ -149,10 +149,11 @@
 
 .invite-modal__label {
   font-weight: 600;
-  color: #6b7280;
+  color: var(--c-muted, #6b7280);
 }
 
 .invite-modal__value {
+  color: var(--c-dark, #111827);
   text-align: right;
 }
 
