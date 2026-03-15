@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ service.title }} | PAWMILY Veterinary Clinic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/service_detail.css' %}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a href="/" class="navbar__brand">
+        <span class="navbar__brand-icon">
+          <i class="fa-solid fa-paw" style="color:#fff;"></i>
+        </span>
+        <span class="navbar__brand-name">PAWMILY</span>
+      </a>
+
+      <ul class="navbar__links">
+        <li><a href="/">Home</a></li>
+        <li class="navbar__dropdown">
+          <a href="#">Services <span class="chevron">▾</span></a>
+          <div class="navbar__dropdown-menu">
+            <a href="/services/vaccination-services/">Vaccination Services</a>
+            <a href="/services/routine-checkups-consultations/">Routine Checkups &amp; Consultations</a>
+            <a href="/services/surgery-medical-treatment/">Surgery &amp; Medical Treatment</a>
+            <a href="/services/pet-grooming/">Pet Grooming</a>
+            <a href="/services/deworming-parasite-prevention/">Deworming &amp; Parasite Prevention</a>
+            <a href="/services/health-monitoring-medical-records/">Health Monitoring &amp; Medical Records</a>
+          </div>
+        </li>
+        <li><a href="/about/">About Us</a></li>
+      </ul>
+
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+
+      <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="navbar__mobile" id="mobileMenu">
+      <a href="/">Home</a>
+      <a href="/services/vaccination-services/">Vaccination Services</a>
+      <a href="/services/routine-checkups-consultations/">Routine Checkups &amp; Consultations</a>
+      <a href="/services/surgery-medical-treatment/">Surgery &amp; Medical Treatment</a>
+      <a href="/services/pet-grooming/">Pet Grooming</a>
+      <a href="/services/deworming-parasite-prevention/">Deworming &amp; Parasite Prevention</a>
+      <a href="/services/health-monitoring-medical-records/">Health Monitoring &amp; Medical Records</a>
+      <a href="/about/">About Us</a>
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+    </div>
+  </nav>
+
+  <main class="service-page">
+    <section class="service-hero">
+      <a href="/" class="service-hero__back"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+      <p class="service-hero__eyebrow">PAWMILY Veterinary Clinic</p>
+      <h1 class="service-hero__title">{{ service.title }}</h1>
+      <p class="service-hero__icon" aria-hidden="true">{{ service.icon }}</p>
+    </section>
+
+    <section class="service-content-card">
+      {% for paragraph in service.description %}
+        <p class="service-content-card__paragraph">{{ paragraph }}</p>
+      {% endfor %}
+
+      {% if service_list_title %}
+        <h2 class="service-content-card__subtitle">{{ service_list_title }}</h2>
+      {% endif %}
+
+      {% if service_groups %}
+        <div class="service-content-card__groups">
+          {% for group in service_groups %}
+            <article class="service-group-card">
+              <h3 class="service-group-card__title">{{ group.heading }}</h3>
+              <ul class="service-list">
+                {% for item in group.items %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if service_bullet_items %}
+        <ul class="service-list service-list--single">
+          {% for item in service_bullet_items %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+
+    <section class="service-cta-card">
+      <h2>Need this service for your pet?</h2>
+      <p>Book an appointment today with PAWMILY Veterinary Clinic.</p>
+      <a href="/accounts/login/" class="service-cta-card__button">Book an appointment</a>
+    </section>
+  </main>
+
+  <script src="{% static 'js/navbar.js' %}"></script>
+</body>
+</html>

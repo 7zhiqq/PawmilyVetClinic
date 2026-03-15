@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About PAWMILY Veterinary Clinic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/about.css' %}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a href="/" class="navbar__brand">
+        <span class="navbar__brand-icon">
+          <i class="fa-solid fa-paw" style="color:#fff;"></i>
+        </span>
+        <span class="navbar__brand-name">PAWMILY</span>
+      </a>
+
+      <ul class="navbar__links">
+        <li><a href="/">Home</a></li>
+        <li class="navbar__dropdown">
+          <a href="#">Services <span class="chevron">▾</span></a>
+          <div class="navbar__dropdown-menu">
+            <a href="/services/vaccination-services/">Vaccination Services</a>
+            <a href="/services/routine-checkups-consultations/">Routine Checkups &amp; Consultations</a>
+            <a href="/services/surgery-medical-treatment/">Surgery &amp; Medical Treatment</a>
+            <a href="/services/pet-grooming/">Pet Grooming</a>
+            <a href="/services/deworming-parasite-prevention/">Deworming &amp; Parasite Prevention</a>
+            <a href="/services/health-monitoring-medical-records/">Health Monitoring &amp; Medical Records</a>
+          </div>
+        </li>
+        <li><a href="/about/" class="active">About Us</a></li>
+      </ul>
+
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+
+      <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="navbar__mobile" id="mobileMenu">
+      <a href="/">Home</a>
+      <a href="/services/vaccination-services/">Vaccination Services</a>
+      <a href="/services/routine-checkups-consultations/">Routine Checkups &amp; Consultations</a>
+      <a href="/services/surgery-medical-treatment/">Surgery &amp; Medical Treatment</a>
+      <a href="/services/pet-grooming/">Pet Grooming</a>
+      <a href="/services/deworming-parasite-prevention/">Deworming &amp; Parasite Prevention</a>
+      <a href="/services/health-monitoring-medical-records/">Health Monitoring &amp; Medical Records</a>
+      <a href="/about/">About Us</a>
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+    </div>
+  </nav>
+
+  <main class="about-page">
+    <section class="about-hero">
+      <p class="about-hero__eyebrow">About Us</p>
+      <h1 class="about-hero__title">About PAWMILY Veterinary Clinic</h1>
+      <p class="about-hero__lead">
+        PAWMILY Veterinary Clinic is dedicated to providing reliable and compassionate veterinary care for dogs and cats.
+        We believe that pets are family, and our goal is to ensure they live healthy and happy lives through professional
+        veterinary services and preventive care.
+      </p>
+    </section>
+
+    <section class="about-section-card">
+      <p>
+        Our clinic focuses on delivering quality veterinary care including consultations, vaccinations, medical treatments,
+        and wellness services. We strive to create a safe and welcoming environment where pets receive the attention and
+        care they deserve.
+      </p>
+      <p>
+        Our veterinarians and staff are committed to supporting pet owners by providing guidance, treatment, and
+        preventive healthcare solutions that promote long-term pet wellness.
+      </p>
+    </section>
+
+    <section class="about-grid">
+      <article class="about-info-card">
+        <h2>Our Mission</h2>
+        <p>
+          Our mission is to provide accessible and professional veterinary services that promote the health, safety,
+          and well-being of pets while supporting responsible pet ownership in the community.
+        </p>
+      </article>
+
+      <article class="about-info-card">
+        <h2>Our Vision</h2>
+        <p>
+          Our vision is to become a trusted veterinary partner known for delivering reliable care, maintaining strong
+          relationships with pet owners, and improving the overall quality of life for pets.
+        </p>
+      </article>
+    </section>
+
+    <section class="about-section-card">
+      <h2>Why Choose PAWMILY Veterinary Clinic</h2>
+      <ul class="about-checklist">
+        <li>Compassionate and experienced veterinary professionals</li>
+        <li>Comprehensive healthcare services for dogs and cats</li>
+        <li>Preventive care focused on long-term pet wellness</li>
+        <li>Organized medical records and appointment system</li>
+        <li>Friendly and supportive environment for pets and owners</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="{% static 'js/navbar.js' %}"></script>
+</body>
+</html>

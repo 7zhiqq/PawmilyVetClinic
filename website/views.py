@@ -1,11 +1,121 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.http import Http404
 
 
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect("/dashboard/")
     return render(request, "landing.html")
+
+
+def about_page(request):
+    return render(request, "about.html")
+
+
+SERVICE_PAGES = {
+    "vaccination-services": {
+        "title": "Vaccination Services",
+        "icon": "💉",
+        "description": [
+            "Vaccinations are essential for protecting pets from common infectious diseases. At PAWMILY Veterinary Clinic, we follow recommended vaccination schedules to ensure dogs and cats stay protected throughout their lives.",
+            "Our veterinarians administer vaccines safely and monitor pets for any reactions. Regular vaccinations help prevent serious illnesses and support long-term pet health.",
+        ],
+        "list_title": "Common vaccines include:",
+        "groups": [
+            {
+                "heading": "For Dogs",
+                "items": [
+                    "5-in-1 Vaccine (Distemper, Adenovirus, Parvovirus, Parainfluenza, Leptospirosis)",
+                    "Rabies Vaccine",
+                    "Kennel Cough (Bordetella)",
+                ],
+            },
+            {
+                "heading": "For Cats",
+                "items": [
+                    "FVRCP Vaccine",
+                    "Rabies Vaccine",
+                    "Feline Leukemia (FeLV)",
+                ],
+            },
+        ],
+    },
+    "routine-checkups-consultations": {
+        "title": "Routine Checkups & Consultations",
+        "icon": "🩺",
+        "description": [
+            "Routine checkups are an important part of preventive veterinary care. Regular examinations allow veterinarians to detect potential health issues early and provide proper treatment before conditions become serious.",
+            "During a consultation, our veterinarians assess your pet's overall health, including weight, nutrition, physical condition, and behavior. Pet owners also receive guidance on maintaining their pet's long-term health and wellness.",
+            "Regular checkups help ensure pets remain healthy at every stage of life.",
+        ],
+    },
+    "surgery-medical-treatment": {
+        "title": "Surgery & Medical Treatment",
+        "icon": "🏥",
+        "description": [
+            "PAWMILY Veterinary Clinic provides safe and professional surgical procedures for pets when necessary. Our team carefully evaluates each patient and ensures proper care before, during, and after surgery.",
+            "We also diagnose and treat various medical conditions affecting dogs and cats. Our goal is to provide effective treatment plans that support recovery and improve the overall health of your pet.",
+            "Our clinic prioritizes safety, comfort, and proper medical care for every patient.",
+        ],
+    },
+    "pet-grooming": {
+        "title": "Pet Grooming",
+        "icon": "✂️",
+        "description": [
+            "Proper grooming is important for maintaining your pet's hygiene and comfort. Our grooming services help keep pets clean, healthy, and well-maintained.",
+            "Regular grooming can help prevent skin problems, reduce shedding, and keep pets feeling comfortable.",
+        ],
+        "list_title": "Our grooming services may include:",
+        "items": [
+            "Bathing and coat cleaning",
+            "Nail trimming",
+            "Ear cleaning",
+            "Basic coat maintenance",
+        ],
+    },
+    "deworming-parasite-prevention": {
+        "title": "Deworming & Parasite Prevention",
+        "icon": "🛡️",
+        "description": [
+            "Parasites can significantly affect a pet's health if not treated properly. Our clinic provides routine deworming and parasite prevention treatments to protect pets from harmful infestations.",
+            "Internal parasites such as worms can affect digestion and overall health, while external parasites like ticks and fleas can cause discomfort and disease.",
+            "Regular parasite prevention helps keep pets healthy and comfortable.",
+        ],
+    },
+    "health-monitoring-medical-records": {
+        "title": "Health Monitoring & Medical Records",
+        "icon": "📋",
+        "description": [
+            "Keeping accurate medical records is essential for tracking your pet's health history. At PAWMILY Veterinary Clinic, we maintain organized medical records for every patient.",
+            "Having complete medical records helps veterinarians provide better care and allows pet owners to monitor their pet's health over time.",
+        ],
+        "list_title": "These records include:",
+        "items": [
+            "Vaccination history",
+            "Medical consultations",
+            "Treatments and procedures",
+            "Health monitoring information",
+        ],
+    },
+}
+
+
+def service_page(request, service_slug):
+    service = SERVICE_PAGES.get(service_slug)
+    if not service:
+        raise Http404("Service page not found.")
+    return render(
+        request,
+        "service_detail.html",
+        {
+            "service": service,
+            "service_slug": service_slug,
+            "service_list_title": service.get("list_title"),
+            "service_groups": service.get("groups", []),
+            "service_bullet_items": service.get("items", []),
+        },
+    )
 
 
 from django.contrib.auth.decorators import login_required

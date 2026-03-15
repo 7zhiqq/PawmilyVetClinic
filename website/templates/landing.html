@@ -28,15 +28,15 @@
         <li class="navbar__dropdown">
           <a href="#">Services <span class="chevron">▾</span></a>
           <div class="navbar__dropdown-menu">
-            <a href="#">Wellness Check</a>
-            <a href="#">Vaccinations</a>
-            <a href="#">Dental Care</a>
-            <a href="#">Surgery</a>
-            <a href="#">Laboratory</a>
+            <a href="/services/vaccination-services/">Vaccination Services</a>
+            <a href="/services/routine-checkups-consultations/">Routine Checkups &amp; Consultations</a>
+            <a href="/services/surgery-medical-treatment/">Surgery &amp; Medical Treatment</a>
+            <a href="/services/pet-grooming/">Pet Grooming</a>
+            <a href="/services/deworming-parasite-prevention/">Deworming &amp; Parasite Prevention</a>
+            <a href="/services/health-monitoring-medical-records/">Health Monitoring &amp; Medical Records</a>
           </div>
         </li>
-        <li><a href="#">About Us</a></li>
-        <li><a href="#">Contact Us</a></li>
+        <li><a href="/about/">About Us</a></li>
       </ul>
 
       <a href="/accounts/login/" class="navbar__cta">Login</a>
@@ -49,8 +49,7 @@
     <div class="navbar__mobile" id="mobileMenu">
       <a href="/">Home</a>
       <a href="#">Services</a>
-      <a href="#">About Us</a>
-      <a href="#">Contact Us</a>
+      <a href="/about/">About Us</a>
       <a href="/accounts/login/" class="navbar__cta">Login</a>
     </div>
   </nav>
@@ -63,7 +62,7 @@
 
     <p class="hero__badge fade-up">
       <span class="hero__badge-dot"></span>
-      PAWMILY Vetenirary Clinic's Solutions
+      PAWMILY Veterinary Clinic Services
     </p>
 
     <h1 class="hero__heading fade-up">
@@ -72,14 +71,15 @@
     </h1>
 
     <p class="hero__sub fade-up">
-      At our clinic, we prioritize the health and happiness of your
-      beloved pets. Our expert veterinarians are dedicated to
-      providing love.
+      At PAWMILY Veterinary Clinic, we provide comprehensive veterinary
+      care to keep your pets healthy and happy. Our services include
+      routine checkups, vaccinations, medical consultations, surgery,
+      grooming, and preventive care for dogs and cats.
     </p>
 
     <div class="hero__cta-row fade-up">
       <a href="/accounts/login/" class="hero__btn-primary">
-        Contact us
+        Book Now
         <span class="hero__btn-paw">🐾</span>
       </a>
       <a href="#services" class="hero__link">
@@ -89,28 +89,93 @@
   </section>
 
   <section class="services-strip" id="services">
+    <div class="section-header">
+      <p class="section-header__eyebrow">Veterinary Care Services</p>
+      <h2 class="section-header__title">Comprehensive care for dogs and cats</h2>
+    </div>
     <div class="services-strip__inner">
-      <div class="service-card service-card--purple">
+      <div id="service-vaccination-services" class="service-card service-card--purple">
         <div>
-          <p class="service-card__label">Preventive Care</p>
-          <h3 class="service-card__title">Wellness &amp; Vaccination</h3>
+          <p class="service-card__label">Vaccination Services</p>
+          <p class="service-card__desc">Protect your pets from common diseases with our complete vaccination programs for dogs and cats.</p>
         </div>
         <span class="service-card__icon">💉</span>
       </div>
-      <div class="service-card service-card--blue">
+      <div id="service-routine-checkups-consultations" class="service-card service-card--blue">
         <div>
-          <p class="service-card__label">Diagnostics</p>
-          <h3 class="service-card__title">Lab &amp; Health Screening</h3>
+          <p class="service-card__label">Routine Checkups &amp; Consultations</p>
+          <p class="service-card__desc">Regular health checkups help detect illnesses early and ensure your pet stays healthy.</p>
         </div>
-        <span class="service-card__icon">🔬</span>
+        <span class="service-card__icon">🩺</span>
       </div>
-      <div class="service-card service-card--yellow">
+      <div id="service-surgery-medical-treatment" class="service-card service-card--yellow">
         <div>
-          <p class="service-card__label">Surgical</p>
-          <h3 class="service-card__title">Surgery &amp; Dental Care</h3>
+          <p class="service-card__label">Surgery &amp; Medical Treatment</p>
+          <p class="service-card__desc">We perform safe and professional surgical procedures and provide treatment for various pet health conditions.</p>
         </div>
-        <span class="service-card__icon">🦷</span>
+        <span class="service-card__icon">🏥</span>
       </div>
+      <div id="service-pet-grooming" class="service-card service-card--green">
+        <div>
+          <p class="service-card__label">Pet Grooming</p>
+          <p class="service-card__desc">Professional grooming services to keep your pets clean, comfortable, and looking their best.</p>
+        </div>
+        <span class="service-card__icon">✂️</span>
+      </div>
+      <div id="service-deworming-parasite-prevention" class="service-card service-card--orange">
+        <div>
+          <p class="service-card__label">Deworming &amp; Parasite Prevention</p>
+          <p class="service-card__desc">Protect your pets from internal and external parasites with regular deworming and tick &amp; flea prevention.</p>
+        </div>
+        <span class="service-card__icon">🛡️</span>
+      </div>
+      <div id="service-health-monitoring-medical-records" class="service-card service-card--teal">
+        <div>
+          <p class="service-card__label">Health Monitoring &amp; Medical Records</p>
+          <p class="service-card__desc">Track your pet's health history, vaccinations, and treatments through our organized medical records system.</p>
+        </div>
+        <span class="service-card__icon">📋</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="how-it-works">
+    <div class="section-header">
+      <p class="section-header__eyebrow">How It Works</p>
+      <h2 class="section-header__title">A simple process for better pet care</h2>
+    </div>
+    <div class="process__grid">
+      <article class="process-step">
+        <span class="process-step__number">01</span>
+        <h3 class="process-step__title">Register Your Pet</h3>
+        <p class="process-step__text">Create an account and add your pet's profile.</p>
+      </article>
+      <article class="process-step">
+        <span class="process-step__number">02</span>
+        <h3 class="process-step__title">Book an Appointment</h3>
+        <p class="process-step__text">Schedule a consultation or vaccination with the clinic.</p>
+      </article>
+      <article class="process-step">
+        <span class="process-step__number">03</span>
+        <h3 class="process-step__title">Visit the Clinic</h3>
+        <p class="process-step__text">Our veterinarians provide diagnosis, treatment, and care.</p>
+      </article>
+      <article class="process-step">
+        <span class="process-step__number">04</span>
+        <h3 class="process-step__title">Track Records &amp; Vaccinations</h3>
+        <p class="process-step__text">View your pet's medical history, vaccination schedules, and billing.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="landing-cta">
+    <div class="landing-cta__inner">
+      <h2>Give your pet the care they deserve.</h2>
+      <p>Book an appointment today with PAWMILY Veterinary Clinic.</p>
+      <a href="/accounts/login/" class="hero__btn-primary">
+        Book an appointment
+        <span class="hero__btn-paw">🐾</span>
+      </a>
     </div>
   </section>
 
