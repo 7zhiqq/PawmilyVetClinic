@@ -7,6 +7,7 @@ from pawmily.file_handling import (
     MEDICAL_ATTACHMENT_UPLOAD_TO,
     uploaded_basename,
 )
+from .vaccination_protocols import compute_next_due_date, find_protocol
 
 
 class VaccineType(models.Model):
@@ -14,7 +15,6 @@ class VaccineType(models.Model):
 
     name = models.CharField(
         max_length=100,
-        unique=True,
         help_text="Vaccine name (e.g., Rabies, DHPP, FeLV)"
     )
     species = models.CharField(
@@ -30,6 +30,12 @@ class VaccineType(models.Model):
     booster_interval_days = models.PositiveIntegerField(
         default=365,
         help_text="Days between booster vaccinations (e.g., 365 for annual)"
+    )
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Standard price per shot in Philippine Pesos (PHP)"
     )
     description = models.TextField(
         blank=True,
@@ -152,6 +158,10 @@ class VaccinationRecord(models.Model):
         help_text="Link to vaccine type for automatic booster calculation"
     )
     date_administered = models.DateField(default=timezone.now)
+    shots_administered = models.PositiveIntegerField(
+        default=1,
+        help_text="Number of shots/doses administered during this visit"
+    )
     next_due_date = models.DateField(null=True, blank=True)
     batch_number = models.CharField(max_length=100, blank=True)
     administered_by = models.ForeignKey(
@@ -168,13 +178,52 @@ class VaccinationRecord(models.Model):
         db_table = "accounts_vaccinationrecord"
         ordering = ["-date_administered"]
 
-    def save(self, *args, **kwargs):
-        """Auto-calculate next_due_date based on vaccine_type if not manually set."""
-        # If vaccine_type is set and next_due_date is not manually provided
-        if self.vaccine_type and not self.next_due_date:
-            self.next_due_date = self.date_administered + timedelta(
+    def _resolve_protocol(self):
+        vaccine_type_name = self.vaccine_type.name if self.vaccine_type_id else None
+        return find_protocol(self.pet.species, self.vaccine_name, vaccine_type_name)
+
+    def _prior_dose_dates_for_protocol(self, protocol):
+        prior_dates = []
+        historical_records = (
+            VaccinationRecord.objects.filter(pet=self.pet)
+            .exclude(pk=self.pk)
+            .select_related("vaccine_type")
+            .order_by("date_administered", "created_at")
+        )
+        for record in historical_records:
+            if record.date_administered > self.date_administered:
+                continue
+            historical_type_name = record.vaccine_type.name if record.vaccine_type_id else None
+            historical_protocol = find_protocol(
+                self.pet.species,
+                record.vaccine_name,
+                historical_type_name,
+            )
+            if historical_protocol and historical_protocol.code == protocol.code:
+                prior_dates.append(record.date_administered)
+        return prior_dates
+
+    def calculate_next_due_date(self):
+        """Compute next due date using protocol schedule, then fall back to booster interval."""
+        protocol = self._resolve_protocol()
+        if protocol:
+            prior_dates = self._prior_dose_dates_for_protocol(protocol)
+            return compute_next_due_date(
+                protocol=protocol,
+                birth_date=self.pet.birth_date,
+                date_administered=self.date_administered,
+                prior_dose_dates=prior_dates,
+            )
+        if self.vaccine_type:
+            return self.date_administered + timedelta(
                 days=self.vaccine_type.booster_interval_days
             )
+        return None
+
+    def save(self, *args, **kwargs):
+        """Auto-calculate next_due_date using standardized protocols when not manually set."""
+        if not self.next_due_date:
+            self.next_due_date = self.calculate_next_due_date()
         super().save(*args, **kwargs)
         
         # After saving, create or update VaccinationSchedule
@@ -205,7 +254,7 @@ class VaccinationRecord(models.Model):
             )
 
     def __str__(self) -> str:
-        return f"{self.pet.name} – {self.vaccine_name} ({self.date_administered})"
+        return f"{self.pet.name} – {self.vaccine_name} x{self.shots_administered} ({self.date_administered})"
 
 
 class MedicalAttachment(models.Model):

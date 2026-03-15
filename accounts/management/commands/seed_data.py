@@ -142,26 +142,29 @@ class Command(BaseCommand):
     def _create_vaccine_types(self):
         """Create vaccine types if they don't exist."""
         vaccine_data = [
-            # Dog vaccines
-            ("Rabies (Dog)", "dog", 365, "Annual rabies vaccination for dogs"),
-            ("DHPP", "dog", 365, "Distemper, Hepatitis, Parvovirus, Parainfluenza"),
-            ("Bordetella", "dog", 180, "Kennel cough vaccine"),
-            ("Leptospirosis", "dog", 365, "Bacterial disease prevention"),
-            ("Canine Influenza", "dog", 365, "Dog flu vaccine"),
-            # Cat vaccines
-            ("Rabies (Cat)", "cat", 365, "Annual rabies vaccination for cats"),
-            ("FVRCP", "cat", 365, "Feline Viral Rhinotracheitis, Calicivirus, Panleukopenia"),
-            ("FeLV", "cat", 365, "Feline Leukemia Virus vaccine"),
-            ("FIV", "cat", 365, "Feline Immunodeficiency Virus vaccine"),
+            # Dog vaccines and preventive treatments
+            ("5-in-1 Vaccine", "dog", 365, Decimal("850.00"), "Distemper, Adenovirus/Hepatitis, Parvovirus, Parainfluenza, Leptospirosis"),
+            ("Rabies Vaccine", "dog", 365, Decimal("450.00"), "First dose at 12 weeks, then annual booster"),
+            ("Kennel Cough (Bordetella)", "dog", 365, Decimal("650.00"), "First dose at 8 to 12 weeks, then annual booster"),
+            ("Coronavirus", "dog", 365, Decimal("600.00"), "Optional schedule with primary doses and annual booster"),
+            ("Deworming", "dog", 90, Decimal("250.00"), "2, 4, 6, 8, 10, 12 weeks then every 3 months"),
+            ("Tick & Flea Prevention", "dog", 30, Decimal("300.00"), "Start at 6 to 8 weeks, monthly treatment"),
+            # Cat vaccines and preventive treatments
+            ("FVRCP Vaccine", "cat", 365, Decimal("800.00"), "6 to 8, 10 to 12, 14 to 16 weeks then annual booster"),
+            ("Rabies Vaccine", "cat", 365, Decimal("450.00"), "First dose at 12 weeks, then annual booster"),
+            ("Feline Leukemia (FeLV)", "cat", 365, Decimal("900.00"), "8 to 12 weeks, second dose after 3 to 4 weeks, then annual booster"),
+            ("Deworming", "cat", 90, Decimal("250.00"), "2, 4, 6, 8, 10, 12 weeks then every 3 months"),
+            ("Tick & Flea Prevention", "cat", 30, Decimal("300.00"), "Start at 6 to 8 weeks, monthly treatment"),
         ]
 
         vaccine_types = []
-        for name, species, interval, description in vaccine_data:
+        for name, species, interval, unit_price, description in vaccine_data:
             vaccine, created = VaccineType.objects.get_or_create(
                 name=name,
                 species=species,
                 defaults={
                     "booster_interval_days": interval,
+                    "unit_price": unit_price,
                     "description": description,
                     "is_active": True,
                 },

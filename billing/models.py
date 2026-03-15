@@ -76,7 +76,12 @@ class BillingRecord(models.Model):
         """Recalculate totals from line items and payments."""
         self.subtotal = sum(item.line_total for item in self.line_items.all())
         self.total_amount = self.subtotal
-        self.amount_paid = sum(p.amount for p in self.payments.all())
+        self.amount_paid = sum(
+            p.amount
+            for p in self.payments.filter(
+                verification_status=Payment.VERIFICATION_STATUS_APPROVED,
+            )
+        )
         if self.amount_paid >= self.total_amount and self.total_amount > 0:
             self.payment_status = self.PAYMENT_STATUS_PAID
         elif self.amount_paid > 0:
@@ -118,11 +123,27 @@ class Payment(models.Model):
     """A payment made against a billing record."""
 
     METHOD_CASH = "cash"
+    METHOD_GCASH = "gcash"
+    METHOD_MAYA = "maya"
+    METHOD_BANK_TRANSFER = "bank_transfer"
     METHOD_EWALLET = "e_wallet"
+
+    VERIFICATION_STATUS_PENDING = "pending"
+    VERIFICATION_STATUS_APPROVED = "approved"
+    VERIFICATION_STATUS_REJECTED = "rejected"
 
     METHOD_CHOICES = [
         (METHOD_CASH, "Cash"),
-        (METHOD_EWALLET, "E-wallet"),
+        (METHOD_GCASH, "GCash"),
+        (METHOD_MAYA, "Maya"),
+        (METHOD_BANK_TRANSFER, "Bank Transfer"),
+        (METHOD_EWALLET, "Other E-wallet"),
+    ]
+
+    VERIFICATION_STATUS_CHOICES = [
+        (VERIFICATION_STATUS_PENDING, "Pending Verification"),
+        (VERIFICATION_STATUS_APPROVED, "Approved"),
+        (VERIFICATION_STATUS_REJECTED, "Rejected"),
     ]
 
     billing_record = models.ForeignKey(
@@ -131,21 +152,43 @@ class Payment(models.Model):
         related_name="payments",
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    method = models.CharField(max_length=10, choices=METHOD_CHOICES)
+    method = models.CharField(max_length=20, choices=METHOD_CHOICES)
     reference = models.CharField(
         max_length=100, blank=True,
         help_text="Transaction/reference number for e-wallet payments",
+    )
+    verification_status = models.CharField(
+        max_length=12,
+        choices=VERIFICATION_STATUS_CHOICES,
+        default=VERIFICATION_STATUS_APPROVED,
+    )
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments_submitted",
     )
     recorded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="payments_recorded",
     )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments_verified",
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verification_notes = models.TextField(blank=True)
     recorded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-recorded_at"]
 
     def __str__(self):
-        return f"₱{self.amount} via {self.get_method_display()}"
+        return f"₱{self.amount} via {self.get_method_display()} ({self.get_verification_status_display()})"

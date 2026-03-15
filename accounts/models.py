@@ -73,6 +73,14 @@ class Pet(models.Model):
         (GENDER_UNKNOWN, "Unknown"),
     ]
 
+    COVER_MODE_CROP = "crop"
+    COVER_MODE_FIT = "fit"
+
+    COVER_MODE_CHOICES = [
+        (COVER_MODE_CROP, "Crop"),
+        (COVER_MODE_FIT, "Fit"),
+    ]
+
     gender = models.CharField(
         max_length=20, choices=GENDER_CHOICES, default=GENDER_UNKNOWN, blank=True
     )
@@ -80,6 +88,13 @@ class Pet(models.Model):
     profile_picture = models.ImageField(
         upload_to=PET_PROFILE_PICTURE_UPLOAD_TO, null=True, blank=True
     )
+    cover_photo = models.ImageField(upload_to="pet_covers/", null=True, blank=True)
+    cover_fit_mode = models.CharField(
+        max_length=10,
+        choices=COVER_MODE_CHOICES,
+        default=COVER_MODE_CROP,
+    )
+    cover_position_y = models.PositiveSmallIntegerField(default=50)
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

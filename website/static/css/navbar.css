@@ -107,6 +107,12 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
+.navbar__links a i {
+  font-size: 0.9em;
+  width: 1.05em;
+  text-align: center;
+}
+
 .navbar__links a:hover,
 .navbar__links a.active {
   background: var(--clr-primary-light);
@@ -125,6 +131,7 @@ body {
 
 .navbar__dropdown > a .chevron {
   font-size: 0.75rem;
+  margin-left: 0.1rem;
   transition: transform var(--transition);
 }
 
@@ -168,13 +175,20 @@ body {
 }
 
 .navbar__dropdown-menu a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.55rem 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
   color: var(--clr-dark);
   text-decoration: none;
   transition: background var(--transition);
+}
+
+.navbar__dropdown-menu a i {
+  width: 1em;
+  text-align: center;
 }
 
 .navbar__dropdown-menu a:hover {

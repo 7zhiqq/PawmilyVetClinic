@@ -13,6 +13,7 @@ urlpatterns = [
     path("pets/", views.pet_list, name="pet_list"),
     path("pets/add/", views.pet_add, name="pet_add"),
     path("pets/<int:pk>/edit/", views.pet_edit, name="pet_edit"),
+    path("pets/<int:pk>/cover/", views.pet_cover_update, name="pet_cover_update"),
     # Walk-in client registration (2-step)
     path("walkin/register/", views.walkin_step1, name="walkin_register"),
     path("walkin/register/1/", views.walkin_step1, name="walkin_step1"),

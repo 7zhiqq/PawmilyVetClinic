@@ -88,13 +88,10 @@
         <input type="hidden" name="medical_record" value="{{ medical_record.pk }}" />
         <input type="hidden" name="appointment_id" value="{{ appointment.pk }}" />
         <div class="field-group">
-          <label for="id_vaccine_name"><i class="fa-solid fa-syringe"></i> Vaccine Name</label>
-          {{ vaccination_form.vaccine_name }}
-        </div>
-        <div class="field-group">
-          <label for="id_vaccine_type"><i class="fa-solid fa-vial"></i> Vaccine Type</label>
-          {{ vaccination_form.vaccine_type }}
-          <span class="field-hint">{{ vaccination_form.vaccine_type.help_text }}</span>
+          <label for="id_administered_vaccine"><i class="fa-solid fa-syringe"></i> Vaccine / Treatment Given</label>
+          {{ vaccination_form.administered_vaccine }}
+          <span class="field-hint">{{ vaccination_form.administered_vaccine.help_text }}</span>
+          <span class="field-hint" id="schedulePreviewText">Schedule preview: Select a vaccine to see its standard schedule.</span>
         </div>
         <div class="modal-form__row">
           <div class="field-group">
@@ -115,9 +112,14 @@
           {{ vaccination_form.notes }}
         </div>
         <div class="field-group">
-          <label for="id_vaccination_fee"><i class="fa-solid fa-peso-sign"></i> Vaccination Fee (₱)</label>
-          {{ vaccination_form.vaccination_fee }}
-          <span class="field-hint">Automatically added to the billing record. Enter 0 for no charge.</span>
+          <label for="id_shots_administered"><i class="fa-solid fa-layer-group"></i> Number of Shots</label>
+          {{ vaccination_form.shots_administered }}
+          <span class="field-hint">{{ vaccination_form.shots_administered.help_text }}</span>
+        </div>
+        <div class="field-group">
+          <label for="id_vaccine_price"><i class="fa-solid fa-peso-sign"></i> Price per Shot (₱)</label>
+          {{ vaccination_form.vaccine_price }}
+          <span class="field-hint">Automatically pulled from the selected vaccine and added to billing.</span>
         </div>
         <button type="submit" class="modal-form__submit">
           <i class="fa-solid fa-check"></i> Save Vaccination
@@ -132,6 +134,52 @@
 <script>
 (function () {
   'use strict';
+
+  const previewElement = document.getElementById('schedulePreviewText');
+  const vaccineSelect = document.getElementById('id_administered_vaccine');
+  const priceInput = document.getElementById('id_vaccine_price');
+  let priceMap = {};
+  let scheduleMap = {};
+
+  if (vaccineSelect) {
+    try {
+      priceMap = JSON.parse(vaccineSelect.getAttribute('data-price-map') || '{}');
+    } catch (error) {
+      priceMap = {};
+    }
+    try {
+      scheduleMap = JSON.parse(vaccineSelect.getAttribute('data-schedule-map') || '{}');
+    } catch (error) {
+      scheduleMap = {};
+    }
+  }
+
+  function updateSchedulePreview() {
+    if (!previewElement || !vaccineSelect) {
+      return;
+    }
+    const selected = vaccineSelect.value;
+    const preview = scheduleMap[selected] || 'Select a vaccine to see its standard schedule.';
+    previewElement.textContent = `Schedule preview: ${preview}`;
+  }
+
+  if (vaccineSelect) {
+    vaccineSelect.addEventListener('change', updateSchedulePreview);
+    vaccineSelect.addEventListener('change', function () {
+      if (!priceInput) {
+        return;
+      }
+      const selected = vaccineSelect.value;
+      const selectedPrice = Number(priceMap[selected] || 0);
+      priceInput.value = selectedPrice.toFixed(2);
+    });
+    updateSchedulePreview();
+    if (priceInput) {
+      const selectedPrice = Number(priceMap[vaccineSelect.value] || 0);
+      priceInput.value = selectedPrice.toFixed(2);
+    }
+  }
+
   initModal('vaxModal', ['openVaxModal'], 'closeVaxModal');
 })();
 </script>

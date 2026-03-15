@@ -62,6 +62,12 @@
                 {{ record.get_payment_status_display }}
               </span>
             </p>
+            {% if is_staff and pending_submission_count %}
+            <p>
+              Pending Submissions:
+              <span class="billing-pill billing-pill--pending">{{ pending_submission_count }}</span>
+            </p>
+            {% endif %}
           </div>
         </div>
 
@@ -195,11 +201,13 @@
           <table class="doc-table">
             <thead>
               <tr>
-                <th>Date</th>
+                <th>Submitted</th>
                 <th>Method</th>
                 <th>Reference</th>
                 <th class="text-right">Amount</th>
-                <th>Recorded By</th>
+                <th>Submitted By</th>
+                <th>Verification</th>
+                {% if is_staff and doc_view != 'receipt' %}<th class="text-center">Action</th>{% endif %}
               </tr>
             </thead>
             <tbody>
@@ -208,14 +216,56 @@
                 <td>{{ p.recorded_at|date:"M j, Y g:i A" }}</td>
                 <td>
                   {% if p.method == 'cash' %}
-                  <span class="method-badge method-badge--cash"><i class="fa-solid fa-money-bill-wave"></i> Cash</span>
+                  <span class="method-badge method-badge--cash"><i class="fa-solid fa-money-bill-wave"></i> {{ p.get_method_display }}</span>
+                  {% elif p.method == 'bank_transfer' %}
+                  <span class="method-badge method-badge--bank"><i class="fa-solid fa-building-columns"></i> {{ p.get_method_display }}</span>
                   {% else %}
-                  <span class="method-badge method-badge--ewallet"><i class="fa-solid fa-wallet"></i> E-wallet</span>
+                  <span class="method-badge method-badge--ewallet"><i class="fa-solid fa-wallet"></i> {{ p.get_method_display }}</span>
                   {% endif %}
                 </td>
                 <td>{{ p.reference|default:"—" }}</td>
                 <td class="text-right">&#8369;{{ p.amount|floatformat:2 }}</td>
-                <td>{{ p.recorded_by.get_full_name|default:"—" }}</td>
+                <td>
+                  {% if p.submitted_by %}
+                    {{ p.submitted_by.get_full_name|default:p.submitted_by.username }}
+                  {% elif p.recorded_by %}
+                    {{ p.recorded_by.get_full_name|default:p.recorded_by.username }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="billing-pill billing-pill--verification-{{ p.verification_status }}">
+                    {{ p.get_verification_status_display }}
+                  </span>
+                  {% if p.verified_at %}
+                  <div class="verification-meta">{{ p.verified_at|date:"M j, Y g:i A" }}</div>
+                  {% endif %}
+                </td>
+                {% if is_staff and doc_view != 'receipt' %}
+                <td class="text-center">
+                  {% if p.verification_status == 'pending' %}
+                  <div class="verification-actions">
+                    <form method="post" action="{% url 'billing_verify_payment' record.pk p.pk %}" class="u-inline-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="approve">
+                      <button type="submit" class="action-btn action-btn--approve" title="Approve payment">
+                        <i class="fa-solid fa-check"></i>
+                      </button>
+                    </form>
+                    <form method="post" action="{% url 'billing_verify_payment' record.pk p.pk %}" class="u-inline-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="reject">
+                      <button type="submit" class="action-btn action-btn--remove" title="Reject payment">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </form>
+                  </div>
+                  {% else %}
+                  <span class="verification-meta">Reviewed</span>
+                  {% endif %}
+                </td>
+                {% endif %}
               </tr>
               {% endfor %}
             </tbody>
@@ -246,6 +296,30 @@
               </div>
               <button type="submit" class="btn-primary u-flex-end">
                 <i class="fa-solid fa-coins"></i> Record Payment
+              </button>
+            </div>
+          </form>
+        </section>
+        {% elif not is_staff and doc_view != 'receipt' %}
+        <section class="doc-section doc-section--form">
+          <h3 class="doc-section__title">Submit Payment Reference</h3>
+          <form method="post" action="{% url 'billing_submit_payment' record.pk %}" class="inline-form">
+            {% csrf_token %}
+            <div class="inline-form__fields">
+              <div class="field field--sm">
+                <label for="id_amount">Amount Paid (₱)</label>
+                {{ owner_payment_form.amount }}
+              </div>
+              <div class="field field--sm">
+                <label for="id_method">Payment Method</label>
+                {{ owner_payment_form.method }}
+              </div>
+              <div class="field">
+                <label for="id_reference">Reference #</label>
+                {{ owner_payment_form.reference }}
+              </div>
+              <button type="submit" class="btn-primary u-flex-end">
+                <i class="fa-solid fa-paper-plane"></i> Submit for Verification
               </button>
             </div>
           </form>

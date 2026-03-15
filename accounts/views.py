@@ -323,6 +323,43 @@ def pet_edit(request, pk):
     return redirect("pet_list")
 
 
+@login_required
+def pet_cover_update(request, pk):
+    if not _is_pet_owner(request.user):
+        return HttpResponseForbidden("Only pet owners can edit their pets.")
+
+    pet = get_object_or_404(Pet, pk=pk, owner=request.user)
+
+    if request.method != "POST":
+        return redirect("pet_list")
+
+    mode = request.POST.get("cover_fit_mode") or Pet.COVER_MODE_CROP
+    if mode not in {Pet.COVER_MODE_CROP, Pet.COVER_MODE_FIT}:
+        mode = Pet.COVER_MODE_CROP
+
+    try:
+        position_y = int(request.POST.get("cover_position_y", pet.cover_position_y))
+    except (TypeError, ValueError):
+        position_y = pet.cover_position_y
+    position_y = max(0, min(100, position_y))
+
+    should_remove = request.POST.get("cover_action") == "remove"
+    uploaded_cover = request.FILES.get("cover_photo")
+
+    pet.cover_fit_mode = mode
+    pet.cover_position_y = position_y
+
+    if should_remove:
+        if pet.cover_photo:
+            pet.cover_photo.delete(save=False)
+        pet.cover_photo = None
+    elif uploaded_cover:
+        pet.cover_photo = uploaded_cover
+
+    pet.save(update_fields=["cover_photo", "cover_fit_mode", "cover_position_y"])
+    return redirect("pet_list")
+
+
 
 
 

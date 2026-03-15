@@ -285,6 +285,22 @@
   color: #991b1b;
 }
 
+.billing-pill--pending,
+.billing-pill--verification-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.billing-pill--verification-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.billing-pill--verification-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .billing-tabs {
   display: flex;
   gap: 0.35rem;
@@ -521,6 +537,34 @@
 .method-badge--ewallet {
   background: #dbeafe;
   color: #1e40af;
+}
+
+.method-badge--bank {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.verification-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.verification-meta {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--billing-subtext);
+}
+
+.action-btn--approve {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+}
+
+.action-btn--approve:hover {
+  background: #047857;
+  border-color: #047857;
 }
 
 .doc-print-bar {

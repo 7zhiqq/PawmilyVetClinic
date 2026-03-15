@@ -30,7 +30,7 @@ class FollowUpReminderInline(admin.TabularInline):
 
 @admin.register(VaccineType)
 class VaccineTypeAdmin(admin.ModelAdmin):
-    list_display = ("name", "species", "booster_interval_days", "is_active")
+    list_display = ("name", "species", "unit_price", "booster_interval_days", "is_active")
     list_filter = ("species", "is_active")
     search_fields = ("name",)
 
@@ -46,7 +46,7 @@ class MedicalRecordAdmin(admin.ModelAdmin):
 
 @admin.register(VaccinationRecord)
 class VaccinationRecordAdmin(admin.ModelAdmin):
-    list_display = ("pet", "vaccine_name", "vaccine_type", "date_administered", "next_due_date", "administered_by")
+    list_display = ("pet", "vaccine_name", "shots_administered", "vaccine_type", "date_administered", "next_due_date", "administered_by")
     list_filter = ("vaccine_name", "vaccine_type", "date_administered")
     search_fields = ("pet__name", "vaccine_name")
     date_hierarchy = "date_administered"

@@ -1,4 +1,3 @@
-from decimal import Decimal
 from datetime import date, timedelta
 
 from django.contrib import messages
@@ -6,16 +5,19 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseForbidden
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
+from urllib.parse import urlencode
 from pawmily.pagination import paginate_queryset
 
 from accounts.models import Pet
 from accounts.views import _is_staff_or_manager
 from appointments.models import Appointment
-from billing.views import add_vaccination_to_billing
+from billing.views import add_vaccination_to_billing, create_billing_for_appointment
 
-from .forms import MedicalAttachmentForm, MedicalRecordForm, VaccinationRecordForm
-from .models import MedicalRecord, VaccinationSchedule, FollowUpReminder
+from .forms import MedicalAttachmentForm, MedicalRecordForm, VaccinationRecordForm, VaccineCatalogForm
+from .models import MedicalRecord, VaccinationSchedule, FollowUpReminder, VaccineType
+from .vaccination_protocols import schedule_reference_for_vaccine
 
 
 
@@ -224,16 +226,22 @@ def vaccination_add(request, pet_id):
             vax = form.save(commit=False)
             vax.pet = pet
             vax.administered_by = request.user
+            vax.shots_administered = form.cleaned_data.get("shots_administered") or 1
             if medical_record_id:
                 vax.medical_record_id = int(medical_record_id)
             vax.save()
 
-            # Auto-add vaccination fee to billing if linked to an appointment
-            vax_fee = form.cleaned_data.get("vaccination_fee") or Decimal("0.00")
-            if vax_fee > 0 and appointment_id:
+            # Auto-add vaccination charges to billing if linked to an appointment.
+            vaccine_price = form.cleaned_data.get("vaccine_price") or 0
+            if vaccine_price > 0 and appointment_id:
                 apt = Appointment.objects.filter(pk=int(appointment_id)).first()
                 if apt:
-                    add_vaccination_to_billing(apt, vax.vaccine_name, vax_fee)
+                    add_vaccination_to_billing(
+                        apt,
+                        vax.vaccine_name,
+                        unit_price=vaccine_price,
+                        quantity=vax.shots_administered,
+                    )
 
             messages.success(request, "Vaccination record added.")
 
@@ -351,6 +359,149 @@ def pet_records_search(request):
     })
 
 
+def _vaccination_management_params(request):
+    params = {}
+    for key in ("q", "species", "vaccines_page"):
+        value = (request.POST.get(key) or request.GET.get(key) or "").strip()
+        if value:
+            params[key] = value
+    return params
+
+
+def _vaccination_management_redirect(request):
+    url = reverse("vaccination_management")
+    query_string = urlencode(_vaccination_management_params(request))
+    return redirect(f"{url}?{query_string}" if query_string else url)
+
+
+def _render_vaccination_management(
+    request,
+    *,
+    add_form=None,
+    edit_form=None,
+    edit_vaccine_id=None,
+    active_modal=None,
+):
+    search_q = (request.POST.get("q") or request.GET.get("q") or "").strip()
+    current_species = (request.POST.get("species") or request.GET.get("species") or "").strip()
+    current_page = (request.POST.get("vaccines_page") or request.GET.get("vaccines_page") or "").strip()
+
+    all_vaccines = VaccineType.objects.order_by("species", "name")
+    filtered_vaccines = all_vaccines
+    if search_q:
+        filtered_vaccines = filtered_vaccines.filter(
+            Q(name__icontains=search_q)
+            | Q(description__icontains=search_q)
+        )
+    if current_species:
+        filtered_vaccines = filtered_vaccines.filter(species=current_species)
+
+    vaccines_page_obj, vaccines_pagination_query = paginate_queryset(
+        request,
+        filtered_vaccines,
+        per_page=10,
+        page_param="vaccines_page",
+    )
+
+    for vaccine in vaccines_page_obj.object_list:
+        vaccine.edit_modal_id = f"editVaccineModal-{vaccine.pk}"
+        vaccine.schedule_reference = schedule_reference_for_vaccine(
+            vaccine.species,
+            vaccine.name,
+            description=vaccine.description,
+            booster_interval_days=vaccine.booster_interval_days,
+        )
+        if edit_vaccine_id == vaccine.pk and edit_form is not None:
+            vaccine.edit_form = edit_form
+        else:
+            vaccine.edit_form = VaccineCatalogForm(instance=vaccine, prefix=f"edit-{vaccine.pk}")
+
+    context = {
+        "vaccines": vaccines_page_obj,
+        "vaccines_page_obj": vaccines_page_obj,
+        "vaccines_pagination_query": vaccines_pagination_query,
+        "search_q": search_q,
+        "current_species": current_species,
+        "current_page": current_page or getattr(vaccines_page_obj, "number", 1),
+        "species_choices": VaccineType._meta.get_field("species").choices,
+        "add_form": add_form or VaccineCatalogForm(prefix="add"),
+        "active_modal": active_modal,
+        "total_vaccines": all_vaccines.count(),
+        "active_vaccines": all_vaccines.filter(is_active=True).count(),
+        "dog_vaccines": all_vaccines.filter(species="dog").count(),
+        "cat_vaccines": all_vaccines.filter(species="cat").count(),
+    }
+    return render(request, "vaccination_management.html", context)
+
+
+@login_required
+def vaccination_management(request):
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can access this page.")
+    return _render_vaccination_management(request)
+
+
+@login_required
+@transaction.atomic
+def vaccination_type_add(request):
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can manage vaccinations.")
+
+    if request.method == "POST":
+        form = VaccineCatalogForm(request.POST, prefix="add")
+        if form.is_valid():
+            vaccine = form.save()
+            messages.success(request, f"{vaccine.name} added to the vaccination catalog.")
+            return _vaccination_management_redirect(request)
+        return _render_vaccination_management(request, add_form=form, active_modal="addVaccineModal")
+
+    return _vaccination_management_redirect(request)
+
+
+@login_required
+@transaction.atomic
+def vaccination_type_edit(request, vaccine_id):
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can manage vaccinations.")
+
+    vaccine = get_object_or_404(VaccineType, pk=vaccine_id)
+    if request.method == "POST":
+        form = VaccineCatalogForm(request.POST, instance=vaccine, prefix=f"edit-{vaccine.pk}")
+        if form.is_valid():
+            vaccine = form.save()
+            messages.success(request, f"{vaccine.name} updated.")
+            return _vaccination_management_redirect(request)
+        return _render_vaccination_management(
+            request,
+            edit_form=form,
+            edit_vaccine_id=vaccine.pk,
+            active_modal=f"editVaccineModal-{vaccine.pk}",
+        )
+
+    return _vaccination_management_redirect(request)
+
+
+@login_required
+@transaction.atomic
+def vaccination_type_delete(request, vaccine_id):
+    if not _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only staff can manage vaccinations.")
+
+    vaccine = get_object_or_404(VaccineType, pk=vaccine_id)
+    if request.method == "POST":
+        vaccine_name = vaccine.name
+        linked_records = vaccine.vaccination_records.count()
+        vaccine.delete()
+        if linked_records:
+            messages.success(
+                request,
+                f"{vaccine_name} deleted. {linked_records} existing vaccination records kept their text label and lost the direct catalog link.",
+            )
+        else:
+            messages.success(request, f"{vaccine_name} deleted from the vaccination catalog.")
+    return _vaccination_management_redirect(request)
+
+
 # ─── Post-Completion Stepper Flow ─────────────────────────────────────────────
 
 STEPS = [
@@ -426,6 +577,7 @@ def finalize_step2(request, appointment_id):
                 record.appointment = apt
                 record.created_by = request.user
             record.save()
+            create_billing_for_appointment(apt, created_by=request.user)
             messages.success(request, "Medical record saved.")
             return redirect("finalize_step3", appointment_id=apt.pk)
     else:

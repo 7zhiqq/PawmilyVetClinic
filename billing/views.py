@@ -6,11 +6,12 @@ from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from pawmily.pagination import paginate_queryset
 
 from accounts.views import _is_staff_or_manager
 
-from .forms import LineItemForm, PaymentForm
+from .forms import LineItemForm, OwnerPaymentSubmissionForm, PaymentForm
 from .models import BillingLineItem, BillingRecord, Payment
 
 CHECKUP_FEE = Decimal("300.00")
@@ -47,16 +48,15 @@ def create_billing_for_appointment(appointment, created_by=None):
     return record
 
 
-def add_vaccination_to_billing(appointment, vaccine_name, fee):
-    """Add a vaccination line item to the billing record for an appointment."""
-    if not hasattr(appointment, "billing_record"):
-        return
-    record = appointment.billing_record
+def add_vaccination_to_billing(appointment, vaccine_name, unit_price, quantity=1):
+    """Add vaccination charges to billing using predefined vaccine price and shot quantity."""
+    record = create_billing_for_appointment(appointment)
+    quantity = max(1, int(quantity or 1))
     BillingLineItem.objects.create(
         billing_record=record,
         description=f"Vaccination – {vaccine_name}",
-        quantity=1,
-        unit_price=fee,
+        quantity=quantity,
+        unit_price=unit_price,
     )
     record.recalculate()
 
@@ -135,7 +135,7 @@ def billing_detail(request, pk):
         return HttpResponseForbidden("You cannot view this billing record.")
 
     line_items = record.line_items.all()
-    payments = record.payments.all()
+    payments = record.payments.select_related("submitted_by", "recorded_by", "verified_by").all()
 
     line_items_page_obj, line_items_pagination_query = paginate_queryset(
         request,
@@ -151,6 +151,10 @@ def billing_detail(request, pk):
     )
     line_form = LineItemForm() if is_staff else None
     payment_form = PaymentForm() if is_staff else None
+    owner_payment_form = OwnerPaymentSubmissionForm() if not is_staff else None
+    pending_submission_count = payments.filter(
+        verification_status=Payment.VERIFICATION_STATUS_PENDING,
+    ).count()
 
     doc_view = request.GET.get("view", "invoice")
     if doc_view not in ("invoice", "receipt"):
@@ -166,8 +170,10 @@ def billing_detail(request, pk):
         "payments_pagination_query": payments_pagination_query,
         "line_form": line_form,
         "payment_form": payment_form,
+        "owner_payment_form": owner_payment_form,
         "is_staff": is_staff,
         "doc_view": doc_view,
+        "pending_submission_count": pending_submission_count,
     })
 
 
@@ -228,12 +234,82 @@ def billing_add_payment(request, pk):
             payment = form.save(commit=False)
             payment.billing_record = record
             payment.recorded_by = request.user
+            payment.verification_status = Payment.VERIFICATION_STATUS_APPROVED
+            payment.verified_by = request.user
+            payment.verified_at = timezone.now()
             payment.save()
             record.recalculate()
             messages.success(request, f"Payment of ₱{payment.amount} recorded.")
         else:
             for err in form.errors.values():
                 messages.error(request, err.as_text())
+
+    return redirect("billing_detail", pk=pk)
+
+
+@login_required
+def billing_submit_payment(request, pk):
+    """Owner: submit a payment reference for staff verification."""
+    if _is_staff_or_manager(request.user):
+        return HttpResponseForbidden("Only pet owners can submit payment references here.")
+
+    record = get_object_or_404(BillingRecord, pk=pk)
+    if record.owner_id != request.user.id:
+        return HttpResponseForbidden("You cannot submit payment for this billing record.")
+
+    if request.method == "POST":
+        form = OwnerPaymentSubmissionForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.billing_record = record
+            payment.submitted_by = request.user
+            payment.verification_status = Payment.VERIFICATION_STATUS_PENDING
+            payment.save()
+            record.recalculate()
+            messages.success(request, "Payment submitted and marked as Pending Verification.")
+        else:
+            for err in form.errors.values():
+                messages.error(request, err.as_text())
+
+    return redirect("billing_detail", pk=pk)
+
+
+@login_required
+def billing_verify_payment(request, pk, payment_id):
+    """Staff: approve or reject owner-submitted payments."""
+    forbidden = _ensure_staff(request.user)
+    if forbidden:
+        return forbidden
+
+    record = get_object_or_404(BillingRecord, pk=pk)
+    payment = get_object_or_404(Payment, pk=payment_id, billing_record=record)
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "").strip().lower()
+        verification_notes = (request.POST.get("verification_notes") or "").strip()
+
+        if action not in {"approve", "reject"}:
+            messages.error(request, "Invalid verification action.")
+            return redirect("billing_detail", pk=pk)
+
+        payment.verified_by = request.user
+        payment.verified_at = timezone.now()
+        payment.verification_notes = verification_notes
+
+        if action == "approve":
+            payment.verification_status = Payment.VERIFICATION_STATUS_APPROVED
+            messages.success(request, "Payment approved and applied to billing.")
+        else:
+            payment.verification_status = Payment.VERIFICATION_STATUS_REJECTED
+            messages.success(request, "Payment submission rejected.")
+
+        payment.save(update_fields=[
+            "verification_status",
+            "verified_by",
+            "verified_at",
+            "verification_notes",
+        ])
+        record.recalculate()
 
     return redirect("billing_detail", pk=pk)
 

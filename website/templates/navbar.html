@@ -8,24 +8,41 @@
     </a>
 
     <ul class="navbar__links">
-      <li><a href="/">Home</a></li>
+      <li><a href="/"><i class="fa-solid fa-house"></i> Home</a></li>
 
       {% if user.is_authenticated %}
         {% with role=user.profile.role|default:'' %}
           {% if user.is_superuser or role == 'manager' %}
-            <li><a href="/accounts/invitations/">Manage users</a></li>
-            <li><a href="/accounts/billing/">Billing</a></li>
+            <li><a href="/accounts/invitations/"><i class="fa-solid fa-user-gear"></i> Manage users</a></li>
+            <li><a href="/accounts/billing/"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a></li>
+            <li><a href="/accounts/profile/"><i class="fa-solid fa-id-card"></i> My profile</a></li>
           {% elif role == 'staff' %}
-            <li><a href="/accounts/appointments/calendar/">Calendar</a></li>
-            <li><a href="/accounts/appointments/manage/">Appointments</a></li>
-            <li><a href="/accounts/pets/search/">Pet Records</a></li>
-            <li><a href="/accounts/billing/">Billing</a></li>
-            <li><a href="/accounts/walkin/register/">Walk-in registration</a></li>
+            <li><a href="/accounts/appointments/calendar/"><i class="fa-regular fa-calendar"></i> Calendar</a></li>
+            <li><a href="/accounts/appointments/manage/"><i class="fa-solid fa-list-check"></i> Appointments</a></li>
+            <li><a href="/accounts/pets/search/"><i class="fa-solid fa-file-medical"></i> Pet Records</a></li>
+            <li class="navbar__dropdown">
+              <a href="#" aria-haspopup="true" aria-expanded="false">
+                <i class="fa-solid fa-ellipsis"></i> More <span class="chevron">▾</span>
+              </a>
+              <div class="navbar__dropdown-menu" role="menu" aria-label="More navigation">
+                <a href="/accounts/vaccinations/manage/" role="menuitem"><i class="fa-solid fa-syringe"></i> Vaccinations</a>
+                <a href="/accounts/billing/" role="menuitem"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+                <a href="/accounts/walkin/register/" role="menuitem"><i class="fa-solid fa-clipboard-list"></i> Walk-in Registration</a>
+                <a href="/accounts/profile/" role="menuitem"><i class="fa-solid fa-id-card"></i> My profile</a>
+              </div>
+            </li>
           {% else %}
-            <li><a href="/accounts/pets/">Pets</a></li>
-            <li><a href="/accounts/appointments/calendar/">Calendar</a></li>
-            <li><a href="/accounts/billing/">Billing</a></li>
-            <li><a href="/accounts/profile/">My profile</a></li>
+            <li><a href="/accounts/pets/"><i class="fa-solid fa-paw"></i> Pets</a></li>
+            <li><a href="/accounts/appointments/calendar/"><i class="fa-regular fa-calendar"></i> Calendar</a></li>
+            <li class="navbar__dropdown">
+              <a href="#" aria-haspopup="true" aria-expanded="false">
+                <i class="fa-solid fa-ellipsis"></i> More <span class="chevron">▾</span>
+              </a>
+              <div class="navbar__dropdown-menu" role="menu" aria-label="More navigation">
+                <a href="/accounts/billing/" role="menuitem"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+                <a href="/accounts/profile/" role="menuitem"><i class="fa-solid fa-id-card"></i> My profile</a>
+              </div>
+            </li>
           {% endif %}
         {% endwith %}
       {% endif %}

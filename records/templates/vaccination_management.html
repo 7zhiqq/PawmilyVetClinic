@@ -1,0 +1,395 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vaccinations - Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/medical.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+  <style>
+    .vaccination-management-page {
+      max-width: var(--page-max-width, 1120px);
+      margin: 0 auto;
+      padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
+    }
+
+    .vaccination-management-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .vaccination-management-table td {
+      vertical-align: top;
+    }
+
+    .vaccination-management-name {
+      font-weight: 700;
+      color: var(--c-dark, #111827);
+      margin-bottom: 0.2rem;
+    }
+
+    .vaccination-management-meta {
+      font-size: 0.78rem;
+      color: var(--c-muted, #6b7280);
+    }
+
+    .vaccination-management-schedule {
+      max-width: 340px;
+      line-height: 1.45;
+    }
+
+    .vaccination-management-actions {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .vaccination-management-price {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .modal-form__checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 0.1rem 0.15rem;
+      font-size: 0.88rem;
+      color: var(--c-ink, #374151);
+    }
+
+    .modal-form__checkbox input {
+      width: auto;
+      margin: 0;
+    }
+
+    .modal-form__errors ul,
+    .modal-form__errors li,
+    .field-error-list,
+    .field-error-list li {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .field-error-list {
+      color: #dc2626;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 900px) {
+      .vaccination-management-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .vaccination-management-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .vaccination-management-actions {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+
+    <main class="vaccination-management-page">
+      <div class="billing-header">
+        <div>
+          <h1>Vaccination Management</h1>
+          <p>Manage vaccine names, species coverage, billing price per shot, and default schedule references from one staff page.</p>
+        </div>
+        <button type="button" id="openAddVaccineModal" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Add Vaccine
+        </button>
+      </div>
+
+      <section class="vaccination-management-summary">
+        <article class="billing-summary-card">
+          <p class="billing-summary-card__label">Catalog Entries</p>
+          <p class="billing-summary-card__value">{{ total_vaccines }}</p>
+        </article>
+        <article class="billing-summary-card billing-summary-card--accent">
+          <p class="billing-summary-card__label">Active in Forms</p>
+          <p class="billing-summary-card__value">{{ active_vaccines }}</p>
+        </article>
+        <article class="billing-summary-card">
+          <p class="billing-summary-card__label">Dog Vaccines</p>
+          <p class="billing-summary-card__value">{{ dog_vaccines }}</p>
+        </article>
+        <article class="billing-summary-card">
+          <p class="billing-summary-card__label">Cat Vaccines</p>
+          <p class="billing-summary-card__value">{{ cat_vaccines }}</p>
+        </article>
+      </section>
+
+      {% if messages %}
+      <div class="billing-messages">
+        {% for msg in messages %}
+        <div class="billing-msg billing-msg--{{ msg.tags|default:'success' }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="billing-filters card-surface">
+        <form method="get" class="billing-filter-form">
+          <div class="billing-filter-group">
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search vaccine name or schedule reference..." class="billing-search-input" />
+            <select name="species" class="billing-status-select">
+              <option value="">All species</option>
+              {% for value, label in species_choices %}
+              <option value="{{ value }}" {% if current_species == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+          </div>
+        </form>
+      </div>
+
+      {% if vaccines %}
+      <section class="card-surface">
+        <div class="card-surface__header">
+          <div>
+            <h2>Vaccine Catalog</h2>
+            <p>Changes here immediately affect the staff vaccination dropdown and auto-filled billing price.</p>
+          </div>
+        </div>
+        <div class="billing-table-wrap">
+          <table class="billing-table vaccination-management-table">
+            <thead>
+              <tr>
+                <th>Vaccine</th>
+                <th>Species</th>
+                <th>Default Schedule</th>
+                <th>Price / Shot</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for vaccine in vaccines %}
+              <tr>
+                <td>
+                  <div class="vaccination-management-name">{{ vaccine.name }}</div>
+                  <div class="vaccination-management-meta">Booster interval: {{ vaccine.booster_interval_days }} day{{ vaccine.booster_interval_days|pluralize }}</div>
+                </td>
+                <td>{{ vaccine.get_species_display }}</td>
+                <td class="vaccination-management-schedule">{{ vaccine.schedule_reference }}</td>
+                <td class="vaccination-management-price">&#8369;{{ vaccine.unit_price|floatformat:2 }}</td>
+                <td>
+                  {% if vaccine.is_active %}
+                  <span class="billing-pill billing-pill--paid">Active</span>
+                  {% else %}
+                  <span class="billing-pill billing-pill--unpaid">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="vaccination-management-actions">
+                    <button type="button" id="openEditVaccineModal-{{ vaccine.pk }}" class="action-btn action-btn--view">
+                      <i class="fa-solid fa-pen"></i> Edit
+                    </button>
+                    <button type="button" id="openDeleteVaccineModal-{{ vaccine.pk }}" class="action-btn action-btn--remove">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include "includes/pagination.html" with page_obj=vaccines_page_obj page_param="vaccines_page" pagination_query=vaccines_pagination_query %}
+      </section>
+      {% else %}
+      <div class="billing-empty">
+        <span class="billing-empty__icon">💉</span>
+        <h3>No catalog entries found</h3>
+        <p>Try a different search or add a new vaccine to the clinic catalog.</p>
+      </div>
+      {% endif %}
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="addVaccineModal" role="dialog" aria-modal="true" aria-labelledby="addVaccineModalTitle" data-has-errors="{% if active_modal == 'addVaccineModal' %}true{% else %}false{% endif %}">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" id="addVaccineModalTitle">Add Vaccine</h2>
+          <p class="modal__subtitle">Create a catalog entry for medical records and billing.</p>
+        </div>
+        <button type="button" class="modal__close" id="closeAddVaccineModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        <form method="post" action="{% url 'vaccination_type_add' %}" class="modal-form">
+          {% csrf_token %}
+          <input type="hidden" name="q" value="{{ search_q }}">
+          <input type="hidden" name="species" value="{{ current_species }}">
+          <input type="hidden" name="vaccines_page" value="{{ current_page }}">
+          {% if add_form.non_field_errors %}
+          <div class="modal-form__errors">
+            {% for error in add_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="{{ add_form.name.id_for_label }}">Vaccine Name</label>
+              {{ add_form.name }}
+              {% if add_form.name.errors %}<ul class="field-error-list">{% for error in add_form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="field-group">
+              <label for="{{ add_form.species.id_for_label }}">Species</label>
+              {{ add_form.species }}
+              {% if add_form.species.errors %}<ul class="field-error-list">{% for error in add_form.species.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="{{ add_form.booster_interval_days.id_for_label }}">Booster Interval (Days)</label>
+              {{ add_form.booster_interval_days }}
+              {% if add_form.booster_interval_days.errors %}<ul class="field-error-list">{% for error in add_form.booster_interval_days.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="field-group">
+              <label for="{{ add_form.unit_price.id_for_label }}">Price per Shot (PHP)</label>
+              {{ add_form.unit_price }}
+              {% if add_form.unit_price.errors %}<ul class="field-error-list">{% for error in add_form.unit_price.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="{{ add_form.description.id_for_label }}">Default Schedule Reference</label>
+            {{ add_form.description }}
+            {% if add_form.description.errors %}<ul class="field-error-list">{% for error in add_form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <label class="modal-form__checkbox" for="{{ add_form.is_active.id_for_label }}">
+            {{ add_form.is_active }}
+            <span>Show this vaccine in staff vaccination forms</span>
+          </label>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-check"></i> Save Vaccine
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% for vaccine in vaccines %}
+  <div class="modal-backdrop" id="editVaccineModal-{{ vaccine.pk }}" role="dialog" aria-modal="true" aria-labelledby="editVaccineModalTitle-{{ vaccine.pk }}" data-has-errors="{% if active_modal == vaccine.edit_modal_id %}true{% else %}false{% endif %}">
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" id="editVaccineModalTitle-{{ vaccine.pk }}">Edit {{ vaccine.name }}</h2>
+          <p class="modal__subtitle">Update what staff sees in medical records and billing.</p>
+        </div>
+        <button type="button" class="modal__close" id="closeEditVaccineModal-{{ vaccine.pk }}" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        <form method="post" action="{% url 'vaccination_type_edit' vaccine.pk %}" class="modal-form">
+          {% csrf_token %}
+          <input type="hidden" name="q" value="{{ search_q }}">
+          <input type="hidden" name="species" value="{{ current_species }}">
+          <input type="hidden" name="vaccines_page" value="{{ current_page }}">
+          {% if vaccine.edit_form.non_field_errors %}
+          <div class="modal-form__errors">
+            {% for error in vaccine.edit_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="{{ vaccine.edit_form.name.id_for_label }}">Vaccine Name</label>
+              {{ vaccine.edit_form.name }}
+              {% if vaccine.edit_form.name.errors %}<ul class="field-error-list">{% for error in vaccine.edit_form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="field-group">
+              <label for="{{ vaccine.edit_form.species.id_for_label }}">Species</label>
+              {{ vaccine.edit_form.species }}
+              {% if vaccine.edit_form.species.errors %}<ul class="field-error-list">{% for error in vaccine.edit_form.species.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          </div>
+          <div class="modal-form__row">
+            <div class="field-group">
+              <label for="{{ vaccine.edit_form.booster_interval_days.id_for_label }}">Booster Interval (Days)</label>
+              {{ vaccine.edit_form.booster_interval_days }}
+              {% if vaccine.edit_form.booster_interval_days.errors %}<ul class="field-error-list">{% for error in vaccine.edit_form.booster_interval_days.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="field-group">
+              <label for="{{ vaccine.edit_form.unit_price.id_for_label }}">Price per Shot (PHP)</label>
+              {{ vaccine.edit_form.unit_price }}
+              {% if vaccine.edit_form.unit_price.errors %}<ul class="field-error-list">{% for error in vaccine.edit_form.unit_price.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="{{ vaccine.edit_form.description.id_for_label }}">Default Schedule Reference</label>
+            {{ vaccine.edit_form.description }}
+            {% if vaccine.edit_form.description.errors %}<ul class="field-error-list">{% for error in vaccine.edit_form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <label class="modal-form__checkbox" for="{{ vaccine.edit_form.is_active.id_for_label }}">
+            {{ vaccine.edit_form.is_active }}
+            <span>Show this vaccine in staff vaccination forms</span>
+          </label>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-save"></i> Update Vaccine
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="deleteVaccineModal-{{ vaccine.pk }}" role="dialog" aria-modal="true" aria-labelledby="deleteVaccineModalTitle-{{ vaccine.pk }}" data-has-errors="false">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title" id="deleteVaccineModalTitle-{{ vaccine.pk }}">Delete {{ vaccine.name }}?</h2>
+          <p class="modal__subtitle">Existing vaccination records will keep their text label. The catalog link becomes empty.</p>
+        </div>
+        <button type="button" class="modal__close" id="closeDeleteVaccineModal-{{ vaccine.pk }}" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="modal__divider"></div>
+        <form method="post" action="{% url 'vaccination_type_delete' vaccine.pk %}" class="modal-form">
+          {% csrf_token %}
+          <input type="hidden" name="q" value="{{ search_q }}">
+          <input type="hidden" name="species" value="{{ current_species }}">
+          <input type="hidden" name="vaccines_page" value="{{ current_page }}">
+          <p class="vaccination-management-schedule">This removes the vaccine from the staff management catalog and prevents future auto-selection in medical record forms.</p>
+          <button type="submit" class="modal-form__submit">
+            <i class="fa-solid fa-trash"></i> Confirm Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <script src="{% static 'js/modal_utils.js' %}"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      initModal('addVaccineModal', ['openAddVaccineModal'], 'closeAddVaccineModal');
+      {% for vaccine in vaccines %}
+      initModal('editVaccineModal-{{ vaccine.pk }}', ['openEditVaccineModal-{{ vaccine.pk }}'], 'closeEditVaccineModal-{{ vaccine.pk }}');
+      initModal('deleteVaccineModal-{{ vaccine.pk }}', ['openDeleteVaccineModal-{{ vaccine.pk }}'], 'closeDeleteVaccineModal-{{ vaccine.pk }}');
+      {% endfor %}
+    }());
+  </script>
+</body>
+</html>

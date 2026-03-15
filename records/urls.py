@@ -4,6 +4,10 @@ from . import views
 
 urlpatterns = [
     path("pets/search/", views.pet_records_search, name="pet_records_search"),
+    path("vaccinations/manage/", views.vaccination_management, name="vaccination_management"),
+    path("vaccinations/manage/add/", views.vaccination_type_add, name="vaccination_type_add"),
+    path("vaccinations/manage/<int:vaccine_id>/edit/", views.vaccination_type_edit, name="vaccination_type_edit"),
+    path("vaccinations/manage/<int:vaccine_id>/delete/", views.vaccination_type_delete, name="vaccination_type_delete"),
     path("pets/<int:pet_id>/records/", views.medical_records_list, name="medical_records_list"),
     path("pets/<int:pet_id>/records/add/", views.medical_record_add, name="medical_record_add"),
     path("pets/<int:pet_id>/records/<int:record_id>/", views.medical_record_detail, name="medical_record_detail"),
