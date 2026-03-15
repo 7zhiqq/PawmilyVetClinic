@@ -397,7 +397,7 @@
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
 
-    <main class="dashboard-main">
+    <main class="dashboard-main app-page-shell page-wrapper">
       <header class="dashboard-header">
         <div>
           <h1 class="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}</h1>
@@ -436,9 +436,9 @@
               <a href="/accounts/billing/" class="dashboard-action-btn">
                 <i class="fa-solid fa-file-invoice-dollar"></i> Billing
               </a>
-              <button type="button" class="dashboard-action-btn" id="openProfileModal">
+              <a href="{% url 'profile_edit' %}" class="dashboard-action-btn">
                 <i class="fa-solid fa-user"></i> My profile
-              </button>
+              </a>
             </div>
           </section>
 
@@ -1053,45 +1053,6 @@
   {# ─── Add Pet Modal ─── #}
   {% include 'accounts/includes/add_pet_modal.html' with form=pet_form modal_id='addPetModal' modal_title_id='addPetModalTitle' close_button_id='closeAddPetModal' %}
 
-  {# ─── Profile Edit Modal ─── #}
-  <div class="modal-backdrop" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle"
-    data-has-errors="{% if profile_form and profile_form.errors %}true{% else %}false{% endif %}">
-    <div class="modal">
-      <div class="modal__header">
-        <div>
-          <div class="modal__title" id="profileModalTitle">My Profile</div>
-          <div class="modal__subtitle">Update your contact details.</div>
-        </div>
-        <button class="modal__close" id="closeProfileModal" aria-label="Close">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="modal__body">
-        <div class="modal__divider"></div>
-        {% if profile_form and profile_form.errors %}
-        <div class="modal-form__errors">
-          {% for field in profile_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
-          {% for error in profile_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-        </div>
-        {% endif %}
-        <form method="POST" action="{% url 'profile_edit' %}" class="modal-form">
-          {% csrf_token %}
-          <div class="field-group">
-            <label for="dash_phone"><i class="fa-solid fa-phone"></i> Phone</label>
-            {{ profile_form.phone }}
-          </div>
-          <div class="field-group">
-            <label for="dash_address"><i class="fa-solid fa-location-dot"></i> Address</label>
-            {{ profile_form.address }}
-          </div>
-          <button type="submit" class="modal-form__submit"><i class="fa-solid fa-floppy-disk"></i> Save profile</button>
-        </form>
-        <p style="font-size:0.78rem;color:#9ca3af;margin-top:0.75rem;text-align:center;">
-          Your name and email are managed in your account settings.
-        </p>
-      </div>
-    </div>
-  </div>
   {% endif %}
 
   {# ─── Schedule / Walk-in Modal (staff & manager) ─── #}
@@ -1488,21 +1449,6 @@
     const modal   = document.getElementById('addPetModal');
     const openBtn = document.getElementById('openAddPetModal');
     const closeBtn = document.getElementById('closeAddPetModal');
-    if (!modal) return;
-    const openModal  = () => { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; };
-    const closeModal = () => { modal.classList.remove('is-open'); document.body.style.overflow = ''; };
-    openBtn  && openBtn.addEventListener('click', openModal);
-    closeBtn && closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
-    if (modal.dataset.hasErrors === 'true') openModal();
-  })();
-
-  /* ── PROFILE MODAL ── */
-  (function () {
-    const modal    = document.getElementById('profileModal');
-    const openBtn  = document.getElementById('openProfileModal');
-    const closeBtn = document.getElementById('closeProfileModal');
     if (!modal) return;
     const openModal  = () => { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; };
     const closeModal = () => { modal.classList.remove('is-open'); document.body.style.overflow = ''; };

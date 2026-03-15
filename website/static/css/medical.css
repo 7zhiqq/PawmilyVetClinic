@@ -1,6 +1,7 @@
 /* ─── Medical Records Styles ────────────────────────────────────────────── */
 
 .medical-page {
+  flex: 1;
   max-width: var(--page-max-width, 1120px);
   padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
   margin: 0 auto;

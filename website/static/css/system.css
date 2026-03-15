@@ -53,7 +53,7 @@
   --font-main: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Page layout */
-  --page-max-width:  1120px;
+  --page-max-width:  1200px;
   --page-padding-v:  2.5rem;
   --page-padding-h:  1.5rem;
 }
@@ -75,6 +75,52 @@ body {
   max-width: var(--page-max-width);
   margin: 0 auto;
   padding: var(--page-padding-v) var(--page-padding-h) 3rem;
+}
+
+/* Single shared shell for all standard pages (Queue keeps its custom layout). */
+.app-page-shell,
+.page-wrapper {
+  width: 100% !important;
+  max-width: var(--page-max-width) !important;
+  margin: 0 auto !important;
+  padding: var(--page-padding-v) var(--page-padding-h) 3rem !important;
+  text-align: left;
+  min-width: 0;
+}
+
+.app-page-shell > *,
+.page-wrapper > * {
+  min-width: 0;
+}
+
+.app-page-shell :where(h1, h2, h3, .dashboard-title, .page-title),
+.page-wrapper :where(h1, h2, h3, .dashboard-title, .page-title) {
+  text-align: left;
+}
+
+.app-page-shell :where(table, form, .card, .dashboard-card),
+.page-wrapper :where(table, form, .card, .dashboard-card) {
+  max-width: 100%;
+}
+
+.app-page-shell :where(.book-header, .book-card, .petform-header, .petform-card, .cal-card, .calendar-card),
+.page-wrapper :where(.book-header, .book-card, .petform-header, .petform-card, .cal-card, .calendar-card) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.app-page-shell :where(.table-wrap, .table-container, .table-responsive, .ops-table-wrap),
+.page-wrapper :where(.table-wrap, .table-container, .table-responsive, .ops-table-wrap) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-content {
+  min-width: 0;
 }
 
 /* Narrower variants */

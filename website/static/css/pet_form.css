@@ -1,7 +1,18 @@
 .petform-page {
-  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+  max-width: var(--page-max-width, 1120px);
   margin: 0 auto;
-  padding: 0 1.5rem 4rem;
+  padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
+}
+
+.petform-header,
+.petform-card {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .petform-header {

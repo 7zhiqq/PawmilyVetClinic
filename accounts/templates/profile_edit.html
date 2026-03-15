@@ -13,40 +13,317 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <style>
+    .profile-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+      margin-top: 1.5rem;
+    }
+
+    .profile-sidebar {
+      position: sticky;
+      top: 1rem;
+    }
+
+    .profile-sidebar__intro {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .profile-sidebar__title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--c-dark, #111827);
+    }
+
+    .profile-sidebar__sub {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--c-muted, #6b7280);
+      word-break: break-word;
+    }
+
+    .profile-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .profile-nav__link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--c-border, #e5e7eb);
+      border-radius: 14px;
+      background: var(--c-surface-alt, #f9fafb);
+      color: var(--c-ink, #374151);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+
+    .profile-nav__link:hover {
+      border-color: rgba(124, 58, 237, 0.28);
+      background: #ffffff;
+      color: var(--c-dark, #111827);
+      transform: translateY(-1px);
+    }
+
+    .profile-nav__link.is-active {
+      border-color: var(--c-primary, #7c3aed);
+      background: var(--c-primary-light, #ede9fe);
+      color: var(--c-primary-hover, #6d28d9);
+      box-shadow: 0 8px 20px rgba(124, 58, 237, 0.12);
+    }
+
+    .profile-nav__icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(17, 24, 39, 0.08);
+      color: inherit;
+      flex-shrink: 0;
+    }
+
+    .profile-content__header {
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-content__title {
+      margin: 0 0 0.35rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--c-dark, #111827);
+    }
+
+    .profile-content__sub {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--c-muted, #6b7280);
+    }
+
+    .profile-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 1.1rem;
+    }
+
+    .profile-form-grid .form-group--full {
+      grid-column: 1 / -1;
+    }
+
+    .profile-photo-preview {
+      margin: 0 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .profile-photo-preview img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(31, 73, 125, 0.16);
+    }
+
+    .profile-photo-preview label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      color: var(--c-ink, #374151);
+    }
+
+    .profile-submit {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .profile-submit .login-form__btn {
+      width: auto;
+      min-width: 180px;
+      margin-top: 0;
+    }
+
+    .profile-alerts {
+      margin-top: 1.5rem;
+    }
+
+    .profile-alerts .login-errors:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 900px) {
+      .profile-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .profile-sidebar {
+        position: static;
+      }
+
+      .profile-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .profile-nav__link {
+        flex: 1 1 220px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .profile-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .profile-submit .login-form__btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
 
-    <main class="dashboard-main">
+    <main class="dashboard-main app-page-shell page-wrapper">
       <h1 class="dashboard-title">My profile</h1>
-      <p class="dashboard-subtitle">Update your contact details.</p>
+      <p class="dashboard-subtitle">Manage your account details, contact information, photo, and password.</p>
 
-      <section class="dashboard-card card--narrow">
-        {% if form.errors %}
-        <div class="login-errors">
-          {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
-          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      {% if messages %}
+      <section class="dashboard-card profile-alerts">
+        {% for message in messages %}
+        <div class="login-errors"{% if message.tags == 'success' %} style="background:rgba(11,122,87,.12);border-color:rgba(11,122,87,.3);color:#0f5132;"{% endif %}>
+          <p>{{ message }}</p>
         </div>
-        {% endif %}
-
-        <form method="POST" class="login-form">
-          {% csrf_token %}
-          <div class="form-group">
-            <label for="{{ form.phone.id_for_label }}">Phone</label>
-            {{ form.phone }}
-          </div>
-          <div class="form-group">
-            <label for="{{ form.address.id_for_label }}">Address</label>
-            {{ form.address }}
-          </div>
-          <button type="submit" class="login-form__btn">Save profile</button>
-        </form>
-
-        <p class="dashboard-card__sub u-mt-md">
-          Your name and email are managed in your account settings.
-        </p>
+        {% endfor %}
       </section>
+      {% endif %}
+
+      <div class="profile-layout">
+        <aside class="dashboard-card profile-sidebar">
+          <div class="profile-sidebar__intro">
+            <p class="profile-sidebar__title">Account sections</p>
+            <p class="profile-sidebar__sub">{{ request.user.get_full_name|default:request.user.username }}<br>{{ request.user.email }}</p>
+          </div>
+
+          <nav class="profile-nav" aria-label="Profile sections">
+            <a href="{% url 'profile_edit' %}?section=profile" class="profile-nav__link{% if active_section == 'profile' %} is-active{% endif %}">
+              <span class="profile-nav__icon"><i class="fa-solid fa-user"></i></span>
+              <span>Profile</span>
+            </a>
+            <a href="{% url 'profile_edit' %}?section=password" class="profile-nav__link{% if active_section == 'password' %} is-active{% endif %}">
+              <span class="profile-nav__icon"><i class="fa-solid fa-lock"></i></span>
+              <span>Password</span>
+            </a>
+          </nav>
+        </aside>
+
+        <section class="dashboard-card profile-content">
+          {% if active_section == 'password' %}
+          <div class="profile-content__header">
+            <h2 class="profile-content__title">Change password</h2>
+            <p class="profile-content__sub">Update your password and keep this account secure.</p>
+          </div>
+
+          {% if password_form.errors %}
+          <div class="login-errors">
+            {% for field in password_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+            {% for error in password_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+
+          <form method="POST" class="login-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="password" />
+            <div class="form-group">
+              <label for="{{ password_form.old_password.id_for_label }}">Current password</label>
+              {{ password_form.old_password }}
+            </div>
+            <div class="form-group">
+              <label for="{{ password_form.new_password1.id_for_label }}">New password</label>
+              {{ password_form.new_password1 }}
+            </div>
+            <div class="form-group">
+              <label for="{{ password_form.new_password2.id_for_label }}">Confirm new password</label>
+              {{ password_form.new_password2 }}
+            </div>
+            <div class="profile-submit">
+              <button type="submit" class="login-form__btn">Update password</button>
+            </div>
+          </form>
+          {% else %}
+          <div class="profile-content__header">
+            <h2 class="profile-content__title">Profile details</h2>
+            <p class="profile-content__sub">Update your personal details, contact information, and profile photo.</p>
+          </div>
+
+          {% if form.errors %}
+          <div class="login-errors">
+            {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+          {% endif %}
+
+          <form method="POST" enctype="multipart/form-data" class="login-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="profile" />
+
+            <div class="profile-form-grid">
+              <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">First name</label>
+                {{ form.first_name }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">Last name</label>
+                {{ form.last_name }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Email address</label>
+                {{ form.email }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.phone.id_for_label }}">Phone</label>
+                {{ form.phone }}
+              </div>
+              <div class="form-group form-group--full">
+                <label for="{{ form.address.id_for_label }}">Address</label>
+                {{ form.address }}
+              </div>
+              <div class="form-group form-group--full">
+                <label for="{{ form.profile_photo.id_for_label }}">Profile photo</label>
+                {% if request.user.profile.profile_photo %}
+                <div class="profile-photo-preview">
+                  <img src="{{ request.user.profile.profile_photo.url }}" alt="{{ request.user.get_full_name|default:request.user.username }}" />
+                  <label>
+                    {{ form.clear_profile_photo }} Remove current photo
+                  </label>
+                </div>
+                {% endif %}
+                {{ form.profile_photo }}
+              </div>
+            </div>
+
+            <div class="profile-submit">
+              <button type="submit" class="login-form__btn">Save profile</button>
+            </div>
+          </form>
+          {% endif %}
+        </section>
+      </div>
     </main>
   </div>
 </body>

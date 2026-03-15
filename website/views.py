@@ -20,7 +20,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from pawmily.pagination import paginate_queryset
 
-from accounts.forms import PetForm, ProfileForm
+from accounts.forms import PetForm
 from accounts.models import Pet, Profile, WalkInRegistration
 from appointments.forms import AppointmentBookingForm, AppointmentStaffForm
 from appointments.models import Appointment
@@ -48,8 +48,6 @@ def dashboard(request):
         context["book_form"] = AppointmentBookingForm(owner=request.user)
         context["book_error"] = None
         context["pet_form"]  = PetForm()
-        context["profile_form"] = ProfileForm(instance=profile)
-
         # Upcoming appointments for the Reminders card
         context["upcoming_appointments"] = (
             Appointment.objects.select_related("pet")

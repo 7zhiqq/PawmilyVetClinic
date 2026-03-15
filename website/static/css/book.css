@@ -1,7 +1,18 @@
 .book-page {
-  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+  max-width: var(--page-max-width, 1120px);
   margin: 0 auto;
-  padding: 0 var(--page-padding-h, 1.5rem) 4rem;
+  padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
+}
+
+.book-header,
+.book-card {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .book-header {

@@ -17,6 +17,10 @@
   <link rel="stylesheet" href="{% static 'css/modal.css' %}">
   <style>
     .vaccination-management-page {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      flex: 1;
       max-width: var(--page-max-width, 1120px);
       margin: 0 auto;
       padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
@@ -111,7 +115,7 @@
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
 
-    <main class="vaccination-management-page">
+    <main class="vaccination-management-page app-page-shell">
       <div class="billing-header">
         <div>
           <h1>Vaccination Management</h1>

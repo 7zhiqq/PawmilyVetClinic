@@ -4,7 +4,7 @@ import qrcode
 import qrcode.constants
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import transaction
@@ -19,6 +19,7 @@ from .forms import (
     InvitationForm,
     PetForm,
     PetOwnerRegistrationForm,
+    ProfilePasswordForm,
     ProfileForm,
     StaffInviteRegistrationForm,
     WalkInActivationForm,
@@ -233,17 +234,44 @@ def manage_invitations(request):
 
 @login_required
 def profile_edit(request):
-    if not _is_pet_owner(request.user):
-        return HttpResponseForbidden("Only pet owners can edit their profile.")
     profile = request.user.profile
+    valid_sections = {"profile", "password"}
+    active_section = request.GET.get("section", "profile")
+    if active_section not in valid_sections:
+        active_section = "profile"
+
+    profile_form = ProfileForm(instance=profile)
+    password_form = ProfilePasswordForm(user=request.user)
+
     if request.method == "POST":
-        form = ProfileForm(request.POST, instance=profile)
-        if form.is_valid():
-            form.save()
-            return redirect("dashboard")
-    else:
-        form = ProfileForm(instance=profile)
-    return render(request, "profile_edit.html", {"form": form})
+        action = request.POST.get("action", "profile")
+        if action not in valid_sections:
+            action = "profile"
+        active_section = action
+
+        if action == "password":
+            password_form = ProfilePasswordForm(user=request.user, data=request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Your password has been updated.")
+                return redirect(f'{reverse("profile_edit")}?section=password')
+        else:
+            profile_form = ProfileForm(request.POST, request.FILES, instance=profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, "Your profile has been updated.")
+                return redirect(f'{reverse("profile_edit")}?section=profile')
+
+    return render(
+        request,
+        "profile_edit.html",
+        {
+            "form": profile_form,
+            "password_form": password_form,
+            "active_section": active_section,
+        },
+    )
 
 
 @login_required

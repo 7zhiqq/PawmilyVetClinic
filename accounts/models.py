@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from pawmily.file_handling import PET_PROFILE_PICTURE_UPLOAD_TO
+from pawmily.file_handling import PET_PROFILE_PICTURE_UPLOAD_TO, USER_PROFILE_PHOTO_UPLOAD_TO
 
 
 class Profile(models.Model):
@@ -30,6 +30,11 @@ class Profile(models.Model):
     )
     phone = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
+    profile_photo = models.ImageField(
+        upload_to=USER_PROFILE_PHOTO_UPLOAD_TO,
+        null=True,
+        blank=True,
+    )
     date_created = models.DateTimeField(default=timezone.now)
     is_profile_completed = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)

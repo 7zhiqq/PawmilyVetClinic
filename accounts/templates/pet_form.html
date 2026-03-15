@@ -18,7 +18,7 @@
   <div class="dashboard-layout">
     {% include 'navbar.html' %}
 
-    <main class="petform-page">
+    <main class="petform-page app-page-shell">
       <div class="petform-header">
         <h1>{% if pet %}Edit pet 🐾{% else %}Add a pet 🐾{% endif %}</h1>
         <p>{% if pet %}Update {{ pet.name }}'s profile.{% else %}Fill in your pet's details to get started.{% endif %}</p>

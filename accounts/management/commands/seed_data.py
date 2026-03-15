@@ -12,6 +12,12 @@ import random
 from datetime import datetime, time, timedelta
 from decimal import Decimal
 
+
+def _random_ph_phone():
+    """Return a random valid Philippine mobile number in +639XXXXXXXXX format."""
+    suffix = ''.join(str(random.randint(0, 9)) for _ in range(9))
+    return f'+639{suffix}'
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -113,7 +119,7 @@ class Command(BaseCommand):
         Profile.objects.create(
             user=manager,
             role=Profile.ROLE_MANAGER,
-            phone=fake.phone_number()[:20],
+            phone=_random_ph_phone(),
             address=fake.address(),
             is_profile_completed=True,
         )
@@ -131,7 +137,7 @@ class Command(BaseCommand):
             Profile.objects.create(
                 user=staff,
                 role=Profile.ROLE_STAFF,
-                phone=fake.phone_number()[:20],
+                phone=_random_ph_phone(),
                 address=fake.address(),
                 is_profile_completed=True,
             )
@@ -195,7 +201,7 @@ class Command(BaseCommand):
             Profile.objects.create(
                 user=owner,
                 role=Profile.ROLE_PET_OWNER,
-                phone=fake.phone_number()[:20],
+                phone=_random_ph_phone(),
                 address=fake.address(),
                 is_profile_completed=True,
                 date_created=fake.date_time_between(

@@ -8,6 +8,7 @@ import os
 
 
 PET_PROFILE_PICTURE_UPLOAD_TO = "pet_profiles/"
+USER_PROFILE_PHOTO_UPLOAD_TO = "user_profiles/"
 MEDICAL_ATTACHMENT_UPLOAD_TO = "medical_attachments/%Y/%m/"
 
 

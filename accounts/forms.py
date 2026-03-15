@@ -1,6 +1,8 @@
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 
 from .models import (
     Invitation, Pet, Profile,
@@ -9,6 +11,34 @@ from .models import (
 
 
 User = get_user_model()
+
+# ─── Philippine phone validation ─────────────────────────────────────────────
+
+_PH_PHONE_RE = re.compile(r'^(?:\+63|63|0)(9\d{9})$')
+_PH_PHONE_ERROR = (
+    "Enter a valid Philippine mobile number, e.g. 09XX XXX XXXX or +63 9XX XXX XXXX."
+)
+
+
+def ph_phone_normalize(value):
+    """
+    Validate and normalize a Philippine mobile phone number.
+
+    Accepted input formats (spaces, dashes, and dots are stripped first):
+      09XXXXXXXXX      — local 11-digit format
+      +639XXXXXXXXX    — international format with plus
+      639XXXXXXXXX     — international format without plus
+
+    Returns the canonical +639XXXXXXXXX form, or '' for an empty value.
+    Raises ValueError with a user-friendly message on failure.
+    """
+    stripped = re.sub(r'[\s\-.]', '', value or '')
+    if not stripped:
+        return ''
+    m = _PH_PHONE_RE.match(stripped)
+    if not m:
+        raise ValueError(_PH_PHONE_ERROR)
+    return f'+63{m.group(1)}'
 
 PET_SHARED_FIELDS = [
     "name",
@@ -86,13 +116,78 @@ class InvitationForm(forms.ModelForm):
 
 
 class ProfileForm(forms.ModelForm):
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    email = forms.EmailField(required=True)
+    clear_profile_photo = forms.BooleanField(required=False)
+
     class Meta:
         model = Profile
-        fields = ["phone", "address"]
+        fields = ["first_name", "last_name", "email", "phone", "address", "profile_photo"]
         widgets = {
-            "phone": forms.TextInput(attrs={"placeholder": "+63 912 345 6789"}),
+            "first_name": forms.TextInput(attrs={"placeholder": "First name"}),
+            "last_name": forms.TextInput(attrs={"placeholder": "Last name"}),
+            "email": forms.EmailInput(attrs={"placeholder": "you@example.com"}),
+            "phone": forms.TextInput(attrs={"placeholder": "09XX XXX XXXX or +63 9XX XXX XXXX"}),
             "address": forms.Textarea(attrs={"rows": 3, "placeholder": "Your address"}),
+            "profile_photo": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = getattr(self.instance, "user", None)
+        if user is not None:
+            self.fields["first_name"].initial = user.first_name
+            self.fields["last_name"].initial = user.last_name
+            self.fields["email"].initial = user.email
+        self.fields["clear_profile_photo"].widget = forms.CheckboxInput()
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        normalized = email_normalize(email)
+        qs = User.objects.filter(email__iexact=normalized)
+        if self.instance and self.instance.user_id:
+            qs = qs.exclude(pk=self.instance.user_id)
+        if qs.exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
+
+    def clean_phone(self):
+        value = self.cleaned_data.get("phone", "")
+        try:
+            return ph_phone_normalize(value)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        user = profile.user
+        user.first_name = self.cleaned_data["first_name"].strip()
+        user.last_name = self.cleaned_data["last_name"].strip()
+        user.email = email_normalize(self.cleaned_data["email"])
+
+        if (
+            self.cleaned_data.get("clear_profile_photo")
+            and profile.profile_photo
+            and not self.cleaned_data.get("profile_photo")
+        ):
+            profile.profile_photo.delete(save=False)
+            profile.profile_photo = None
+
+        if commit:
+            user.save(update_fields=["first_name", "last_name", "email"])
+            profile.save()
+        else:
+            self._pending_user = user
+        return profile
+
+
+class ProfilePasswordForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["old_password"].widget.attrs.update({"placeholder": "Current password"})
+        self.fields["new_password1"].widget.attrs.update({"placeholder": "New password"})
+        self.fields["new_password2"].widget.attrs.update({"placeholder": "Confirm new password"})
 
 
 class PetForm(forms.ModelForm):
@@ -110,7 +205,7 @@ class WalkInClientForm(forms.Form):
     first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={"placeholder": "First name"}))
     last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={"placeholder": "Last name"}))
     email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={"placeholder": "client@example.com (optional)"}))
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"placeholder": "+63 912 345 6789"}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={"placeholder": "09XX XXX XXXX or +63 9XX XXX XXXX (optional)"}))
     address = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2, "placeholder": "Client's address"}))
 
     def clean_email(self):
@@ -123,6 +218,13 @@ class WalkInClientForm(forms.Form):
                 "An account with this email already exists. Use the existing client instead."
             )
         return email
+
+    def clean_phone(self):
+        value = self.cleaned_data.get("phone", "")
+        try:
+            return ph_phone_normalize(value)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
 
 
 class WalkInPetForm(forms.ModelForm):

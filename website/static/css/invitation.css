@@ -2,6 +2,7 @@
 .mu-page {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 2rem;
   padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
   max-width: var(--page-max-width, 1120px);

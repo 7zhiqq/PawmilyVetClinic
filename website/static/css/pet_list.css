@@ -1,4 +1,5 @@
 .pets-page {
+  flex: 1;
   max-width: var(--page-max-width, 1120px);
   padding: var(--page-padding-v, 2.5rem) var(--page-padding-h, 1.5rem) 3rem;
   margin: 0 auto;
@@ -6,7 +7,7 @@
 
 .pets-header {
   display: flex;
-  align-items: left;
+  align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
