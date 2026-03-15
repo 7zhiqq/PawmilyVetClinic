@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications - Pawmily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/3c4772942f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/system.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include 'navbar.html' %}
+    <main class="dashboard-main app-page-shell page-wrapper">
+      <header class="dashboard-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+        <div>
+          <h1 class="dashboard-title">Notifications</h1>
+          <p class="dashboard-subtitle">Appointment, queue, billing, and payment updates.</p>
+        </div>
+        <form method="POST" action="{% url 'notification_mark_all_read' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'notifications' %}">
+          <button type="submit" class="dashboard-action-btn">Mark all as read</button>
+        </form>
+      </header>
+
+      <section class="dashboard-card">
+        {% if notifications %}
+          <ul class="reminder-list" style="list-style:none;margin:0;padding:0;">
+            {% for n in notifications %}
+              {% if not n.is_read %}
+                <li class="reminder-item" style="border-left-color:#7c3aed;background:#faf5ff;">
+              {% else %}
+                <li class="reminder-item">
+              {% endif %}
+                <div class="reminder-item__icon">
+                  <i class="fa-solid fa-bell"></i>
+                </div>
+                <div class="reminder-item__text">
+                  <div class="reminder-item__label">{{ n.title }}</div>
+                  <div class="reminder-item__meta">{{ n.message }}</div>
+                  <div class="reminder-item__meta" style="margin-top:0.2rem;">
+                    <i class="fa-regular fa-clock"></i> {{ n.created_at|date:"M d, Y g:i A" }}
+                  </div>
+                  {% if n.link_url %}
+                    <div style="margin-top:0.35rem;">
+                      <a href="{{ n.link_url }}" style="font-size:0.8rem;font-weight:600;color:#6d28d9;text-decoration:none;">Open related page</a>
+                    </div>
+                  {% endif %}
+                </div>
+                {% if not n.is_read %}
+                  <form method="POST" action="{% url 'notification_mark_read' n.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'notifications' %}">
+                    <button type="submit" class="dashboard-action-btn" style="padding:0.45rem 0.8rem;">Mark read</button>
+                  </form>
+                {% else %}
+                  <span class="apt-pill confirmed">Read</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+          {% include "includes/pagination.html" with page_obj=notifications_page_obj page_param="notifications_page" pagination_query=notifications_pagination_query %}
+        {% else %}
+          <div class="aside-empty">
+            <span class="aside-empty__icon">🔔</span>
+            <p>No notifications yet.</p>
+          </div>
+        {% endif %}
+      </section>
+    </main>
+  </div>
+</body>
+</html>

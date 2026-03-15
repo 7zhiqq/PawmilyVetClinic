@@ -70,6 +70,9 @@
                   </button>
                 </div>
                 <p class="walkin-success__hint">The client can use this link to set their username and password to access their account online.</p>
+                {% if success_info.email_status %}
+                <p class="walkin-success__hint" style="margin-top:0.5rem;">{{ success_info.email_status }}</p>
+                {% endif %}
               </div>
 
               <div class="walkin-success__qr-section">

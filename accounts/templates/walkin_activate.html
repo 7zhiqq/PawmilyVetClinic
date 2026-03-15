@@ -33,6 +33,14 @@
         <a href="/accounts/login/" class="login-form__btn" style="display:block;text-align:center;text-decoration:none;margin-top:1.5rem;">
           Sign in
         </a>
+      {% elif link_expired %}
+        <h1 class="login-card__title">Activation link expired</h1>
+        <p class="login-card__sub">
+          This activation link expired on <strong>{{ expired_at_text }}</strong>. Please contact the clinic to request a new activation link.
+        </p>
+        <a href="/accounts/login/" class="login-form__btn" style="display:block;text-align:center;text-decoration:none;margin-top:1.5rem;">
+          Go to sign in
+        </a>
       {% else %}
         <h1 class="login-card__title">Activate your account</h1>
         <p class="login-card__sub">

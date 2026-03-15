@@ -3,10 +3,12 @@ import io
 import qrcode
 import qrcode.constants
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -48,6 +50,60 @@ def _is_staff_or_manager(user):
         return user.profile.role in (Profile.ROLE_STAFF, Profile.ROLE_MANAGER)
     except Profile.DoesNotExist:
         return user.is_superuser
+
+
+def _send_account_setup_email(*, recipient_email, recipient_name, role_label, setup_url, expires_at):
+    if not recipient_email:
+        return False, "No email address is available for this user."
+
+    expiry_local = timezone.localtime(expires_at)
+    expiry_text = expiry_local.strftime("%B %d, %Y at %I:%M %p %Z")
+    greeting_name = recipient_name or "there"
+
+    subject = "Welcome to PAWMILY - Complete your account setup"
+    text_body = (
+        f"Hello {greeting_name},\n\n"
+        "Welcome to PAWMILY.\n"
+        f"You have been invited to join as {role_label}.\n\n"
+        "To activate your account, please click the link below and complete your setup:\n"
+        f"{setup_url}\n\n"
+        "What to do next:\n"
+        "1. Open the link above\n"
+        "2. Set your username and password\n"
+        "3. Complete your profile details\n\n"
+        f"For your security, this link expires on {expiry_text}.\n\n"
+        "If you did not expect this email, you can safely ignore it."
+    )
+    html_body = (
+        f"<p>Hello {greeting_name},</p>"
+        "<p>Welcome to <strong>PAWMILY</strong>.</p>"
+        f"<p>You have been invited to join as <strong>{role_label}</strong>.</p>"
+        "<p>To activate your account, click the button below and complete your setup:</p>"
+        f"<p><a href=\"{setup_url}\" style=\"display:inline-block;padding:10px 16px;background:#0b4f8a;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;\">Complete Account Setup</a></p>"
+        f"<p>If the button does not work, use this link:<br><a href=\"{setup_url}\">{setup_url}</a></p>"
+        "<p><strong>Next steps:</strong></p>"
+        "<ol>"
+        "<li>Open the link</li>"
+        "<li>Set your username and password</li>"
+        "<li>Complete your profile details</li>"
+        "</ol>"
+        f"<p>For your security, this link expires on <strong>{expiry_text}</strong>.</p>"
+        "<p>If you did not expect this email, you can safely ignore it.</p>"
+    )
+
+    try:
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[recipient_email],
+        )
+        email.attach_alternative(html_body, "text/html")
+        email.send(fail_silently=False)
+    except Exception as exc:
+        return False, str(exc)
+
+    return True, None
 
 
 # ─── Auth views ───────────────────────────────────────────────────────────────
@@ -98,13 +154,39 @@ def register_with_invite(request, token):
     if request.user.is_authenticated:
         return redirect("/dashboard/")
 
-    invitation = get_object_or_404(Invitation, token=token, is_used=False)
+    invitation = get_object_or_404(Invitation, token=token)
+
+    if invitation.is_used:
+        return render(
+            request,
+            "register_invited.html",
+            {
+                "form": StaffInviteRegistrationForm(),
+                "invitation": invitation,
+                "invite_error": "This invitation link has already been used.",
+                "can_register": False,
+            },
+        )
+
+    if invitation.is_expired():
+        expires_text = timezone.localtime(invitation.expires_at).strftime("%B %d, %Y %I:%M %p %Z")
+        return render(
+            request,
+            "register_invited.html",
+            {
+                "form": StaffInviteRegistrationForm(),
+                "invitation": invitation,
+                "invite_error": f"This invitation link expired on {expires_text}. Please request a new invitation.",
+                "can_register": False,
+            },
+        )
 
     if User.objects.filter(email__iexact=invitation.email).exists():
         context = {
             "form": StaffInviteRegistrationForm(),
             "invitation": invitation,
             "invite_error": "An account with this email already exists.",
+            "can_register": False,
         }
         return render(request, "register_invited.html", context)
 
@@ -122,7 +204,11 @@ def register_with_invite(request, token):
     else:
         form = StaffInviteRegistrationForm()
 
-    return render(request, "register_invited.html", {"form": form, "invitation": invitation})
+    return render(
+        request,
+        "register_invited.html",
+        {"form": form, "invitation": invitation, "can_register": True},
+    )
 
 
 # ─── Invitations / user management ───────────────────────────────────────────
@@ -152,7 +238,20 @@ def manage_invitations(request):
                 invitation = form.save()
                 invite_path = reverse("register_with_invite", args=[invitation.token])
                 invite_url = request.build_absolute_uri(invite_path)
-                invite_message = f"Invitation created for {invitation.email}. Share this link: {invite_url}"
+                email_sent, email_error = _send_account_setup_email(
+                    recipient_email=invitation.email,
+                    recipient_name=invitation.email,
+                    role_label=invitation.get_role_display(),
+                    setup_url=invite_url,
+                    expires_at=invitation.expires_at,
+                )
+                if email_sent:
+                    invite_message = f"Invitation email sent to {invitation.email}."
+                else:
+                    invite_message = (
+                        f"Invitation created for {invitation.email}, but the email could not be sent ({email_error}). "
+                        f"Share this link manually: {invite_url}"
+                    )
                 form = InvitationForm()
         elif action in {"deactivate", "reactivate", "change_role"}:
             form = InvitationForm()
@@ -517,6 +616,24 @@ def walkin_step2(request):
                 "print_url": print_url,
             }
 
+            if user.email:
+                email_sent, email_error = _send_account_setup_email(
+                    recipient_email=user.email,
+                    recipient_name=user.get_full_name() or user.first_name or user.username,
+                    role_label="Pet owner",
+                    setup_url=activate_url,
+                    expires_at=registration.expires_at,
+                )
+                if email_sent:
+                    success_info["email_status"] = f"Activation email sent to {user.email}."
+                else:
+                    success_info["email_status"] = (
+                        f"Activation link email could not be sent ({email_error}). "
+                        "Share the link or printed QR card manually."
+                    )
+            else:
+                success_info["email_status"] = "No email provided for this client. Share the link or printed QR card manually."
+
             # Clear session data
             request.session.pop(WALKIN_SESSION_KEY, None)
             pet_form = WalkInPetForm()
@@ -547,6 +664,13 @@ def walkin_activate(request, token):
     if registration.is_activated:
         return render(request, "walkin_activate.html", {
             "already_activated": True,
+        })
+
+    if registration.is_expired():
+        expires_text = timezone.localtime(registration.expires_at).strftime("%B %d, %Y %I:%M %p %Z")
+        return render(request, "walkin_activate.html", {
+            "link_expired": True,
+            "expired_at_text": expires_text,
         })
 
     user = registration.user

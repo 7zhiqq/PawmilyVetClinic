@@ -51,6 +51,7 @@
       </div>
       {% endif %}
 
+      {% if can_register|default:True %}
       <form method="POST" class="login-form">
         {% csrf_token %}
 
@@ -85,6 +86,11 @@
 
         <button type="submit" class="login-form__btn">Create account</button>
       </form>
+      {% else %}
+      <a href="/accounts/login/" class="login-form__btn" style="display:block;text-align:center;text-decoration:none;margin-top:1rem;">
+        Go to sign in
+      </a>
+      {% endif %}
 
       <div class="login-divider">or</div>
 

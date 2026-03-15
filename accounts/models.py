@@ -137,6 +137,17 @@ class Invitation(models.Model):
             self.token = get_random_string(32)
         super().save(*args, **kwargs)
 
+    @property
+    def expires_at(self):
+        expiry_hours = max(1, int(getattr(settings, "ACCOUNT_SETUP_LINK_EXPIRY_HOURS", 48)))
+        return self.created_at + timezone.timedelta(hours=expiry_hours)
+
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    def is_valid(self):
+        return (not self.is_used) and (not self.is_expired())
+
     def __str__(self) -> str:
         status = "used" if self.is_used else "pending"
         return f"{self.email} ({self.get_role_display()}, {status})"
@@ -168,6 +179,14 @@ class WalkInRegistration(models.Model):
         if not self.token:
             self.token = get_random_string(48)
         super().save(*args, **kwargs)
+
+    @property
+    def expires_at(self):
+        expiry_hours = max(1, int(getattr(settings, "ACCOUNT_SETUP_LINK_EXPIRY_HOURS", 48)))
+        return self.created_at + timezone.timedelta(hours=expiry_hours)
+
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
 
     def __str__(self) -> str:
         status = "activated" if self.is_activated else "pending"

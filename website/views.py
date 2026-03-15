@@ -119,7 +119,8 @@ def service_page(request, service_slug):
 
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -136,6 +137,8 @@ from appointments.forms import AppointmentBookingForm, AppointmentStaffForm
 from appointments.models import Appointment
 from records.models import VaccinationSchedule, FollowUpReminder, VaccinationRecord, MedicalRecord
 from billing.models import BillingRecord, Payment
+from .models import OwnerNotification
+from .notifications import notify_same_day_queue_update
 
 User = get_user_model()
 
@@ -194,6 +197,14 @@ def dashboard(request):
             owner=request.user
         ).order_by("-created_at")[:5]
 
+        context["owner_notification_highlights"] = (
+            OwnerNotification.objects.filter(
+                user=request.user,
+                is_important=True,
+            )
+            .order_by("-created_at")[:6]
+        )
+
         # Queue View: owner's position in today's queue
         today = date.today()
         confirmed_today = list(
@@ -214,6 +225,11 @@ def dashboard(request):
         for idx, apt in enumerate(confirmed_today):
             queue_number = served_count + idx + 1
             if apt.owner_id == request.user.id:
+                notify_same_day_queue_update(
+                    apt,
+                    queue_position=queue_number,
+                    current_serving_number=now_serving_number or queue_number,
+                )
                 my_queue_items.append({
                     "pet_name": apt.pet.name if apt.pet else "Walk-in",
                     "species": apt.pet.species if apt.pet else "other",
@@ -694,6 +710,51 @@ def reminders_view(request):
         )
     
     return render(request, "reminders.html", context)
+
+
+@login_required
+def notifications_view(request):
+    notifications = OwnerNotification.objects.filter(user=request.user).order_by("-created_at")
+    notifications_page_obj, notifications_pagination_query = paginate_queryset(
+        request,
+        notifications,
+        per_page=15,
+        page_param="notifications_page",
+    )
+
+    return render(
+        request,
+        "notifications.html",
+        {
+            "notifications": notifications_page_obj,
+            "notifications_page_obj": notifications_page_obj,
+            "notifications_pagination_query": notifications_pagination_query,
+        },
+    )
+
+
+@login_required
+def notification_mark_read(request, notification_id):
+    notification = get_object_or_404(
+        OwnerNotification,
+        pk=notification_id,
+        user=request.user,
+    )
+    if request.method == "POST" and not notification.is_read:
+        notification.is_read = True
+        notification.save(update_fields=["is_read", "updated_at"])
+
+    redirect_to = request.POST.get("next") or reverse("notifications")
+    return redirect(redirect_to)
+
+
+@login_required
+def notification_mark_all_read(request):
+    if request.method == "POST":
+        OwnerNotification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+
+    redirect_to = request.POST.get("next") or reverse("notifications")
+    return redirect(redirect_to)
 
 
 

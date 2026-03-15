@@ -30,6 +30,40 @@
         </a>
       </div>
 
+      <div class="manage-filters">
+        <a href="?range=today" class="dashboard-action-btn{% if current_filter == 'today' %} dashboard-action-btn--primary{% endif %}">
+          Today
+        </a>
+        <a href="?range=week" class="dashboard-action-btn{% if current_filter == 'week' %} dashboard-action-btn--primary{% endif %}">
+          This Week
+        </a>
+        <a href="?range=month" class="dashboard-action-btn{% if current_filter == 'month' %} dashboard-action-btn--primary{% endif %}">
+          This Month
+        </a>
+        <a href="?range=all" class="dashboard-action-btn{% if current_filter == 'all' %} dashboard-action-btn--primary{% endif %}">
+          All Appointments
+        </a>
+      </div>
+
+      <div class="manage-priority">
+        <div class="manage-priority__summary">
+          {% if current_filter == 'today' %}
+            Showing appointments scheduled for today.
+          {% elif current_filter == 'week' %}
+            Showing this week ({{ week_start|date:"M d" }} to {{ week_end|date:"M d" }}) sorted by nearest schedule first.
+          {% elif current_filter == 'month' %}
+            Showing appointments scheduled for this month.
+          {% else %}
+            Showing all appointments sorted by date and time.
+          {% endif %}
+        </div>
+        <div class="manage-priority__chips">
+          <span class="manage-priority__chip manage-priority__chip--pending">Pending: {{ view_priority.pending_requests|default:0 }}</span>
+          <span class="manage-priority__chip manage-priority__chip--confirmed">Confirmed: {{ view_priority.confirmed_week|default:0 }}</span>
+          <span class="manage-priority__chip manage-priority__chip--today">Today: {{ view_priority.scheduled_today|default:0 }}</span>
+        </div>
+      </div>
+
       {% if appointments %}
       <div class="manage-stats">
         <div class="stat-card stat-card--total">
@@ -66,7 +100,7 @@
       {% if appointments %}
       <div class="apt-list">
         {% for apt in appointments %}
-        <div class="apt-card {{ apt.status }}">
+        <div class="apt-card {{ apt.status }}{% if apt.appointment_date == today %} apt-card--today{% endif %}">
           <div class="apt-card__date">
             <div class="apt-card__date-day">{{ apt.appointment_date|date:"j" }}</div>
             <div class="apt-card__date-month">{{ apt.appointment_date|date:"M" }}</div>
@@ -84,6 +118,9 @@
             <div class="apt-card__owner">{{ apt.owner.get_full_name|default:apt.owner.username }}</div>
             <div class="apt-card__tags">
               <span class="apt-pill {{ apt.status }}">{{ apt.get_status_display }}</span>
+              {% if apt.appointment_date == today %}
+              <span class="apt-pill apt-pill--today">Today</span>
+              {% endif %}
               {% if apt.appointment_type == 'walk_in' %}
               <span class="apt-pill walk_in">Walk-in</span>
               {% endif %}

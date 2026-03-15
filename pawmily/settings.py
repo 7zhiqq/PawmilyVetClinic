@@ -70,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'website.context_processors.owner_notifications_context',
             ],
         },
     },
@@ -144,6 +145,19 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Password reset timeout (in seconds) - 1 hour
 PASSWORD_RESET_TIMEOUT = 3600
+
+# Account invitation / activation link expiration (hours)
+ACCOUNT_SETUP_LINK_EXPIRY_HOURS = int(os.getenv('ACCOUNT_SETUP_LINK_EXPIRY_HOURS', '24'))
+
+# Email settings
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'PAWMILY <no-reply@pawmily.local>')
+CLINIC_NAME = os.getenv('CLINIC_NAME', 'PAWMILY Veterinary Clinic')
 
 # Media files (uploads)
 MEDIA_URL = '/media/'

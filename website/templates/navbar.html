@@ -50,6 +50,32 @@
 
     <div>
       {% if user.is_authenticated %}
+        <div class="navbar__notif-wrap">
+          <a href="{% url 'notifications' %}" class="navbar__notif-btn" aria-label="Open notifications">
+            <i class="fa-regular fa-bell"></i>
+            {% if nav_unread_notification_count > 0 %}
+              <span class="navbar__notif-count">{{ nav_unread_notification_count }}</span>
+            {% endif %}
+          </a>
+          <div class="navbar__notif-menu" role="menu" aria-label="Recent notifications">
+            <div class="navbar__notif-head">
+              <span>Notifications</span>
+              <a href="{% url 'notifications' %}">View all</a>
+            </div>
+            {% if nav_recent_notifications %}
+              <ul class="navbar__notif-list">
+                {% for n in nav_recent_notifications %}
+                  <li class="navbar__notif-item{% if not n.is_read %} navbar__notif-item--unread{% endif %}">
+                    <div class="navbar__notif-title">{{ n.title }}</div>
+                    <div class="navbar__notif-meta">{{ n.created_at|date:"M d, g:i A" }}</div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="navbar__notif-empty">No notifications yet.</div>
+            {% endif %}
+          </div>
+        </div>
         <span class="navbar__user-greeting">
           Hi, {{ user.first_name|default:user.username }}
         </span>

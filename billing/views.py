@@ -10,6 +10,11 @@ from django.utils import timezone
 from pawmily.pagination import paginate_queryset
 
 from accounts.views import _is_staff_or_manager
+from website.notifications import (
+    notify_billing_generated,
+    notify_payment_approved,
+    notify_payment_submitted,
+)
 
 from .forms import LineItemForm, OwnerPaymentSubmissionForm, PaymentForm
 from .models import BillingLineItem, BillingRecord, Payment
@@ -45,6 +50,7 @@ def create_billing_for_appointment(appointment, created_by=None):
         unit_price=CHECKUP_FEE,
     )
     record.recalculate()
+    notify_billing_generated(record)
     return record
 
 
@@ -267,6 +273,7 @@ def billing_submit_payment(request, pk):
             payment.save()
             record.recalculate()
             messages.success(request, "Payment submitted and marked as Pending Verification.")
+            notify_payment_submitted(payment)
         else:
             for err in form.errors.values():
                 messages.error(request, err.as_text())
@@ -310,6 +317,8 @@ def billing_verify_payment(request, pk, payment_id):
             "verification_notes",
         ])
         record.recalculate()
+        if action == "approve":
+            notify_payment_approved(payment)
 
     return redirect("billing_detail", pk=pk)
 

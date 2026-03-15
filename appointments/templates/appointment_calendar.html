@@ -690,13 +690,6 @@ function buildWalkInLoadDisplay(appointmentCount, loadStatus, pickerEl, hiddenIn
   hiddenInput.value = '1'; // Walk-in doesn't need a specific slot, just mark as ready
   submitBtn.disabled = false;
 
-  const statusEmoji = {
-    'light': '🟢',
-    'moderate': '🟡',
-    'heavy': '🟠',
-    'very_heavy': '🔴'
-  }[loadStatus] || '⚪';
-
   const statusText = {
     'light': 'Light load',
     'moderate': 'Moderate load',
@@ -708,7 +701,7 @@ function buildWalkInLoadDisplay(appointmentCount, loadStatus, pickerEl, hiddenIn
   loadDisplay.className = 'slot-availability';
   loadDisplay.innerHTML = `
     <div class="availability-info">
-      <span class="availability-count">${statusEmoji} ${appointmentCount} appointment${appointmentCount !== 1 ? 's' : ''}</span>
+      <span class="availability-count">Current Load: ${appointmentCount} appointment${appointmentCount !== 1 ? 's' : ''} scheduled for this time range</span>
       <span class="availability-status">${statusText}</span>
     </div>
   `;

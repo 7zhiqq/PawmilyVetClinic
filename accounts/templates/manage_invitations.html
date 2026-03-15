@@ -158,17 +158,20 @@
                 <div class="mu-inv-item__info">
                   <span class="mu-inv-item__email" title="{{ invitation.email }}">{{ invitation.email }}</span>
                   <span class="mu-inv-item__role">{{ invitation.get_role_display }}</span>
+                  <span style="font-size:0.72rem;color:#6b7280;">Expires {{ invitation.expires_at|date:"M j, Y g:i A" }}</span>
                 </div>
                 <div class="mu-inv-item__right">
                   {% if invitation.is_used %}
                     <span class="mu-pill mu-pill--used">Used</span>
+                  {% elif invitation.is_expired %}
+                    <span class="mu-pill mu-pill--inactive">Expired</span>
                   {% else %}
                     <span class="mu-pill mu-pill--pending">Pending</span>
                   {% endif %}
                   <button type="button" class="mu-btn mu-btn--primary invite-view-btn"
                     data-email="{{ invitation.email }}"
                     data-role="{{ invitation.get_role_display }}"
-                    data-status="{% if invitation.is_used %}Used{% else %}Pending{% endif %}"
+                    data-status="{% if invitation.is_used %}Used{% elif invitation.is_expired %}Expired{% else %}Pending{% endif %}"
                     data-url="{{ invitation.full_url }}">
                     <i class="fa-solid fa-link" style="font-size:0.7rem;"></i> View
                   </button>

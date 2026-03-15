@@ -8,4 +8,7 @@ urlpatterns = [
     path("services/<slug:service_slug>/", views.service_page, name="service_page"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("reminders/", views.reminders_view, name="reminders"),
+    path("notifications/", views.notifications_view, name="notifications"),
+    path("notifications/<int:notification_id>/read/", views.notification_mark_read, name="notification_mark_read"),
+    path("notifications/read-all/", views.notification_mark_all_read, name="notification_mark_all_read"),
 ]

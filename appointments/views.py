@@ -16,6 +16,13 @@ from accounts.models import Pet, Profile
 from accounts.views import _is_pet_owner, _is_staff_or_manager
 from billing.models import BillingRecord
 from billing.views import create_billing_for_appointment
+from website.notifications import (
+    notify_appointment_completed,
+    notify_appointment_confirmed,
+    notify_appointment_no_show,
+    notify_appointment_rejected,
+    notify_appointment_requested,
+)
 
 from .forms import AppointmentBookingForm, AppointmentStaffForm
 from .models import MAX_SLOTS, Appointment
@@ -58,11 +65,15 @@ def _slot_data(appt_date, start_time):
 
 
 def _count_appointments_for_time(appt_date, start_time):
-    """Count the number of walk-in appointments for a given date and time."""
+    """Count confirmed appointments (scheduled + walk-in) for a given date and time."""
     return Appointment.objects.filter(
         appointment_date=appt_date,
         start_time=start_time,
-        appointment_type=Appointment.TYPE_WALK_IN,
+        status=Appointment.STATUS_CONFIRMED,
+        appointment_type__in=[
+            Appointment.TYPE_SCHEDULED,
+            Appointment.TYPE_WALK_IN,
+        ],
     ).count()
 
 
@@ -87,6 +98,7 @@ def get_available_slots(request):
     GET /accounts/appointments/slots/?date=YYYY-MM-DD&time=HH:MM&type=walk_in|scheduled
     For scheduled: Returns JSON: {"slots": [{"number": 1, "available": true}, ...]}
     For walk-in: Returns JSON: {"appointment_count": 3, "load_status": "moderate"}
+    where appointment_count includes confirmed scheduled + walk-in appointments.
     """
     date_str = request.GET.get("date", "")
     time_str = request.GET.get("time", "")
@@ -181,6 +193,7 @@ def appointment_book(request):
                                 apt.status = Appointment.STATUS_PENDING
                                 apt.appointment_type = Appointment.TYPE_SCHEDULED
                                 apt.save()
+                                notify_appointment_requested(apt)
                                 return redirect("appointment_calendar")
                     except IntegrityError:
                         error = "That slot was just taken by another booking. Please try again."
@@ -241,6 +254,8 @@ def appointment_schedule(request):
                         apt.appointment_type = Appointment.TYPE_WALK_IN
                         apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
                         apt.save()
+                        if apt.status == Appointment.STATUS_CONFIRMED:
+                            notify_appointment_confirmed(apt)
                         return redirect("appointment_manage")
                     else:
                         taken = _taken_slots(appt_date, appt_time)
@@ -255,6 +270,8 @@ def appointment_schedule(request):
                             apt.appointment_type = Appointment.TYPE_SCHEDULED
                             apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
                             apt.save()
+                            if apt.status == Appointment.STATUS_CONFIRMED:
+                                notify_appointment_confirmed(apt)
                             return redirect("appointment_manage")
             except IntegrityError:
                 error = "That slot was just taken by another booking. Please try again."
@@ -502,9 +519,12 @@ def queue_action(request):
     apt.save(update_fields=["status", "staff", "updated_at"])
 
     if action == "completed":
+        notify_appointment_completed(apt)
         create_billing_for_appointment(apt, created_by=request.user)
         redirect_url = reverse("finalize_step1", args=[apt.pk])
         return JsonResponse({"success": True, "new_status": apt.status, "redirect_url": redirect_url})
+
+    notify_appointment_no_show(apt)
 
     return JsonResponse({"success": True, "new_status": apt.status})
 
@@ -548,11 +568,13 @@ def appointment_manage(request):
                 apt.status = Appointment.STATUS_CONFIRMED
                 apt.staff = request.user
                 apt.save(update_fields=["status", "staff", "updated_at"])
+                notify_appointment_confirmed(apt)
             elif action == "reject":
                 apt.status = Appointment.STATUS_REJECTED
                 apt.slot_number = None
                 apt.staff = request.user
                 apt.save(update_fields=["status", "slot_number", "staff", "updated_at"])
+                notify_appointment_rejected(apt)
             elif action == "cancel":
                 apt.status = Appointment.STATUS_CANCELLED
                 apt.slot_number = None
@@ -562,16 +584,40 @@ def appointment_manage(request):
                 apt.status = Appointment.STATUS_COMPLETED
                 apt.staff = request.user
                 apt.save(update_fields=["status", "staff", "updated_at"])
+                notify_appointment_completed(apt)
                 create_billing_for_appointment(apt, created_by=request.user)
                 return redirect("finalize_step1", appointment_id=apt.pk)
             elif action == "no_show":
                 apt.status = Appointment.STATUS_NO_SHOW
                 apt.staff = request.user
                 apt.save(update_fields=["status", "staff", "updated_at"])
+                notify_appointment_no_show(apt)
 
-    appointments = Appointment.objects.select_related("owner", "pet", "staff").order_by(
-        "-appointment_date", "-start_time", "slot_number"
-    )
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+
+    current_filter = (request.GET.get("range") or "week").strip().lower()
+    valid_filters = {"today", "week", "month", "all"}
+    if current_filter not in valid_filters:
+        current_filter = "week"
+
+    appointments = Appointment.objects.select_related("owner", "pet", "staff")
+
+    if current_filter == "today":
+        appointments = appointments.filter(appointment_date=today)
+    elif current_filter == "week":
+        appointments = appointments.filter(
+            appointment_date__gte=week_start,
+            appointment_date__lte=week_end,
+        )
+    elif current_filter == "month":
+        appointments = appointments.filter(
+            appointment_date__year=today.year,
+            appointment_date__month=today.month,
+        )
+
+    appointments = appointments.order_by("appointment_date", "start_time", "slot_number")
     appointments_page_obj, appointments_pagination_query = paginate_queryset(
         request,
         appointments,
@@ -589,10 +635,21 @@ def appointment_manage(request):
         no_show=Count("id", filter=Q(status=Appointment.STATUS_NO_SHOW)),
     )
 
+    view_priority = appointments.aggregate(
+        pending_requests=Count("id", filter=Q(status=Appointment.STATUS_PENDING)),
+        confirmed_week=Count("id", filter=Q(status=Appointment.STATUS_CONFIRMED)),
+        scheduled_today=Count("id", filter=Q(appointment_date=today)),
+    )
+
     return render(request, "appointment_manage.html", {
         "appointments": appointments_page_obj,
         "appointments_page_obj": appointments_page_obj,
         "appointments_pagination_query": appointments_pagination_query,
         "form": AppointmentStaffForm(),
         "stats": stats,
+        "current_filter": current_filter,
+        "today": today,
+        "week_start": week_start,
+        "week_end": week_end,
+        "view_priority": view_priority,
     })

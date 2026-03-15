@@ -758,6 +758,37 @@
               </a>
             </div>
 
+            <div style="height:1px;background:#f3f4f6;margin:0.25rem 0;"></div>
+            <div>
+              <div class="aside-card__section-label">Important alerts</div>
+              <div class="aside-card__title">Appointment & billing updates</div>
+              <div class="aside-card__sub">Latest account notifications from the clinic.</div>
+            </div>
+
+            {% if owner_notification_highlights %}
+            <ul class="reminder-list" style="list-style:none;margin:0;padding:0;">
+              {% for n in owner_notification_highlights %}
+              <li class="reminder-item" style="{% if not n.is_read %}border-left-color:#7c3aed;background:#faf5ff;{% endif %}">
+                <div class="reminder-item__icon"><i class="fa-regular fa-bell"></i></div>
+                <div class="reminder-item__text">
+                  <div class="reminder-item__label">{{ n.title }}</div>
+                  <div class="reminder-item__meta">{{ n.created_at|date:"M d, g:i A" }}</div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+            <div class="aside-card__footer" style="margin-top:0.25rem;">
+              <a href="{% url 'notifications' %}" class="aside-card__link aside-card__link--primary">
+                <i class="fa-solid fa-bell" style="font-size:0.7rem;"></i> View all notifications
+              </a>
+            </div>
+            {% else %}
+            <div class="aside-empty">
+              <span class="aside-empty__icon">🔔</span>
+              <p>No alerts right now</p>
+            </div>
+            {% endif %}
+
             <!-- ── Queue View ── -->
             <div style="height:1px;background:#f3f4f6;margin:0.25rem 0;"></div>
             <div>
