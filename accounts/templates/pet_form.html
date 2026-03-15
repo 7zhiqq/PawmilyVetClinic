@@ -32,88 +32,9 @@
         </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
           {% csrf_token %}
-
-          <div class="section-label">Basic info</div>
-          <div class="form-row">
-            <div class="field-group full">
-              <label for="{{ form.name.id_for_label }}">
-                <i class="fa-solid fa-tag"></i> Name
-              </label>
-              {{ form.name }}
-            </div>
-          </div>
-
-          <div class="section-label" style="margin-top:1.25rem;">Species</div>
-
-          <div class="species-picker" id="speciesPicker">
-            <input type="radio" class="species-option" name="_species_vis" id="sp_dog" value="dog">
-            <label class="species-label" for="sp_dog">
-              <span class="emoji">🐶</span> Dog
-            </label>
-            <input type="radio" class="species-option" name="_species_vis" id="sp_cat" value="cat">
-            <label class="species-label" for="sp_cat">
-              <span class="emoji">🐱</span> Cat
-            </label>
-            <input type="radio" class="species-option" name="_species_vis" id="sp_bird" value="bird">
-            <label class="species-label" for="sp_bird">
-              <span class="emoji">🐦</span> Bird
-            </label>
-            <input type="radio" class="species-option" name="_species_vis" id="sp_other" value="other">
-            <label class="species-label" for="sp_other">
-              <span class="emoji">🐾</span> Other
-            </label>
-          </div>
-
-          <div style="display:none;">
-            {{ form.species }}
-          </div>
-
-          <div class="section-label">Details</div>
-          <div class="form-row">
-            <div class="field-group">
-              <label for="{{ form.breed.id_for_label }}">
-                <i class="fa-solid fa-dna"></i> Breed
-              </label>
-              {{ form.breed }}
-            </div>
-            <div class="field-group">
-              <label for="{{ form.gender.id_for_label }}">
-                <i class="fa-solid fa-mars-and-venus"></i> Gender
-              </label>
-              {{ form.gender }}
-            </div>
-            <div class="field-group">
-              <label for="{{ form.birth_date.id_for_label }}">
-                <i class="fa-solid fa-cake-candles"></i> Birth date
-              </label>
-              {{ form.birth_date }}
-            </div>
-            <div class="field-group">
-              <label for="{{ form.weight_kg.id_for_label }}">
-                <i class="fa-solid fa-weight-scale"></i> Weight (kg)
-              </label>
-              {{ form.weight_kg }}
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="field-group full">
-              <label for="{{ form.color.id_for_label }}">
-                <i class="fa-solid fa-palette"></i> Color / Markings
-              </label>
-              {{ form.color }}
-            </div>
-          </div>
-
-          <div class="section-label">Notes</div>
-          <div class="field-group">
-            <label for="{{ form.notes.id_for_label }}">
-              <i class="fa-solid fa-notes-medical"></i> Medical notes / allergies
-            </label>
-            {{ form.notes }}
-          </div>
+          {% include 'accounts/includes/pet_non_modal_fields.html' with form=form row_class='form-row' row_full_class='form-row' full_field_class='full' name_label='Name' %}
 
           <div class="form-footer">
             <button type="submit" class="btn-save">

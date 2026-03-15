@@ -1,0 +1,68 @@
+{% with row_class=row_class|default:'form-row' row_full_class=row_full_class|default:'form-row' full_field_class=full_field_class|default:'full' name_label=name_label|default:'Name' %}
+<div class="section-label">Basic info</div>
+<div class="{{ row_full_class }}">
+  <div class="field-group{% if full_field_class %} {{ full_field_class }}{% endif %}">
+    <label for="{{ form.name.id_for_label }}">
+      <i class="fa-solid fa-tag"></i> {{ name_label }}
+    </label>
+    {{ form.name }}
+  </div>
+</div>
+
+<div class="section-label" style="margin-top:1.25rem;">Species</div>
+{% include 'accounts/includes/pet_species_radio_grid.html' with name_attr='_species_vis' id_prefix='sp' selected_species=form.species.value %}
+
+<div style="display:none;">
+  {{ form.species }}
+</div>
+
+<div class="section-label">Details</div>
+<div class="{{ row_class }}">
+  <div class="field-group">
+    <label for="{{ form.breed.id_for_label }}">
+      <i class="fa-solid fa-dna"></i> Breed
+    </label>
+    {{ form.breed }}
+  </div>
+  <div class="field-group">
+    <label for="{{ form.gender.id_for_label }}">
+      <i class="fa-solid fa-mars-and-venus"></i> Gender
+    </label>
+    {{ form.gender }}
+  </div>
+</div>
+
+<div class="{{ row_class }}">
+  <div class="field-group">
+    <label for="{{ form.birth_date.id_for_label }}">
+      <i class="fa-solid fa-cake-candles"></i> Birth date
+    </label>
+    {{ form.birth_date }}
+  </div>
+  <div class="field-group">
+    <label for="{{ form.weight_kg.id_for_label }}">
+      <i class="fa-solid fa-weight-scale"></i> Weight (kg)
+    </label>
+    {{ form.weight_kg }}
+  </div>
+</div>
+
+<div class="{{ row_full_class }}">
+  <div class="field-group{% if full_field_class %} {{ full_field_class }}{% endif %}">
+    <label for="{{ form.color.id_for_label }}">
+      <i class="fa-solid fa-palette"></i> Color / Markings
+    </label>
+    {{ form.color }}
+  </div>
+</div>
+
+<div class="section-label">Notes</div>
+<div class="{{ row_full_class }}">
+  <div class="field-group{% if full_field_class %} {{ full_field_class }}{% endif %}">
+    <label for="{{ form.notes.id_for_label }}">
+      <i class="fa-solid fa-notes-medical"></i> Medical notes / allergies
+    </label>
+    {{ form.notes }}
+  </div>
+</div>
+{% endwith %}

@@ -1,0 +1,105 @@
+<div class="modal-backdrop" id="{{ modal_id }}" role="dialog" aria-modal="true" aria-labelledby="{{ modal_title_id }}"
+  data-has-errors="{% if form.errors %}true{% else %}false{% endif %}">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <div class="modal__title" id="{{ modal_title_id }}">Add a pet 🐾</div>
+        <div class="modal__subtitle">Fill in your pet's details below.</div>
+      </div>
+      <button class="modal__close" id="{{ close_button_id }}" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <div class="modal__divider"></div>
+
+      {% if form.errors %}
+      <div class="modal-form__errors">
+        {% for field in form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'pet_add' %}" class="modal-form" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label><i class="fa-solid fa-camera"></i> Profile Photo <span class="field-optional">(optional)</span></label>
+          <div class="pet-photo-upload" id="addPhotoUpload">
+            <div class="pet-photo-upload__preview" id="addPhotoPreview">
+              <span class="pet-photo-upload__placeholder">🐾</span>
+            </div>
+            <div class="pet-photo-upload__controls">
+              <label for="id_profile_picture" class="pet-photo-upload__btn" id="addPhotoBtn">
+                <i class="fa-solid fa-upload"></i> <span id="addPhotoBtnText">Choose photo</span>
+              </label>
+              <button type="button" class="pet-photo-upload__clear" id="addPhotoClear" style="display:none">
+                <i class="fa-solid fa-xmark"></i> Remove
+              </button>
+              <span class="pet-photo-upload__hint" id="addPhotoHint">JPG, PNG, GIF &middot; max 5 MB</span>
+              <span class="pet-photo-upload__filename" id="addPhotoFilename"></span>
+            </div>
+            <input type="file" id="id_profile_picture" name="profile_picture" accept="image/*" class="pet-photo-upload__input" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="id_name"><i class="fa-solid fa-tag"></i> Name</label>
+          <input type="text" id="id_name" name="name" placeholder="e.g. Buddy"
+            value="{{ form.name.value|default:'' }}" required />
+        </div>
+
+        <div class="field-group">
+          <label><i class="fa-solid fa-paw"></i> Species</label>
+          {% include 'accounts/includes/pet_species_radio_grid.html' with name_attr='species' id_prefix='sp' selected_species=form.species.value ui_variant='modal' %}
+        </div>
+
+        <div class="modal-form__row">
+          <div class="field-group">
+            <label for="id_breed"><i class="fa-solid fa-dna"></i> Breed</label>
+            <input type="text" id="id_breed" name="breed" placeholder="e.g. Golden Retriever"
+              value="{{ form.breed.value|default:'' }}" />
+          </div>
+          <div class="field-group">
+            <label for="id_gender"><i class="fa-solid fa-mars-and-venus"></i> Gender</label>
+            <select id="id_gender" name="gender">
+              <option value="unknown" {% if not form.gender.value or form.gender.value == 'unknown' %}selected{% endif %}>Unknown</option>
+              <option value="male" {% if form.gender.value == 'male' %}selected{% endif %}>Male</option>
+              <option value="female" {% if form.gender.value == 'female' %}selected{% endif %}>Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-form__row">
+          <div class="field-group">
+            <label for="id_birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
+            <input type="date" id="id_birth_date" name="birth_date"
+              value="{{ form.birth_date.value|default:'' }}" />
+          </div>
+          <div class="field-group">
+            <label for="id_weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
+            <input type="number" id="id_weight_kg" name="weight_kg" step="0.01" min="0"
+              placeholder="0.00" value="{{ form.weight_kg.value|default:'' }}" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="id_color"><i class="fa-solid fa-palette"></i> Color / Markings</label>
+          <input type="text" id="id_color" name="color" placeholder="e.g. Brown, Black and white"
+            value="{{ form.color.value|default:'' }}" />
+        </div>
+
+        <div class="field-group">
+          <label for="id_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+          <textarea id="id_notes" name="notes"
+            placeholder="Medical notes, allergies, etc.">{{ form.notes.value|default:'' }}</textarea>
+        </div>
+
+        <button type="submit" class="modal-form__submit">
+          <i class="fa-solid fa-plus"></i> Add pet
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

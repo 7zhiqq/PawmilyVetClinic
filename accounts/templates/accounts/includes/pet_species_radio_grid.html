@@ -1,0 +1,52 @@
+{% with name_attr=name_attr|default:'species' id_prefix=id_prefix|default:'sp' selected_species=selected_species ui_variant=ui_variant|default:'nonmodal' %}
+{% if ui_variant == 'modal' %}
+<div class="species-grid">
+  <div>
+    <input type="radio" id="{{ id_prefix }}_dog" name="{{ name_attr }}" value="dog"
+      {% if selected_species == 'dog' or not selected_species %}checked{% endif %}>
+    <label for="{{ id_prefix }}_dog"><span class="emoji">🐶</span> Dog</label>
+  </div>
+  <div>
+    <input type="radio" id="{{ id_prefix }}_cat" name="{{ name_attr }}" value="cat"
+      {% if selected_species == 'cat' %}checked{% endif %}>
+    <label for="{{ id_prefix }}_cat"><span class="emoji">🐱</span> Cat</label>
+  </div>
+  <div>
+    <input type="radio" id="{{ id_prefix }}_bird" name="{{ name_attr }}" value="bird"
+      {% if selected_species == 'bird' %}checked{% endif %}>
+    <label for="{{ id_prefix }}_bird"><span class="emoji">🐦</span> Bird</label>
+  </div>
+  <div>
+    <input type="radio" id="{{ id_prefix }}_other" name="{{ name_attr }}" value="other"
+      {% if selected_species == 'other' %}checked{% endif %}>
+    <label for="{{ id_prefix }}_other"><span class="emoji">🐾</span> Other</label>
+  </div>
+</div>
+{% else %}
+<div class="species-picker" id="speciesPicker">
+  <input type="radio" class="species-option" name="{{ name_attr }}" id="{{ id_prefix }}_dog" value="dog"
+    {% if selected_species == 'dog' or not selected_species %}checked{% endif %}>
+  <label class="species-label" for="{{ id_prefix }}_dog">
+    <span class="emoji">🐶</span> Dog
+  </label>
+
+  <input type="radio" class="species-option" name="{{ name_attr }}" id="{{ id_prefix }}_cat" value="cat"
+    {% if selected_species == 'cat' %}checked{% endif %}>
+  <label class="species-label" for="{{ id_prefix }}_cat">
+    <span class="emoji">🐱</span> Cat
+  </label>
+
+  <input type="radio" class="species-option" name="{{ name_attr }}" id="{{ id_prefix }}_bird" value="bird"
+    {% if selected_species == 'bird' %}checked{% endif %}>
+  <label class="species-label" for="{{ id_prefix }}_bird">
+    <span class="emoji">🐦</span> Bird
+  </label>
+
+  <input type="radio" class="species-option" name="{{ name_attr }}" id="{{ id_prefix }}_other" value="other"
+    {% if selected_species == 'other' %}checked{% endif %}>
+  <label class="species-label" for="{{ id_prefix }}_other">
+    <span class="emoji">🐾</span> Other
+  </label>
+</div>
+{% endif %}
+{% endwith %}

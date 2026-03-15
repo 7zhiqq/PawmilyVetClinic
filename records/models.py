@@ -3,6 +3,11 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
+from pawmily.file_handling import (
+    MEDICAL_ATTACHMENT_UPLOAD_TO,
+    uploaded_basename,
+)
+
 
 class VaccineType(models.Model):
     """Master list of vaccines with their recommended booster intervals."""
@@ -211,7 +216,7 @@ class MedicalAttachment(models.Model):
         on_delete=models.CASCADE,
         related_name="attachments",
     )
-    file = models.FileField(upload_to="medical_attachments/%Y/%m/")
+    file = models.FileField(upload_to=MEDICAL_ATTACHMENT_UPLOAD_TO)
     description = models.CharField(max_length=255, blank=True)
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -224,8 +229,7 @@ class MedicalAttachment(models.Model):
         db_table = "accounts_medicalattachment"
 
     def filename(self):
-        import os
-        return os.path.basename(self.file.name)
+        return uploaded_basename(self.file.name)
 
     def __str__(self) -> str:
         return self.description or self.filename()

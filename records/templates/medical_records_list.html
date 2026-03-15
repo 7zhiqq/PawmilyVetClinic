@@ -33,7 +33,9 @@
       <div class="medical-pet-header">
         <div class="medical-pet-header__left">
           <div class="medical-pet-header__avatar">
-            {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+            {% if pet.profile_picture %}
+              <img src="{{ pet.profile_picture.url }}" alt="{{ pet.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+            {% elif pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
           </div>
           <div class="medical-pet-header__info">
             <h1>{{ pet.name }}</h1>

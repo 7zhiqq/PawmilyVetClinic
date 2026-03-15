@@ -271,7 +271,7 @@ def pet_add(request):
     if not _is_pet_owner(request.user):
         return HttpResponseForbidden("Only pet owners can add pets.")
     if request.method == "POST":
-        form = PetForm(request.POST)
+        form = PetForm(request.POST, request.FILES)
         if form.is_valid():
             pet = form.save(commit=False)
             pet.owner = request.user
@@ -300,7 +300,7 @@ def pet_edit(request, pk):
         return HttpResponseForbidden("Only pet owners can edit their pets.")
     pet = get_object_or_404(Pet, pk=pk, owner=request.user)
     if request.method == "POST":
-        form = PetForm(request.POST, instance=pet, prefix=f"edit_{pk}")
+        form = PetForm(request.POST, request.FILES, instance=pet, prefix=f"edit_{pk}")
         if form.is_valid():
             form.save()
             return redirect("pet_list")
@@ -321,6 +321,9 @@ def pet_edit(request, pk):
             "edit_error_form": form,
         })
     return redirect("pet_list")
+
+
+
 
 
 # ─── Walk-in client registration (staff) ──────────────────────────────────────

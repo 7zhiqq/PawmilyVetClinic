@@ -4,6 +4,8 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
+from pawmily.file_handling import PET_PROFILE_PICTURE_UPLOAD_TO
+
 
 class Profile(models.Model):
     ROLE_PET_OWNER = "pet_owner"
@@ -75,9 +77,10 @@ class Pet(models.Model):
         max_length=20, choices=GENDER_CHOICES, default=GENDER_UNKNOWN, blank=True
     )
     color = models.CharField(max_length=50, blank=True, default='')
-    
+    profile_picture = models.ImageField(
+        upload_to=PET_PROFILE_PICTURE_UPLOAD_TO, null=True, blank=True
+    )
     is_active = models.BooleanField(default=True)
-    profile_picture = models.ImageField(upload_to='pet_pictures/', blank=True, null=True, default=None)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

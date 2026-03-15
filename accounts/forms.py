@@ -10,6 +10,26 @@ from .models import (
 
 User = get_user_model()
 
+PET_SHARED_FIELDS = [
+    "name",
+    "species",
+    "breed",
+    "gender",
+    "birth_date",
+    "weight_kg",
+    "color",
+    "notes",
+]
+
+PET_SHARED_WIDGETS = {
+    "name": forms.TextInput(attrs={"placeholder": "Pet's name"}),
+    "breed": forms.TextInput(attrs={"placeholder": "e.g. Golden Retriever"}),
+    "birth_date": forms.DateInput(attrs={"type": "date"}),
+    "weight_kg": forms.NumberInput(attrs={"step": "0.01", "placeholder": "0.00"}),
+    "color": forms.TextInput(attrs={"placeholder": "e.g. Brown, Black and white"}),
+    "notes": forms.Textarea(attrs={"rows": 2, "placeholder": "Medical notes, allergies, etc."}),
+}
+
 
 def email_normalize(email):
     return (email or "").strip().lower()
@@ -78,14 +98,10 @@ class ProfileForm(forms.ModelForm):
 class PetForm(forms.ModelForm):
     class Meta:
         model = Pet
-        fields = ["name", "species", "breed", "gender", "birth_date", "weight_kg", "color", "notes"]
+        fields = [*PET_SHARED_FIELDS, "profile_picture"]
         widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "Pet's name"}),
-            "breed": forms.TextInput(attrs={"placeholder": "e.g. Golden Retriever"}),
-            "birth_date": forms.DateInput(attrs={"type": "date"}),
-            "weight_kg": forms.NumberInput(attrs={"step": "0.01", "placeholder": "0.00"}),
-            "color": forms.TextInput(attrs={"placeholder": "e.g. Brown, Black and white"}),
-            "notes": forms.Textarea(attrs={"rows": 2, "placeholder": "Medical notes, allergies, etc."}),
+            **PET_SHARED_WIDGETS,
+            "profile_picture": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
 
 
@@ -113,15 +129,8 @@ class WalkInPetForm(forms.ModelForm):
     """Pet form used during walk-in registration (no owner set yet)."""
     class Meta:
         model = Pet
-        fields = ["name", "species", "breed", "gender", "birth_date", "weight_kg", "color", "notes"]
-        widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "Pet's name"}),
-            "breed": forms.TextInput(attrs={"placeholder": "e.g. Golden Retriever"}),
-            "birth_date": forms.DateInput(attrs={"type": "date"}),
-            "weight_kg": forms.NumberInput(attrs={"step": "0.01", "placeholder": "0.00"}),
-            "color": forms.TextInput(attrs={"placeholder": "e.g. Brown, Black and white"}),
-            "notes": forms.Textarea(attrs={"rows": 2, "placeholder": "Medical notes, allergies, etc."}),
-        }
+        fields = PET_SHARED_FIELDS
+        widgets = PET_SHARED_WIDGETS
 
 
 class WalkInActivationForm(UserCreationForm):

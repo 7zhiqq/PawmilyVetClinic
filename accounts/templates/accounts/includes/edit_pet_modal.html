@@ -1,0 +1,171 @@
+<div class="modal-backdrop" id="editPetModal_{{ pet.pk }}" role="dialog" aria-modal="true"
+  aria-labelledby="editModalTitle_{{ pet.pk }}"
+  data-has-errors="{% if edit_pet_id == pet.pk %}true{% else %}false{% endif %}">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <div class="modal__title" id="editModalTitle_{{ pet.pk }}">Edit {{ pet.name }} 🐾</div>
+        <div class="modal__subtitle">Update {{ pet.name }}'s profile details.</div>
+      </div>
+      <button class="modal__close" data-close-edit="{{ pet.pk }}" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <div class="modal__divider"></div>
+
+      {% if edit_pet_id == pet.pk and edit_error_form %}
+      <div class="modal-form__errors">
+        {% for field in edit_error_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+        {% for error in edit_error_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'pet_edit' pet.pk %}" class="modal-form" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label><i class="fa-solid fa-camera"></i> Profile Photo <span class="field-optional">(optional)</span></label>
+          <div class="pet-photo-upload" id="editPhotoUpload_{{ pet.pk }}">
+            <div class="pet-photo-upload__preview{% if pet.profile_picture %} has-image{% endif %}" id="editPhotoPreview_{{ pet.pk }}">
+              {% if pet.profile_picture %}
+                <img src="{{ pet.profile_picture.url }}" alt="{{ pet.name }}" class="pet-photo-upload__img" />
+              {% else %}
+                <span class="pet-photo-upload__placeholder">{% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}</span>
+              {% endif %}
+            </div>
+            <div class="pet-photo-upload__controls">
+              <label for="edit_{{ pet.pk }}_profile_picture" class="pet-photo-upload__btn" id="editPhotoBtn_{{ pet.pk }}">
+                <i class="fa-solid fa-upload"></i> <span id="editPhotoBtnText_{{ pet.pk }}">{% if pet.profile_picture %}Change photo{% else %}Choose photo{% endif %}</span>
+              </label>
+              <button type="button" class="pet-photo-upload__clear" id="editPhotoClear_{{ pet.pk }}"{% if not pet.profile_picture %} style="display:none"{% endif %}>
+                <i class="fa-solid fa-xmark"></i> Remove
+              </button>
+              {# Hidden checkbox — toggled by JS to tell Django to clear the existing photo #}
+              <input type="checkbox" name="edit_{{ pet.pk }}-profile_picture-clear"
+                id="edit_{{ pet.pk }}-profile_picture-clear" style="display:none" />
+              <span class="pet-photo-upload__hint" id="editPhotoHint_{{ pet.pk }}">JPG, PNG, GIF &middot; max 5 MB</span>
+              <span class="pet-photo-upload__filename" id="editPhotoFilename_{{ pet.pk }}"></span>
+            </div>
+            <input type="file"
+              id="edit_{{ pet.pk }}_profile_picture"
+              name="edit_{{ pet.pk }}-profile_picture"
+              accept="image/*"
+              class="pet-photo-upload__input edit-photo-input"
+              data-pk="{{ pet.pk }}"
+              data-has-image="{% if pet.profile_picture %}true{% else %}false{% endif %}" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="edit_{{ pet.pk }}-name"><i class="fa-solid fa-tag"></i> Name</label>
+          <input type="text" id="edit_{{ pet.pk }}-name" name="edit_{{ pet.pk }}-name"
+            value="{% if edit_pet_id == pet.pk and edit_error_form %}{{ edit_error_form.name.value|default:'' }}{% else %}{{ pet.name }}{% endif %}" required />
+        </div>
+
+        <div class="field-group">
+          <label><i class="fa-solid fa-paw"></i> Species</label>
+          <div class="species-grid">
+            <div>
+              <input type="radio" id="edit_{{ pet.pk }}_sp_dog" name="edit_{{ pet.pk }}-species" value="dog"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if edit_error_form.species.value == 'dog' %}checked{% endif %}
+                {% else %}
+                  {% if pet.species == 'dog' %}checked{% endif %}
+                {% endif %} />
+              <label for="edit_{{ pet.pk }}_sp_dog"><span class="emoji">🐶</span> Dog</label>
+            </div>
+            <div>
+              <input type="radio" id="edit_{{ pet.pk }}_sp_cat" name="edit_{{ pet.pk }}-species" value="cat"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if edit_error_form.species.value == 'cat' %}checked{% endif %}
+                {% else %}
+                  {% if pet.species == 'cat' %}checked{% endif %}
+                {% endif %} />
+              <label for="edit_{{ pet.pk }}_sp_cat"><span class="emoji">🐱</span> Cat</label>
+            </div>
+            <div>
+              <input type="radio" id="edit_{{ pet.pk }}_sp_bird" name="edit_{{ pet.pk }}-species" value="bird"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if edit_error_form.species.value == 'bird' %}checked{% endif %}
+                {% else %}
+                  {% if pet.species == 'bird' %}checked{% endif %}
+                {% endif %} />
+              <label for="edit_{{ pet.pk }}_sp_bird"><span class="emoji">🐦</span> Bird</label>
+            </div>
+            <div>
+              <input type="radio" id="edit_{{ pet.pk }}_sp_other" name="edit_{{ pet.pk }}-species" value="other"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if edit_error_form.species.value == 'other' %}checked{% endif %}
+                {% else %}
+                  {% if pet.species == 'other' %}checked{% endif %}
+                {% endif %} />
+              <label for="edit_{{ pet.pk }}_sp_other"><span class="emoji">🐾</span> Other</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-form__row">
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-breed"><i class="fa-solid fa-dna"></i> Breed</label>
+            <input type="text" id="edit_{{ pet.pk }}-breed" name="edit_{{ pet.pk }}-breed"
+              placeholder="e.g. Golden Retriever" value="{% if edit_pet_id == pet.pk and edit_error_form %}{{ edit_error_form.breed.value|default:'' }}{% else %}{{ pet.breed|default:'' }}{% endif %}" />
+          </div>
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-gender"><i class="fa-solid fa-mars-and-venus"></i> Gender</label>
+            <select id="edit_{{ pet.pk }}-gender" name="edit_{{ pet.pk }}-gender">
+              <option value="unknown"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if not edit_error_form.gender.value or edit_error_form.gender.value == 'unknown' %}selected{% endif %}
+                {% else %}
+                  {% if not pet.gender or pet.gender == 'unknown' %}selected{% endif %}
+                {% endif %}>Unknown</option>
+              <option value="male"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if edit_error_form.gender.value == 'male' %}selected{% endif %}
+                {% else %}
+                  {% if pet.gender == 'male' %}selected{% endif %}
+                {% endif %}>Male</option>
+              <option value="female"
+                {% if edit_pet_id == pet.pk and edit_error_form %}
+                  {% if edit_error_form.gender.value == 'female' %}selected{% endif %}
+                {% else %}
+                  {% if pet.gender == 'female' %}selected{% endif %}
+                {% endif %}>Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-form__row">
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
+            <input type="date" id="edit_{{ pet.pk }}-birth_date" name="edit_{{ pet.pk }}-birth_date"
+              value="{% if edit_pet_id == pet.pk and edit_error_form %}{{ edit_error_form.birth_date.value|default:'' }}{% else %}{{ pet.birth_date|date:'Y-m-d'|default:'' }}{% endif %}" />
+          </div>
+          <div class="field-group">
+            <label for="edit_{{ pet.pk }}-weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
+            <input type="number" id="edit_{{ pet.pk }}-weight_kg" name="edit_{{ pet.pk }}-weight_kg"
+              step="0.01" min="0" placeholder="0.00" value="{% if edit_pet_id == pet.pk and edit_error_form %}{{ edit_error_form.weight_kg.value|default:'' }}{% else %}{{ pet.weight_kg|default:'' }}{% endif %}" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="edit_{{ pet.pk }}-color"><i class="fa-solid fa-palette"></i> Color / Markings</label>
+          <input type="text" id="edit_{{ pet.pk }}-color" name="edit_{{ pet.pk }}-color"
+            placeholder="e.g. Brown, Black and white" value="{% if edit_pet_id == pet.pk and edit_error_form %}{{ edit_error_form.color.value|default:'' }}{% else %}{{ pet.color|default:'' }}{% endif %}" />
+        </div>
+
+        <div class="field-group">
+          <label for="edit_{{ pet.pk }}-notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
+          <textarea id="edit_{{ pet.pk }}-notes" name="edit_{{ pet.pk }}-notes"
+            placeholder="Medical notes, allergies, etc.">{% if edit_pet_id == pet.pk and edit_error_form %}{{ edit_error_form.notes.value|default:'' }}{% else %}{{ pet.notes|default:'' }}{% endif %}</textarea>
+        </div>
+
+        <button type="submit" class="modal-form__submit">
+          <i class="fa-solid fa-floppy-disk"></i> Save changes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

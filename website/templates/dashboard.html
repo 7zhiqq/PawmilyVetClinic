@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pet_list.css' %}">
   <style>
     /* ── Aside card ── */
     .aside-card {
@@ -1050,65 +1051,7 @@
   </div>
 
   {# ─── Add Pet Modal ─── #}
-  <div class="modal-backdrop" id="addPetModal" role="dialog" aria-modal="true" aria-labelledby="addPetModalTitle"
-    data-has-errors="{% if pet_form and pet_form.errors %}true{% else %}false{% endif %}">
-    <div class="modal">
-      <div class="modal__header">
-        <div>
-          <div class="modal__title" id="addPetModalTitle">Add a pet 🐾</div>
-          <div class="modal__subtitle">Fill in your pet's details below.</div>
-        </div>
-        <button class="modal__close" id="closeAddPetModal" aria-label="Close">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="modal__body">
-        <div class="modal__divider"></div>
-        {% if pet_form and pet_form.errors %}
-        <div class="modal-form__errors">
-          {% for field in pet_form %}{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
-          {% for error in pet_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-        </div>
-        {% endif %}
-        <form method="POST" action="{% url 'pet_add' %}" class="modal-form">
-          {% csrf_token %}
-          <div class="field-group">
-            <label for="dash_name"><i class="fa-solid fa-tag"></i> Name</label>
-            <input type="text" id="dash_name" name="name" placeholder="e.g. Buddy"
-              value="{% if pet_form %}{{ pet_form.name.value|default:'' }}{% endif %}" required />
-          </div>
-          <div class="field-group">
-            <label><i class="fa-solid fa-paw"></i> Species</label>
-            <div class="species-grid">
-              <div><input type="radio" id="dash_sp_dog" name="species" value="dog" {% if not pet_form or not pet_form.species.value or pet_form.species.value == 'dog' %}checked{% endif %} /><label for="dash_sp_dog"><span class="emoji">🐶</span> Dog</label></div>
-              <div><input type="radio" id="dash_sp_cat" name="species" value="cat" {% if pet_form and pet_form.species.value == 'cat' %}checked{% endif %} /><label for="dash_sp_cat"><span class="emoji">🐱</span> Cat</label></div>
-              <div><input type="radio" id="dash_sp_bird" name="species" value="bird" {% if pet_form and pet_form.species.value == 'bird' %}checked{% endif %} /><label for="dash_sp_bird"><span class="emoji">🐦</span> Bird</label></div>
-              <div><input type="radio" id="dash_sp_other" name="species" value="other" {% if pet_form and pet_form.species.value == 'other' %}checked{% endif %} /><label for="dash_sp_other"><span class="emoji">🐾</span> Other</label></div>
-            </div>
-          </div>
-          <div class="modal-form__row">
-            <div class="field-group">
-              <label for="dash_breed"><i class="fa-solid fa-dna"></i> Breed</label>
-              <input type="text" id="dash_breed" name="breed" placeholder="e.g. Golden Retriever" value="{% if pet_form %}{{ pet_form.breed.value|default:'' }}{% endif %}" />
-            </div>
-            <div class="field-group">
-              <label for="dash_birth_date"><i class="fa-solid fa-cake-candles"></i> Birth date</label>
-              <input type="date" id="dash_birth_date" name="birth_date" value="{% if pet_form %}{{ pet_form.birth_date.value|default:'' }}{% endif %}" />
-            </div>
-          </div>
-          <div class="field-group">
-            <label for="dash_weight_kg"><i class="fa-solid fa-weight-scale"></i> Weight (kg)</label>
-            <input type="number" id="dash_weight_kg" name="weight_kg" step="0.01" min="0" placeholder="0.00" value="{% if pet_form %}{{ pet_form.weight_kg.value|default:'' }}{% endif %}" />
-          </div>
-          <div class="field-group">
-            <label for="dash_notes"><i class="fa-solid fa-note-sticky"></i> Notes</label>
-            <textarea id="dash_notes" name="notes" placeholder="Medical notes, allergies, etc.">{% if pet_form %}{{ pet_form.notes.value|default:'' }}{% endif %}</textarea>
-          </div>
-          <button type="submit" class="modal-form__submit"><i class="fa-solid fa-plus"></i> Add pet</button>
-        </form>
-      </div>
-    </div>
-  </div>
+  {% include 'accounts/includes/add_pet_modal.html' with form=pet_form modal_id='addPetModal' modal_title_id='addPetModalTitle' close_button_id='closeAddPetModal' %}
 
   {# ─── Profile Edit Modal ─── #}
   <div class="modal-backdrop" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle"
@@ -1270,6 +1213,7 @@
   {% endif %}
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script src="{% static 'js/add_pet_modal.js' %}"></script>
   <script>
   'use strict';
 
