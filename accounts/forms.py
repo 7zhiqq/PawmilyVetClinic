@@ -2,7 +2,7 @@ import re
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm, SetPasswordForm, UserCreationForm
 
 from .models import (
     Invitation, Pet, Profile,
@@ -188,6 +188,22 @@ class ProfilePasswordForm(PasswordChangeForm):
         self.fields["old_password"].widget.attrs.update({"placeholder": "Current password"})
         self.fields["new_password1"].widget.attrs.update({"placeholder": "New password"})
         self.fields["new_password2"].widget.attrs.update({"placeholder": "Confirm new password"})
+
+
+class ExistingEmailPasswordResetForm(PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        normalized = email_normalize(email)
+        if not User.objects.filter(email__iexact=normalized).exists():
+            raise forms.ValidationError("No account was found for this email address.")
+        return normalized
+
+
+class StyledSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["new_password1"].widget.attrs.update({"placeholder": "Enter your new password"})
+        self.fields["new_password2"].widget.attrs.update({"placeholder": "Confirm your new password"})
 
 
 class PetForm(forms.ModelForm):

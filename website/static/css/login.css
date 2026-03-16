@@ -199,6 +199,19 @@
   color: #dc2626;
 }
 
+.login-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.login-success p {
+  font-size: 0.875rem;
+  color: #166534;
+}
+
 @media (max-width: 480px) {
   .login-card {
     padding: 2rem 1.5rem;

@@ -46,8 +46,13 @@ class RoleBasedAccessMiddleware:
     # Public routes that don't require authentication
     PUBLIC_ROUTES = [
         '/login/',
+        '/accounts/login/',
         '/logout/',
+        '/accounts/logout/',
         '/register/',
+        '/accounts/register/',
+        '/accounts/password-reset/',
+        '/accounts/reset/',
         '/invite/',
         '/walkin/activate/',
         '/',
