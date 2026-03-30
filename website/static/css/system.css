@@ -694,3 +694,106 @@ body {
     padding-inline: 0.75rem;
   }
 }
+
+/* Mobile layout target: phones up to 480px, with stacked columns and overflow-safe sizing. */
+@media (max-width: 480px) {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img, svg, video, canvas, iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  [class*="container"],
+  [class*="wrapper"],
+  [class*="content"],
+  main,
+  section {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  [class*="grid"],
+  .grid,
+  .row,
+  .rows,
+  .columns,
+  .two-col,
+  .three-col,
+  .layout-columns,
+  .split-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .row,
+  .rows,
+  .columns,
+  .two-col,
+  .three-col,
+  .layout-columns,
+  .split-layout {
+    flex-direction: column;
+  }
+
+  h1 { font-size: clamp(1.35rem, 7vw, 1.95rem); }
+  h2 { font-size: clamp(1.15rem, 5.5vw, 1.55rem); }
+  h3 { font-size: clamp(1rem, 4.5vw, 1.3rem); }
+}
+
+/* Tablet layout target: 481px to 1023px, using a 2-column grid where applicable. */
+@media (min-width: 481px) and (max-width: 1023px) {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img, svg, video, canvas, iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  [class*="container"],
+  [class*="wrapper"],
+  [class*="content"],
+  main,
+  section {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  [class*="grid"],
+  .grid,
+  .rows,
+  .columns,
+  .two-col,
+  .three-col,
+  .layout-columns,
+  .split-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .row,
+  .rows,
+  .columns,
+  .two-col,
+  .three-col,
+  .layout-columns,
+  .split-layout {
+    flex-wrap: wrap;
+  }
+}
+
+/* Desktop layout target: 1024px and above, restoring full multi-column behavior. */
+@media (min-width: 1024px) {
+  html, body {
+    overflow-x: clip;
+  }
+
+  img, svg, video, canvas, iframe {
+    max-width: 100%;
+    height: auto;
+  }
+}
