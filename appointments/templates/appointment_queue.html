@@ -36,13 +36,13 @@
       </div>
 
       <div class="queue-toolbar">
-        <a href="?date={% now 'Y-m-d' %}" class="queue-toolbar__today">
+        <a href="{% url 'appointment_queue' %}" class="queue-toolbar__today">
           <i class="fa-regular fa-calendar-check"></i> Today
         </a>
         <form method="get" action="{% url 'appointment_queue' %}">
           <label for="qdate">Date</label>
           <input type="date" id="qdate" name="date" value="{{ view_date|date:'Y-m-d' }}" />
-          <button type="submit">Go</button>
+          <button type="submit">View</button>
         </form>
         <div class="queue-live-indicator" id="live-indicator">
           <span class="live-dot"></span> LIVE
@@ -56,10 +56,6 @@
       <div id="staff-queue-view" style="display:none;">
         <!-- Stats bar -->
         <div class="queue-stats" id="queue-stats">
-          <div class="queue-stat">
-            <div class="queue-stat__value" id="stat-total">0</div>
-            <div class="queue-stat__label">In Queue</div>
-          </div>
           <div class="queue-stat queue-stat--serving">
             <div class="queue-stat__value" id="stat-serving">—</div>
             <div class="queue-stat__label">Now Serving</div>
@@ -92,7 +88,7 @@
       <div id="schedule-view" style="display:none;">
         <div class="schedule-banner">
           <i class="fa-solid fa-calendar-day"></i>
-          <span>Viewing scheduled appointments — live queue is only active for today.</span>
+          <span>Viewing scheduled order for selected date (read-only mode).</span>
         </div>
         <div class="schedule-stats" id="schedule-stats">
           <div class="queue-stat">

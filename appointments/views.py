@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from pawmily.pagination import paginate_queryset
 
@@ -87,6 +88,52 @@ def _appointment_queryset(user):
     if _is_staff_or_manager(user):
         return Appointment.objects.select_related("owner", "pet", "staff").all()
     return Appointment.objects.filter(owner=user).select_related("owner", "pet", "staff")
+
+
+def _appointment_end_datetime(appointment, for_date):
+    """Build an aware end datetime from appointment range, defaulting to +1 hour if end_time is empty."""
+    end_time = appointment.end_time
+    if end_time is None:
+        end_time = (datetime.combine(for_date, appointment.start_time) + timedelta(hours=1)).time()
+
+    end_dt = timezone.make_aware(
+        datetime.combine(for_date, end_time),
+        timezone.get_current_timezone(),
+    )
+
+    # Handle overnight ranges (rare): e.g., 11:30 PM start and 12:30 AM end.
+    if end_time < appointment.start_time:
+        end_dt = end_dt + timedelta(days=1)
+
+    return end_dt
+
+
+def _auto_mark_no_show_for_today(view_date):
+    """Mark expired confirmed appointments as no-show for today's queue."""
+    today = timezone.localdate()
+    if view_date != today:
+        return 0
+
+    now_local = timezone.localtime()
+    expired_confirmed = list(
+        Appointment.objects.select_related("owner", "pet").filter(
+            appointment_date=today,
+            status=Appointment.STATUS_CONFIRMED,
+        )
+    )
+
+    no_show_items = [
+        apt
+        for apt in expired_confirmed
+        if now_local > _appointment_end_datetime(apt, today)
+    ]
+
+    for apt in no_show_items:
+        apt.status = Appointment.STATUS_NO_SHOW
+        apt.save(update_fields=["status", "updated_at"])
+        notify_appointment_no_show(apt)
+
+    return len(no_show_items)
 
 
 # ── AJAX: available slots ──────────────────────────────────────────────────────
@@ -367,9 +414,9 @@ def appointment_queue(request):
         try:
             view_date = date.fromisoformat(day_str)
         except (ValueError, TypeError):
-            view_date = date.today()
+            view_date = timezone.localdate()
     else:
-        view_date = date.today()
+        view_date = timezone.localdate()
 
     return render(request, "appointment_queue.html", {
         "view_date": view_date,
@@ -386,16 +433,25 @@ def queue_data(request):
         try:
             view_date = date.fromisoformat(day_str)
         except (ValueError, TypeError):
-            view_date = date.today()
+            view_date = timezone.localdate()
     else:
-        view_date = date.today()
+        view_date = timezone.localdate()
 
-    is_today = view_date == date.today()
+    is_today = view_date == timezone.localdate()
+    if is_today:
+        _auto_mark_no_show_for_today(view_date)
+
     current_user_id = request.user.id
     is_staff = _is_staff_or_manager(request.user)
 
     def _apt_to_dict(apt, queue_number=None):
         species = apt.pet.species if apt.pet else "other"
+        start_time = apt.start_time.strftime("%I:%M %p").lstrip("0") if hasattr(apt.start_time, "strftime") else str(apt.start_time)
+        if apt.end_time:
+            end_time = apt.end_time.strftime("%I:%M %p").lstrip("0")
+        else:
+            fallback_end = (datetime.combine(view_date, apt.start_time) + timedelta(hours=1)).time()
+            end_time = fallback_end.strftime("%I:%M %p").lstrip("0")
         return {
             "id": apt.id,
             "queue_number": queue_number,
@@ -407,6 +463,9 @@ def queue_data(request):
             "reason": apt.reason or "",
             "start_time": apt.start_time.strftime("%I:%M").lstrip("0") if hasattr(apt.start_time, 'strftime') else str(apt.start_time),
             "start_time_ampm": apt.start_time.strftime("%p") if hasattr(apt.start_time, 'strftime') else "",
+            "end_time": apt.end_time.strftime("%I:%M").lstrip("0") if apt.end_time and hasattr(apt.end_time, 'strftime') else "",
+            "end_time_ampm": apt.end_time.strftime("%p") if apt.end_time and hasattr(apt.end_time, 'strftime') else "",
+            "time_range": f"{start_time} - {end_time}",
             "status": apt.status,
             "status_display": apt.get_status_display(),
         }
@@ -414,12 +473,14 @@ def queue_data(request):
     if not is_today:
         schedule_qs = Appointment.objects.select_related("owner", "pet", "staff").filter(
             appointment_date=view_date,
+        ).exclude(
+            status__in=[Appointment.STATUS_CANCELLED, Appointment.STATUS_REJECTED],
         ).order_by("start_time", "slot_number")
 
         if not is_staff:
             schedule_qs = schedule_qs.filter(owner=request.user)
 
-        scheduled_items = [_apt_to_dict(apt) for apt in schedule_qs]
+        scheduled_items = [_apt_to_dict(apt, idx + 1) for idx, apt in enumerate(schedule_qs)]
 
         return JsonResponse({
             "view_date": view_date.isoformat(),
@@ -432,6 +493,8 @@ def queue_data(request):
             "now_serving": None,
             "waiting": [],
             "waiting_count": 0,
+            "next_in_queue": None,
+            "upcoming_today": [],
             "my_queue_info": [],
         })
 
@@ -456,6 +519,8 @@ def queue_data(request):
 
     now_serving = items[0] if items else None
     waiting = items[1:] if len(items) > 1 else []
+    next_in_queue = waiting[0] if waiting else None
+    upcoming_today = waiting[1:] if len(waiting) > 1 else []
 
     my_queue_info = []
     for pos in my_positions:
@@ -477,15 +542,21 @@ def queue_data(request):
     if is_staff:
         resp_now_serving = now_serving
         resp_waiting = waiting
+        resp_next = next_in_queue
+        resp_upcoming = upcoming_today
     else:
         resp_now_serving = None
         resp_waiting = []
+        resp_next = None
+        resp_upcoming = []
 
     return JsonResponse({
         "view_date": view_date.isoformat(),
         "view_date_display": view_date.strftime("%A, %B %d, %Y"),
-        "is_today": True,
+        "is_today": is_today,
         "now_serving": resp_now_serving,
+        "next_in_queue": resp_next,
+        "upcoming_today": resp_upcoming,
         "waiting": resp_waiting,
         "total_count": len(items),
         "waiting_count": len(waiting),
@@ -509,6 +580,12 @@ def queue_action(request):
         return JsonResponse({"error": "Invalid request."}, status=400)
 
     apt = get_object_or_404(Appointment, pk=apt_id)
+
+    if apt.appointment_date != timezone.localdate():
+        return JsonResponse({"error": "Queue actions are only allowed for today's appointments."}, status=400)
+
+    if apt.status != Appointment.STATUS_CONFIRMED:
+        return JsonResponse({"error": "Only confirmed appointments can be updated from queue."}, status=400)
 
     if action == "completed":
         apt.status = Appointment.STATUS_COMPLETED

@@ -16,7 +16,6 @@
   const $scheduleView  = document.getElementById("schedule-view");
   const $scheduleList  = document.getElementById("schedule-list");
   const $schedTotal    = document.getElementById("sched-total");
-  const $statTotal     = document.getElementById("stat-total");
   const $statServing   = document.getElementById("stat-serving");
   const $statWaiting   = document.getElementById("stat-waiting");
   const $nowSection    = document.getElementById("now-serving-section");
@@ -41,11 +40,19 @@
     return d.innerHTML;
   }
 
+  function timeRangeText(item) {
+    if (item.time_range) return item.time_range;
+    return [item.start_time, item.start_time_ampm].filter(Boolean).join(" ");
+  }
+
   // ─── Render a queue card (live queue) ───────────────────────────────
-  function cardHtml(item, isServing) {
+  function cardHtml(item, isServing, allowActions) {
     const ownerLine = IS_STAFF ? `${escHtml(item.owner_name)} · ` : "";
     const reasonLine = item.reason
       ? `<div class="apt-card__reason">"${escHtml(item.reason)}"</div>`
+      : "";
+    const queueLine = item.queue_number
+      ? `<div class="apt-card__meta"><i class="fa-solid fa-hashtag"></i> Queue #${item.queue_number}</div>`
       : "";
 
     const statusPill = `
@@ -54,7 +61,7 @@
         ${escHtml(item.status_display)}
       </span>`;
 
-    const actions = isServing && IS_STAFF
+    const actions = isServing && IS_STAFF && allowActions
       ? `<div class="queue-actions">
            <button class="queue-action-btn queue-action-btn--complete"
                    onclick="queueAction(${item.id}, 'completed')"
@@ -86,7 +93,8 @@
         <div class="apt-card__pet-icon">${speciesEmoji(item.species)}</div>
         <div class="apt-card__info">
           <div class="apt-card__pet-name">${escHtml(item.pet_name)}${isOwn && !IS_STAFF ? ' <span class="apt-card__you-tag">You</span>' : ""}</div>
-          <div class="apt-card__meta">${ownerLine}${escHtml(item.appointment_type)}</div>
+          <div class="apt-card__meta">${ownerLine}${escHtml(item.appointment_type)} · ${escHtml(timeRangeText(item))}</div>
+          ${queueLine}
           ${reasonLine}
         </div>
         ${statusPill}
@@ -96,31 +104,7 @@
 
   // ─── Build schedule card (non-today, read-only) ─────────────────────
   function scheduleCardHtml(item) {
-    const ownerLine = IS_STAFF ? `${escHtml(item.owner_name)} · ` : "";
-    const reasonLine = item.reason
-      ? `<div class="apt-card__reason">"${escHtml(item.reason)}"</div>`
-      : "";
-
-    const statusPill = `
-      <span class="apt-pill ${item.status}">
-        <span class="apt-pill__dot"></span>
-        ${escHtml(item.status_display)}
-      </span>`;
-
-    return `
-      <div class="apt-card ${item.status}">
-        <div class="apt-card__time">
-          <div class="apt-card__time-val">${escHtml(item.start_time)}</div>
-          <div class="apt-card__time-ampm">${escHtml(item.start_time_ampm)}</div>
-        </div>
-        <div class="apt-card__pet-icon">${speciesEmoji(item.species)}</div>
-        <div class="apt-card__info">
-          <div class="apt-card__pet-name">${escHtml(item.pet_name)}</div>
-          <div class="apt-card__meta">${ownerLine}${escHtml(item.appointment_type)}</div>
-          ${reasonLine}
-        </div>
-        ${statusPill}
-      </div>`;
+    return cardHtml(item, false, false);
   }
 
   // ─── Build owner card (for owner-only live view) ────────────────────
@@ -146,30 +130,6 @@
           ${escHtml(info.status_display)}
         </span>
       </div>`;
-  }
-
-  // ─── Render schedule view (non-today) ───────────────────────────────
-  function renderScheduleView(data) {
-    $staffView.style.display  = "none";
-    $ownerView.style.display  = "none";
-    $liveIndicator.style.display = "none";
-
-    const items = data.scheduled || [];
-
-    if (items.length === 0) {
-      $scheduleView.style.display = "none";
-      $emptyTitle.textContent = "No appointments";
-      $emptySubtitle.textContent = "There are no appointments scheduled for this date.";
-      $empty.style.display = "block";
-      return;
-    }
-
-    $empty.style.display = "none";
-    $scheduleView.style.display = "block";
-    $schedTotal.textContent = items.length;
-    $scheduleList.innerHTML = items.map(function (item) {
-      return scheduleCardHtml(item);
-    }).join("");
   }
 
   // ─── Render owner-only view (today) ─────────────────────────────────
@@ -226,6 +186,33 @@
     $ownerView.innerHTML = html;
   }
 
+  // ─── Render schedule view (non-today) ───────────────────────────────
+  function renderScheduleView(data) {
+    $staffView.style.display  = "none";
+    $ownerView.style.display  = "none";
+    $liveIndicator.style.display = "none";
+
+    const items = data.scheduled || [];
+
+    if (items.length === 0) {
+      $scheduleView.style.display = "none";
+      $emptyTitle.textContent = "No appointments";
+      $emptySubtitle.textContent = "There are no appointments scheduled for this date.";
+      $empty.style.display = "block";
+      return;
+    }
+
+    $empty.style.display = "none";
+    $scheduleView.style.display = "block";
+    $schedTotal.textContent = items.length;
+    $scheduleList.innerHTML = items.map(function (item) {
+      return `<div class="queue-position">
+                <span class="queue-position__number">#${item.queue_number || '-'}</span>
+                ${scheduleCardHtml(item)}
+              </div>`;
+    }).join("");
+  }
+
   // ─── Render staff view (today) ──────────────────────────────────────
   function renderStaffView(data) {
     $ownerView.style.display    = "none";
@@ -233,7 +220,6 @@
     $staffView.style.display    = "block";
 
     // Stats
-    $statTotal.textContent   = data.total_count;
     $statServing.textContent = data.now_serving ? "#" + data.now_serving.queue_number : "—";
     $statWaiting.textContent = data.waiting_count;
 
@@ -252,7 +238,7 @@
     // Now Serving
     if (data.now_serving) {
       $nowSection.style.display = "block";
-      $nowContent.innerHTML = cardHtml(data.now_serving, true);
+      $nowContent.innerHTML = cardHtml(data.now_serving, true, true);
     } else {
       $nowSection.style.display = "none";
     }
@@ -265,7 +251,7 @@
         .map(function (item) {
           return `<div class="queue-position">
                     <span class="queue-position__number">#${item.queue_number}</span>
-                    ${cardHtml(item, false)}
+                    ${cardHtml(item, false, false)}
                   </div>`;
         })
         .join("");
@@ -276,13 +262,13 @@
 
   // ─── Render (dispatch to correct view) ──────────────────────────────
   function render(data) {
-    // Non-today → schedule view (no live queue)
+    // Non-today -> schedule view (read-only)
     if (!data.is_today) {
       renderScheduleView(data);
       return;
     }
 
-    // Today → live queue
+    // Today -> live queue
     if (IS_STAFF) {
       renderStaffView(data);
     } else {
@@ -360,7 +346,7 @@
       }
     });
   } else {
-    // Hide the live indicator for non-today dates
+    // Hide live indicator for non-today dates
     $liveIndicator.style.display = "none";
   }
 })();
