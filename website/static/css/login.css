@@ -89,6 +89,43 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.password-toggle-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-wrap input {
+  padding-right: 3rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--clr-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--clr-dark);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+}
+
 .form-group input:focus {
   border-color: var(--clr-primary);
   box-shadow: 0 0 0 3px var(--clr-primary-light);
@@ -215,6 +252,12 @@
 @media (max-width: 480px) {
   .login-card {
     padding: 2rem 1.5rem;
+  }
+
+  .password-toggle-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    right: 0.35rem;
   }
 }
 /* Mobile layout target: phones up to 480px, with stacked columns and overflow-safe sizing. */
