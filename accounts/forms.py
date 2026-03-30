@@ -237,7 +237,7 @@ class PetForm(forms.ModelForm):
                 duplicate_query = duplicate_query.exclude(pk=self.instance.pk)
             
             if duplicate_query.exists():
-                raise ValidationError(
+                raise forms.ValidationError(
                     f"You already have a {species.title()} named '{name}'. "
                     "Please use a different name or check your existing pets."
                 )
