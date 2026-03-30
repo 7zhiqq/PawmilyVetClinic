@@ -108,10 +108,11 @@ class Pet(models.Model):
 
     def clean(self):
         """Prevent duplicate pet records for the same owner with same name and species."""
-        if self.owner and self.name and self.species:
+        if self.owner_id and self.name and self.species:
+            pet_name = self.name.strip()
             duplicate_query = Pet.objects.filter(
-                owner=self.owner,
-                name=self.name,
+                owner_id=self.owner_id,
+                name__iexact=pet_name,
                 species=self.species,
             )
             # Exclude current instance if updating
@@ -120,7 +121,7 @@ class Pet(models.Model):
             
             if duplicate_query.exists():
                 raise ValidationError(
-                    f"You already have a {self.get_species_display()} named '{self.name}'. "
+                    f"You already have a {self.get_species_display()} named '{pet_name}'. "
                     "Please use a different name or check your existing pets."
                 )
 
