@@ -266,6 +266,8 @@ body {
 .navbar__mobile .navbar__cta {
   margin-top: 0.5rem;
   justify-content: center;
+  display: inline-flex;
+  width: 100%;
 }
 
 .navbar__notif-wrap {

@@ -1,3 +1,4 @@
+{% load static %}
 <nav class="navbar">
   <div class="navbar__inner">
     <a href="/" class="navbar__brand">
@@ -84,6 +85,42 @@
         <a href="/accounts/login/" class="navbar__cta">Login</a>
       {% endif %}
     </div>
+
+    <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="navbar__mobile" id="mobileMenu">
+    <a href="/"><i class="fa-solid fa-house"></i> Home</a>
+
+    {% if user.is_authenticated %}
+      {% with role=user.profile.role|default:'' %}
+        {% if user.is_superuser or role == 'manager' %}
+          <a href="/accounts/invitations/"><i class="fa-solid fa-user-gear"></i> Manage users</a>
+          <a href="/accounts/billing/"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+          <a href="/accounts/profile/"><i class="fa-solid fa-id-card"></i> My profile</a>
+        {% elif role == 'staff' %}
+          <a href="/accounts/appointments/calendar/"><i class="fa-regular fa-calendar"></i> Calendar</a>
+          <a href="/accounts/appointments/manage/"><i class="fa-solid fa-list-check"></i> Appointments</a>
+          <a href="/accounts/pets/search/"><i class="fa-solid fa-file-medical"></i> Pet Records</a>
+          <a href="/accounts/vaccinations/manage/"><i class="fa-solid fa-syringe"></i> Vaccinations</a>
+          <a href="/accounts/billing/"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+          <a href="/accounts/walkin/register/"><i class="fa-solid fa-clipboard-list"></i> Walk-in Registration</a>
+          <a href="/accounts/profile/"><i class="fa-solid fa-id-card"></i> My profile</a>
+        {% else %}
+          <a href="/accounts/pets/"><i class="fa-solid fa-paw"></i> Pets</a>
+          <a href="/accounts/appointments/calendar/"><i class="fa-regular fa-calendar"></i> Calendar</a>
+          <a href="/accounts/billing/"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+          <a href="/accounts/profile/"><i class="fa-solid fa-id-card"></i> My profile</a>
+        {% endif %}
+      {% endwith %}
+      <a href="/accounts/logout/" class="navbar__cta"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    {% else %}
+      <a href="/accounts/login/" class="navbar__cta">Login</a>
+    {% endif %}
   </div>
 </nav>
+
+<script src="{% static 'js/navbar.js' %}"></script>
 
