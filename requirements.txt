@@ -5,3 +5,5 @@ mysql-connector-python>=9.0.0
 Pillow>=10.0.0
 gunicorn>=21.2.0
 qrcode[pil]>=7.4.2
+psycopg2-binary>=2.9
+dj-database-url>=2.0
