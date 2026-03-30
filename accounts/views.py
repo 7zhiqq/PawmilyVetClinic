@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseForbidden
@@ -405,12 +406,16 @@ def pet_add(request):
     if not _is_pet_owner(request.user):
         return HttpResponseForbidden("Only pet owners can add pets.")
     if request.method == "POST":
-        form = PetForm(request.POST, request.FILES)
+        form = PetForm(request.POST, request.FILES, owner=request.user)
         if form.is_valid():
             pet = form.save(commit=False)
             pet.owner = request.user
-            pet.save()
-            return redirect("pet_list")
+            try:
+                pet.full_clean()
+                pet.save()
+                return redirect("pet_list")
+            except ValidationError as e:
+                form.add_error(None, str(e.message) if hasattr(e, 'message') else str(e))
         # Re-render pet_list with the invalid form so the add-pet modal auto-opens
         pets = Pet.objects.filter(owner=request.user).order_by("name")
         pets_page_obj, pets_pagination_query = paginate_queryset(
@@ -434,10 +439,15 @@ def pet_edit(request, pk):
         return HttpResponseForbidden("Only pet owners can edit their pets.")
     pet = get_object_or_404(Pet, pk=pk, owner=request.user)
     if request.method == "POST":
-        form = PetForm(request.POST, request.FILES, instance=pet, prefix=f"edit_{pk}")
+        form = PetForm(request.POST, request.FILES, instance=pet, prefix=f"edit_{pk}", owner=request.user)
         if form.is_valid():
-            form.save()
-            return redirect("pet_list")
+            pet = form.save(commit=False)
+            try:
+                pet.full_clean()
+                pet.save()
+                return redirect("pet_list")
+            except ValidationError as e:
+                form.add_error(None, str(e.message) if hasattr(e, 'message') else str(e))
         # Re-render pet_list with the invalid edit form so the edit modal auto-opens
         pets = Pet.objects.filter(owner=request.user).order_by("name")
         pets_page_obj, pets_pagination_query = paginate_queryset(

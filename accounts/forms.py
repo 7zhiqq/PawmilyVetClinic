@@ -214,6 +214,35 @@ class PetForm(forms.ModelForm):
             **PET_SHARED_WIDGETS,
             "profile_picture": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
+    
+    def __init__(self, *args, owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.owner = owner
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get("name")
+        species = cleaned_data.get("species")
+        owner = self.owner or (self.instance.owner if self.instance.pk else None)
+        
+        # Check for duplicate pet records for same owner
+        if owner and name and species:
+            duplicate_query = Pet.objects.filter(
+                owner=owner,
+                name=name,
+                species=species,
+            )
+            # Exclude current instance if updating
+            if self.instance.pk:
+                duplicate_query = duplicate_query.exclude(pk=self.instance.pk)
+            
+            if duplicate_query.exists():
+                raise ValidationError(
+                    f"You already have a {species.title()} named '{name}'. "
+                    "Please use a different name or check your existing pets."
+                )
+        
+        return cleaned_data
 
 
 class WalkInClientForm(forms.Form):

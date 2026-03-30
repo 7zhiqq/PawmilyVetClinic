@@ -1,10 +1,12 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from pawmily.file_handling import PET_PROFILE_PICTURE_UPLOAD_TO, USER_PROFILE_PHOTO_UPLOAD_TO
+
 
 
 class Profile(models.Model):
@@ -103,6 +105,24 @@ class Pet(models.Model):
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        """Prevent duplicate pet records for the same owner with same name and species."""
+        if self.owner and self.name and self.species:
+            duplicate_query = Pet.objects.filter(
+                owner=self.owner,
+                name=self.name,
+                species=self.species,
+            )
+            # Exclude current instance if updating
+            if self.pk:
+                duplicate_query = duplicate_query.exclude(pk=self.pk)
+            
+            if duplicate_query.exists():
+                raise ValidationError(
+                    f"You already have a {self.get_species_display()} named '{self.name}'. "
+                    "Please use a different name or check your existing pets."
+                )
 
     def __str__(self) -> str:
         return f"{self.name} ({self.get_species_display()})"
