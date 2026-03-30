@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from accounts.models import Pet, Profile
 from .models import Appointment
@@ -47,12 +48,32 @@ class AppointmentBookingForm(forms.ModelForm):
         cleaned_data = super().clean()
         reason = cleaned_data.get("reason")
         custom_reason = (cleaned_data.get("reason_other") or "").strip()
+        pet = cleaned_data.get("pet")
+        appointment_date = cleaned_data.get("appointment_date")
+        start_time = cleaned_data.get("start_time")
 
         if reason == "Other":
             if not custom_reason:
                 self.add_error("reason_other", "Please provide the specific reason for the visit.")
             else:
                 cleaned_data["reason"] = custom_reason
+
+        # Check for duplicate pet bookings
+        if pet and appointment_date and start_time:
+            duplicate = Appointment.objects.filter(
+                pet=pet,
+                appointment_date=appointment_date,
+                start_time=start_time,
+            ).exclude(
+                status__in=[Appointment.STATUS_CANCELLED, Appointment.STATUS_REJECTED]
+            )
+            if self.instance.pk:
+                duplicate = duplicate.exclude(pk=self.instance.pk)
+            
+            if duplicate.exists():
+                raise ValidationError(
+                    "This pet already has an appointment scheduled for this date and time."
+                )
 
         return cleaned_data
 
@@ -88,6 +109,9 @@ class AppointmentStaffForm(forms.ModelForm):
         cleaned_data = super().clean()
         reason = cleaned_data.get("reason")
         custom_reason = (cleaned_data.get("reason_other") or "").strip()
+        pet = cleaned_data.get("pet")
+        appointment_date = cleaned_data.get("appointment_date")
+        start_time = cleaned_data.get("start_time")
 
         if reason == "Other":
             if not custom_reason:
@@ -95,4 +119,22 @@ class AppointmentStaffForm(forms.ModelForm):
             else:
                 cleaned_data["reason"] = custom_reason
 
+        # Check for duplicate pet bookings
+        if pet and appointment_date and start_time:
+            duplicate = Appointment.objects.filter(
+                pet=pet,
+                appointment_date=appointment_date,
+                start_time=start_time,
+            ).exclude(
+                status__in=[Appointment.STATUS_CANCELLED, Appointment.STATUS_REJECTED]
+            )
+            if self.instance.pk:
+                duplicate = duplicate.exclude(pk=self.instance.pk)
+            
+            if duplicate.exists():
+                raise ValidationError(
+                    "This pet already has an appointment scheduled for this date and time."
+                )
+
         return cleaned_data
+

@@ -97,6 +97,24 @@ class Appointment(models.Model):
             )
         if self.status in (self.STATUS_CANCELLED, self.STATUS_REJECTED):
             self.slot_number = None
+        
+        # Check for duplicate pet bookings at the same date/time
+        if self.pet and self.appointment_date and self.start_time:
+            duplicate_query = Appointment.objects.filter(
+                pet=self.pet,
+                appointment_date=self.appointment_date,
+                start_time=self.start_time,
+            ).exclude(
+                status__in=[self.STATUS_CANCELLED, self.STATUS_REJECTED]
+            )
+            # Exclude current appointment if updating
+            if self.pk:
+                duplicate_query = duplicate_query.exclude(pk=self.pk)
+            
+            if duplicate_query.exists():
+                raise ValidationError(
+                    "This pet already has an appointment scheduled for this date and time."
+                )
 
     def __str__(self) -> str:
         pet_name = self.pet.name if self.pet else "Walk-in"

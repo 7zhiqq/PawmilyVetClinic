@@ -4,6 +4,7 @@ from datetime import date, datetime, time, timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
 from django.db.models import Count, Q
 from django.http import HttpResponseForbidden, JsonResponse
@@ -239,9 +240,13 @@ def appointment_book(request):
                                 apt.slot_number = slot_number
                                 apt.status = Appointment.STATUS_PENDING
                                 apt.appointment_type = Appointment.TYPE_SCHEDULED
-                                apt.save()
-                                notify_appointment_requested(apt)
-                                return redirect("appointment_calendar")
+                                try:
+                                    apt.full_clean()
+                                    apt.save()
+                                    notify_appointment_requested(apt)
+                                    return redirect("appointment_calendar")
+                                except ValidationError as e:
+                                    error = str(e.message) if hasattr(e, 'message') else str(e)
                     except IntegrityError:
                         error = "That slot was just taken by another booking. Please try again."
     else:
@@ -300,10 +305,14 @@ def appointment_schedule(request):
                         apt.slot_number = max_slot + 1
                         apt.appointment_type = Appointment.TYPE_WALK_IN
                         apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
-                        apt.save()
-                        if apt.status == Appointment.STATUS_CONFIRMED:
-                            notify_appointment_confirmed(apt)
-                        return redirect("appointment_manage")
+                        try:
+                            apt.full_clean()
+                            apt.save()
+                            if apt.status == Appointment.STATUS_CONFIRMED:
+                                notify_appointment_confirmed(apt)
+                            return redirect("appointment_manage")
+                        except ValidationError as e:
+                            error = str(e.message) if hasattr(e, 'message') else str(e)
                     else:
                         taken = _taken_slots(appt_date, appt_time)
                         if len(taken) >= MAX_SLOTS:
@@ -316,10 +325,14 @@ def appointment_schedule(request):
                             apt.slot_number = slot_number
                             apt.appointment_type = Appointment.TYPE_SCHEDULED
                             apt.status = form.cleaned_data.get("status") or Appointment.STATUS_CONFIRMED
-                            apt.save()
-                            if apt.status == Appointment.STATUS_CONFIRMED:
-                                notify_appointment_confirmed(apt)
-                            return redirect("appointment_manage")
+                            try:
+                                apt.full_clean()
+                                apt.save()
+                                if apt.status == Appointment.STATUS_CONFIRMED:
+                                    notify_appointment_confirmed(apt)
+                                return redirect("appointment_manage")
+                            except ValidationError as e:
+                                error = str(e.message) if hasattr(e, 'message') else str(e)
             except IntegrityError:
                 error = "That slot was just taken by another booking. Please try again."
     else:
