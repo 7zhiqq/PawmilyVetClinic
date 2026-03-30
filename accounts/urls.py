@@ -57,5 +57,5 @@ urlpatterns = [
     path("walkin/qr/<str:token>/", views.walkin_qr_image, name="walkin_qr_image"),
     path("walkin/print/<str:token>/", views.walkin_print_card, name="walkin_print_card"),
     
-    path('create-admin/', views.create_admin),
+    # path('create-admin/', views.create_admin),
 ]

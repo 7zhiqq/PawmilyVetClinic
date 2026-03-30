@@ -37,13 +37,13 @@ User = get_user_model()
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
-def create_admin(request):
-    if not User.objects.filter(username='pawmily').exists():
-        User.objects.create_superuser('pawmily', 'pawmily@email.com', 'pawmily123')
-        return HttpResponse("Superuser created")
-    return HttpResponse("Already exists")
+# def create_admin(request):
+#     if not User.objects.filter(username='pawmily').exists():
+#         User.objects.create_superuser('pawmily', 'pawmily@email.com', 'pawmily123')
+#         return HttpResponse("Superuser created")
+#     return HttpResponse("Already exists")
 
 def _is_pet_owner(user):
     try:
