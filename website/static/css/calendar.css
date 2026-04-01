@@ -268,7 +268,7 @@
 /* ──────────────────────────────────────────────────────────────── */
 
 /* Tablet: keep true 7-column month grid visible without horizontal scroll */
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1024px) {
   .cal-page {
     padding: 1.5rem 1rem 2rem;
   }
@@ -307,7 +307,7 @@
 }
 
 /* Mobile: preserve 7-column structure with horizontal scroll */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .cal-page {
     padding: 1rem 0.75rem 1.5rem;
   }
@@ -337,8 +337,8 @@
 
   .cal-grid {
     display: grid;
-    grid-template-columns: repeat(7, minmax(86px, 1fr));
-    min-width: 602px;
+    grid-template-columns: repeat(7, minmax(90px, 1fr));
+    min-width: 630px;
   }
 
   .cal-head {
@@ -364,10 +364,6 @@
     padding: 0.12rem 0.25rem;
     margin-bottom: 0.1rem;
     line-height: 1.25;
-  }
-
-  .cal-event:nth-of-type(n+3) {
-    display: none;
   }
 
   .cal-legend {
