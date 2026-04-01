@@ -288,16 +288,7 @@
     justify-content: space-between;
   }
 
-  .cal-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(80px, 1fr));
-    min-width: 600px;
-  }
+  .cal-wrap {\n    overflow-x: auto;\n    overflow-y: hidden;\n    -webkit-overflow-scrolling: touch;\n  }\n\n  .cal-grid {\n    display: inline-grid;\n    grid-template-columns: repeat(7, 85px);\n    min-width: min-content;\n    width: 100%;\n  }
 
   .cal-head {
     padding: 0.5rem 0.35rem;

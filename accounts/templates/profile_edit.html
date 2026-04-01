@@ -207,8 +207,8 @@
       {% if messages %}
       <section class="dashboard-card profile-alerts">
         {% for message in messages %}
-        <div class="login-errors"{% if message.tags == 'success' %} style="background:rgba(11,122,87,.12);border-color:rgba(11,122,87,.3);color:#0f5132;"{% endif %}>
-          <p>{{ message }}</p>
+        <div class="login-errors"{% if message.tags == 'success' %} style="background:rgba(11,122,87,.12);border-color:rgba(11,122,87,.3);"{% endif %}>
+          <p{% if message.tags == "success" %} style="color:#166534;"{% endif %}>{{ message }}</p>
         </div>
         {% endfor %}
       </section>

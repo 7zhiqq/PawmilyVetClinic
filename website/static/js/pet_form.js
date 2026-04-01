@@ -9,15 +9,14 @@
   var otherInput = document.getElementById('id_species_other');
 
   function updateOtherFieldVisibility() {
-    if (realSelect.value === 'other') {
-      if (otherContainer) otherContainer.style.display = '';
-      if (otherInput) otherInput.setAttribute('required', '');
-    } else {
-      if (otherContainer) otherContainer.style.display = 'none';
-      if (otherInput) {
-        otherInput.removeAttribute('required');
-        otherInput.value = '';
-      }
+    if (!otherContainer || !otherInput) return;
+    
+    var showOther = realSelect.value === 'other';
+    otherContainer.style.display = showOther ? '' : 'none';
+    otherInput.required = showOther;
+    
+    if (!showOther) {
+      otherInput.value = '';
     }
   }
 
@@ -45,6 +44,11 @@
       realSelect.value = this.value;
       updateOtherFieldVisibility();
     });
+  });
+
+  // Listen to direct changes on the hidden select (in case form data is populated)
+  realSelect.addEventListener('change', function() {
+    updateOtherFieldVisibility();
   });
 
   var form = realSelect.form;
