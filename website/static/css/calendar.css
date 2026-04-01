@@ -309,13 +309,13 @@
 /* Mobile: compact 7-column grid that stays fully visible */
 @media (max-width: 768px) {
   .cal-page {
-    padding: 1rem 0.65rem 1.25rem;
+    padding: 0.85rem 0.55rem 1rem;
   }
 
   .cal-header {
     flex-direction: column;
-    gap: 0.65rem;
-    margin-bottom: 0.9rem;
+    gap: 0.5rem;
+    margin-bottom: 0.7rem;
   }
 
   .cal-header__actions {
@@ -324,53 +324,62 @@
   }
 
   .cal-nav {
-    padding: 0.55rem 0.75rem;
-    margin-bottom: 0.85rem;
+    padding: 0.45rem 0.65rem;
+    margin-bottom: 0.7rem;
   }
 
   .cal-wrap {
     overflow: hidden;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-auto-flow: row;
   }
 
   .cal-head {
-    padding: 0.35rem 0.12rem;
-    font-size: 0.53rem;
-    letter-spacing: 0.04em;
+    padding: 2px 1px;
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.03em;
   }
 
   .cal-day {
-    min-height: 64px;
-    padding: 0.18rem;
+    min-height: 60px;
+    padding: 2px;
+    min-width: 0;
   }
 
   .cal-day__num {
-    width: 18px;
-    height: 18px;
-    font-size: 0.66rem;
-    margin-bottom: 0.14rem;
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    margin-bottom: 2px;
+  }
+
+  .cal-event-wrapper {
+    min-width: 0;
   }
 
   .cal-event {
-    font-size: 0.56rem;
-    padding: 0.08rem 0.18rem;
-    margin-bottom: 0.08rem;
-    line-height: 1.1;
+    font-size: 9px;
+    padding: 1px 3px;
+    margin-bottom: 2px;
+    line-height: 1.05;
     border-radius: 3px;
+    max-width: 100%;
   }
 
   .cal-legend {
-    gap: 0.4rem;
-    margin-top: 0.7rem;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
   }
 
   .cal-legend__item {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
   }
 }
