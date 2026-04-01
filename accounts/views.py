@@ -367,7 +367,7 @@ def profile_edit(request):
             profile_form = ProfileForm(request.POST, request.FILES, instance=profile)
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, "Your profile has been updated.")
+                messages.success(request, "Changes saved! Your profile information has been updated successfully.")
                 return redirect(f'{reverse("profile_edit")}?section=profile')
 
     return render(

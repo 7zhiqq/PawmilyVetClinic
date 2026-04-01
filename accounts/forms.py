@@ -43,6 +43,7 @@ def ph_phone_normalize(value):
 PET_SHARED_FIELDS = [
     "name",
     "species",
+    "species_other",
     "breed",
     "gender",
     "birth_date",
@@ -57,6 +58,7 @@ PET_SHARED_WIDGETS = {
     "birth_date": forms.DateInput(attrs={"type": "date"}),
     "weight_kg": forms.NumberInput(attrs={"step": "0.01", "placeholder": "0.00"}),
     "color": forms.TextInput(attrs={"placeholder": "e.g. Brown, Black and white"}),
+    "species_other": forms.TextInput(attrs={"placeholder": "e.g. Rabbit, Ferret, Reptile"}),
     "notes": forms.Textarea(attrs={"rows": 2, "placeholder": "Medical notes, allergies, etc."}),
 }
 
@@ -223,7 +225,14 @@ class PetForm(forms.ModelForm):
         cleaned_data = super().clean()
         name = cleaned_data.get("name")
         species = cleaned_data.get("species")
+        species_other = cleaned_data.get("species_other", "").strip()
         owner = self.owner or (self.instance.owner if self.instance.pk else None)
+        
+        # Validate that species_other is provided when species is "other"
+        if species == "other" and not species_other:
+            raise forms.ValidationError({
+                "species_other": "Please specify what species of pet this is when selecting 'Other'."
+            })
         
         # Check for duplicate pet records for same owner
         if owner and name and species:

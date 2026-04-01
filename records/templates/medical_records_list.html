@@ -34,8 +34,15 @@
       <div class="medical-pet-header">
         <div class="medical-pet-header__left">
           <div class="medical-pet-header__avatar">
-            {% if pet.profile_picture %}
-              <img src="{{ pet.profile_picture.url }}" alt="{{ pet.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+            {% if pet.profile_picture_url %}
+              <img src="{{ pet.profile_picture_url }}" 
+                   alt="{{ pet.name }}" 
+                   style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
+                   loading="lazy"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <span style="display:none; align-items:center; justify-content:center; width:100%; height:100%; font-size:2rem;">
+                {% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
+              </span>
             {% elif pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}
           </div>
           <div class="medical-pet-header__info">

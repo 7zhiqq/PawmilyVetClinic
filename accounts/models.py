@@ -65,6 +65,12 @@ class Pet(models.Model):
     )
     name = models.CharField(max_length=100)
     species = models.CharField(max_length=20, choices=SPECIES_CHOICES)
+    species_other = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text="Specify the species if 'Other' is selected above."
+    )
     breed = models.CharField(max_length=100, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     weight_kg = models.DecimalField(
@@ -124,6 +130,17 @@ class Pet(models.Model):
                     f"You already have a {self.get_species_display()} named '{pet_name}'. "
                     "Please use a different name or check your existing pets."
                 )
+
+    @property
+    def profile_picture_url(self):
+        """
+        Return the absolute URL for the pet's profile picture.
+        This ensures the image is retrieved from the database/server
+        and persists across devices, rather than from local cache.
+        """
+        if self.profile_picture:
+            return self.profile_picture.url
+        return None
 
     def __str__(self) -> str:
         return f"{self.name} ({self.get_species_display()})"

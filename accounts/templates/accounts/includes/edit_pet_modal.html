@@ -28,9 +28,13 @@
         <div class="field-group">
           <label><i class="fa-solid fa-camera"></i> Profile Photo <span class="field-optional">(optional)</span></label>
           <div class="pet-photo-upload" id="editPhotoUpload_{{ pet.pk }}">
-            <div class="pet-photo-upload__preview{% if pet.profile_picture %} has-image{% endif %}" id="editPhotoPreview_{{ pet.pk }}">
-              {% if pet.profile_picture %}
-                <img src="{{ pet.profile_picture.url }}" alt="{{ pet.name }}" class="pet-photo-upload__img" />
+            <div class="pet-photo-upload__preview{% if pet.profile_picture_url %} has-image{% endif %}" id="editPhotoPreview_{{ pet.pk }}">
+              {% if pet.profile_picture_url %}
+                <img src="{{ pet.profile_picture_url }}" 
+                     alt="{{ pet.name }}" 
+                     class="pet-photo-upload__img"
+                     loading="lazy"
+                     onerror="this.parentElement.classList.remove('has-image'); this.remove();" />
               {% else %}
                 <span class="pet-photo-upload__placeholder">{% if pet.species == 'dog' %}🐶{% elif pet.species == 'cat' %}🐱{% elif pet.species == 'bird' %}🐦{% else %}🐾{% endif %}</span>
               {% endif %}
@@ -54,7 +58,7 @@
               accept="image/*"
               class="pet-photo-upload__input edit-photo-input"
               data-pk="{{ pet.pk }}"
-              data-has-image="{% if pet.profile_picture %}true{% else %}false{% endif %}" />
+              data-has-image="{% if pet.profile_picture_url %}true{% else %}false{% endif %}" />
           </div>
         </div>
 

@@ -16,6 +16,19 @@
   {{ form.species }}
 </div>
 
+<div class="{{ row_full_class }}" id="speciesOtherContainer" style="display:none; margin-top:0.75rem;">
+  <div class="field-group{% if full_field_class %} {{ full_field_class }}{% endif %}">
+    <label for="id_species_other">
+      <i class="fa-solid fa-pen"></i> Please specify species
+    </label>
+    <input type="text" id="id_species_other" name="species_other" 
+      placeholder="e.g. Rabbit, Ferret, Reptile" 
+      value="{{ form.species_other.value|default:'' }}"
+      {% if form.species.value == 'other' %}required{% endif %} />
+    {% if form.species_other.errors %}<span style="color:#dc2626; font-size:0.75rem;">{{ form.species_other.errors.0 }}</span>{% endif %}
+  </div>
+</div>
+
 <div class="section-label">Details</div>
 <div class="{{ row_class }}">
   <div class="field-group">
