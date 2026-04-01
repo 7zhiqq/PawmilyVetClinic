@@ -20,6 +20,11 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    var addForm = document.querySelector('#addPetModal form, #addPetModalEmpty form');
+    var speciesRadios = document.querySelectorAll('#addPetModal input[name="species"], #addPetModalEmpty input[name="species"]');
+    var speciesOtherGroup = document.getElementById('speciesOtherGroupModal');
+    var speciesOtherInput = document.getElementById('id_species_other_modal');
+
     var addInput = document.getElementById('id_profile_picture');
     var addPreview = document.getElementById('addPhotoPreview');
     var addClear = document.getElementById('addPhotoClear');
@@ -27,7 +32,30 @@
     var addHint = document.getElementById('addPhotoHint');
     var addFilename = document.getElementById('addPhotoFilename');
 
+    function toggleSpeciesOtherInput() {
+      if (!speciesOtherGroup || !speciesOtherInput) return;
+
+      var selectedSpecies = '';
+      speciesRadios.forEach(function (radio) {
+        if (radio.checked) selectedSpecies = radio.value;
+      });
+
+      var showOtherInput = selectedSpecies === 'other';
+      speciesOtherGroup.style.display = showOtherInput ? '' : 'none';
+      speciesOtherInput.required = showOtherInput;
+
+      if (!showOtherInput) {
+        speciesOtherInput.value = '';
+      }
+    }
+
     if (!addInput || !addPreview) {
+      if (speciesRadios.length) {
+        speciesRadios.forEach(function (radio) {
+          radio.addEventListener('change', toggleSpeciesOtherInput);
+        });
+        toggleSpeciesOtherInput();
+      }
       return;
     }
 
@@ -76,6 +104,23 @@
 
     if (addClear) {
       addClear.addEventListener('click', resetAddPhoto);
+    }
+
+    if (speciesRadios.length) {
+      speciesRadios.forEach(function (radio) {
+        radio.addEventListener('change', toggleSpeciesOtherInput);
+      });
+      toggleSpeciesOtherInput();
+    }
+
+    if (addForm) {
+      addForm.addEventListener('submit', function (e) {
+        toggleSpeciesOtherInput();
+        if (speciesOtherInput && speciesOtherInput.required && !speciesOtherInput.value.trim()) {
+          e.preventDefault();
+          speciesOtherInput.focus();
+        }
+      });
     }
   });
 })();

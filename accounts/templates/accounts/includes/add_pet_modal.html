@@ -55,6 +55,16 @@
           {% include 'accounts/includes/pet_species_radio_grid.html' with name_attr='species' id_prefix='sp' selected_species=form.species.value ui_variant='modal' %}
         </div>
 
+        <div class="field-group" id="speciesOtherGroupModal" style="display:none;">
+          <label for="id_species_other_modal"><i class="fa-solid fa-pen"></i> Specify species</label>
+          <input
+            type="text"
+            id="id_species_other_modal"
+            name="species_other"
+            placeholder="e.g. Turtle, Hamster, Rabbit"
+            value="{{ form.species_other.value|default:'' }}" />
+        </div>
+
         <div class="modal-form__row">
           <div class="field-group">
             <label for="id_breed"><i class="fa-solid fa-dna"></i> Breed</label>
